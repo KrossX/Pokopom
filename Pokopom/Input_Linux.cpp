@@ -23,8 +23,10 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/joystick.h>
+#include <stdio.h>
 #include <fstream>
 #include <errno.h>
+#include <time.h>
 
 enum
 {
@@ -298,6 +300,7 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 {
 	if(!gamepadPlugged) return;
 
+	static timespec timeS[4], timeB[4];
 	ffinfo &rumble = rumble_info[set.xinputPort];
 
 	if(rumble.fd == 0)
@@ -307,8 +310,23 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 	{
 		u16 &smallMotor = rumble.effect.u.rumble.weak_magnitude;
 		u16 &bigMotor = rumble.effect.u.rumble.strong_magnitude;
+		
+		timespec timeC;
+		clock_gettime(CLOCK_MONOTONIC, &timeC);
 
-		smallMotor = smalldata ? Clamp(0xFFFF * set.rumble) : 0;
+		if(smalldata)
+		{
+			smallMotor = Clamp(0xFFFF * set.rumble);
+			clock_gettime(CLOCK_MONOTONIC, &timeS[set.xinputPort]);
+		}
+		else if(smallMotor)
+		{
+			const long secDiff = timeC.tv_sec - timeS[set.xinputPort].tv_sec;
+			const long nsecDiff = timeC.tv_nsec - timeS[set.xinputPort].tv_nsec;
+			
+			if(secDiff > 0 || nsecDiff > 150000000)
+				smallMotor = 0;
+		}
 
 		if(bigdata)
 		{
@@ -318,14 +336,21 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 					3.637978807091713e-11;
 
 			bigMotor = Clamp(broom * set.rumble);
+			clock_gettime(CLOCK_MONOTONIC, &timeB[set.xinputPort]);
 		}
-		else
-			bigMotor  = 0;
+		else if(bigMotor)
+		{
+			const long secDiff = timeC.tv_sec - timeB[set.xinputPort].tv_sec;
+			const long nsecDiff = timeC.tv_nsec - timeB[set.xinputPort].tv_nsec;
+			
+			if(secDiff > 0 || nsecDiff > 150000000)
+				bigMotor  = 0;
+		}
 
 		// Update the same effect...
 		if (ioctl(rumble.fd, EVIOCSFF, &rumble.effect) == -1)
 		{
-			//perror("Rumble Upload");
+			perror("Rumble Upload");
 			rumble.fd = 0;
 			return;
 		}
@@ -335,7 +360,7 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 		// And play it!
 		if (write(rumble.fd, (const void*) &rumble.play, sizeof(rumble.play)) == -1)
 		{
-			//perror("Rumble Playback");
+			perror("Rumble Playback");
 			rumble.fd = 0;
 			return;
 		}
