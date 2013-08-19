@@ -28,35 +28,35 @@ Controller2::Controller2(_Settings &config):
 
 void Controller2::ReadInputPressure(unsigned char *buffer)
 {
-	short mask = (pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0]);	
+	unsigned int mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;	
 	
 	ReadInput(buffer);		
 
-	if(mask >> 6)
+	if(mask)
 	{
 		//Right, left, up, down		
-		pressureButton[0x00] = buttons & 0x20 ? 0x00 : ++pressureButton[0x00] << 1;
-		pressureButton[0x01] = buttons & 0x80 ? 0x00 : ++pressureButton[0x01] << 1;
-		pressureButton[0x02] = buttons & 0x10 ? 0x00 : ++pressureButton[0x02] << 1;
-		pressureButton[0x03] = buttons & 0x40 ? 0x00 : ++pressureButton[0x03] << 1;
+		pressureButton[0x00] = (mask & 0x01) && (buttons & 0x20) ? 0x00 : pressureButton[0x00] + 10;
+		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + 10;
+		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + 10;
+		pressureButton[0x03] = (mask & 0x04) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + 10;
 	
 		//triangle, circle, cross, square
-		pressureButton[0x04] = buttons & 0x1000 ? 0x00 : ++pressureButton[0x04] << 1;
-		pressureButton[0x05] = buttons & 0x2000 ? 0x00 : ++pressureButton[0x05] << 1;
-		pressureButton[0x06] = buttons & 0x4000 ? 0x00 : ++pressureButton[0x06] << 1;
-		pressureButton[0x07] = buttons & 0x8000 ? 0x00 : ++pressureButton[0x07] << 1;
+		pressureButton[0x04] = (mask & 0x05) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + 10;
+		pressureButton[0x05] = (mask & 0x06) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + 10;
+		pressureButton[0x06] = (mask & 0x07) && (buttons & 0x4000) ? 0x00 : pressureButton[0x06] + 10;
+		pressureButton[0x07] = (mask & 0x08) && (buttons & 0x8000) ? 0x00 : pressureButton[0x07] + 10;
 
 		//l1, r1, l2, r2
-		pressureButton[0x08] = buttons & 0x400 ? 0x00 : ++pressureButton[0x08] << 1;
-		pressureButton[0x09] = buttons & 0x800 ? 0x00 : ++pressureButton[0x09] << 1;
-		pressureButton[0x0A] = buttons & 0x100 ? 0x00 : triggerL;
-		pressureButton[0x0B] = buttons & 0x200 ? 0x00 : triggerR;
+		pressureButton[0x08] = (mask & 0x09) && (buttons & 0x400) ? 0x00 : pressureButton[0x08] + 10;
+		pressureButton[0x09] = (mask & 0x0A) && (buttons & 0x800) ? 0x00 : pressureButton[0x09] + 10;
+		pressureButton[0x0A] = (mask & 0x0B) && (buttons & 0x100) ? 0x00 : triggerL;
+		pressureButton[0x0B] = (mask & 0x0C) && (buttons & 0x200) ? 0x00 : triggerR;
 
 		for(int i = 0; i < 0x0C; i++) 					
-			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;			
+			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;
 	}	
 	else
-		memset(&buffer[9], 0x00, 12);			
+		memset(&buffer[9], 0x00, 12);
 }
 
 void Controller2::Cmd1(const unsigned char data)
