@@ -302,8 +302,8 @@ namespace XInput
 		u16* buffer = (u16*) buffer_out;
 
 		// Some magic number...
-		buffer[0] = 0x0100;
-		buffer[1] = 0x0000;
+		buffer[0] = 0x0000;
+		buffer[1] = 0x0100;
 
 		u16 buttons = 0xFFFF;
 		u16 analog = 0x8080;
