@@ -31,11 +31,12 @@
 #include <XInput.h>
 #pragma comment(lib, "Xinput.lib")
 
-HINSTANCE hXInput = NULL;
 typedef DWORD (WINAPI* XInputGetStateEx_t)(DWORD dwUserIndex, XINPUT_STATE *pState);
-XInputGetStateEx_t XInputGetStateEx;
+XInputGetStateEx_t XInputGetStateEx = NULL;
 
 #define XINPUT_GAMEPAD_GUIDE 0x400
+
+XINPUT_STATE state[4];
 
 namespace Input
 {
@@ -48,9 +49,8 @@ bool FASTCALL Recheck(u8 port)
 {
 	if(settings[port].disabled) return false;
 
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(port, &state);
-
+	DWORD result = XInputGetState(port, &state[port]);
+	
 	return (result == ERROR_SUCCESS);
 }
 
@@ -69,21 +69,7 @@ void FASTCALL StopRumble(u8 port)
 bool FASTCALL CheckAnalogToggle(u8 port)
 {
 	//return !!(GetAsyncKeyState(0x31 + port) >> 1);
-
-	XINPUT_STATE state;
-	
-	if(!hXInput)
-	{
-		hXInput = LoadLibrary(XINPUT_DLL);
-		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
-	}
-
-	DWORD result = XInputGetStateEx(port, &state);
-
-	if(result == ERROR_SUCCESS)
-		return !!(state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
-	else
-		return false;
+	return !!(state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
 }
 
 void FASTCALL SetAnalogLed(u8 port, bool digital)
@@ -99,46 +85,47 @@ void FASTCALL SetAnalogLed(u8 port, bool digital)
 
 bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 {
-	XINPUT_STATE state;
-	
-	if(!hXInput)
+	if(!XInputGetStateEx)
 	{
-		hXInput = LoadLibrary(XINPUT_DLL);
+		HINSTANCE hXInput = LoadLibrary(XINPUT_DLL);
 		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
-	}
 
-	DWORD result = XInputGetStateEx(set.xinputPort, &state);
+		if(!XInputGetStateEx) // Might help with wrappers compatibility
+			XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, "XInputGetState");
+	} 
 
+	const int xport = set.xinputPort;
+	DWORD result = XInputGetStateEx(xport, &state[xport]);
 
 	if(result == ERROR_SUCCESS)
 	{
-		pad.buttons[X360_DUP] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
-		pad.buttons[X360_DDOWN] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) >> 1;
-		pad.buttons[X360_DLEFT] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) >> 2;
-		pad.buttons[X360_DRIGHT] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) >> 3;
+		pad.buttons[X360_DUP] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
+		pad.buttons[X360_DDOWN] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) >> 1;
+		pad.buttons[X360_DLEFT] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) >> 2;
+		pad.buttons[X360_DRIGHT] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) >> 3;
 
-		pad.buttons[X360_START] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) >> 4;
-		pad.buttons[X360_BACK] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) >> 5;
+		pad.buttons[X360_START] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_START) >> 4;
+		pad.buttons[X360_BACK] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_BACK) >> 5;
 
-		pad.buttons[X360_LS] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) >> 6;
-		pad.buttons[X360_RS] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) >> 7;
-		pad.buttons[X360_LB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) >> 8;
-		pad.buttons[X360_RB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) >> 9;
+		pad.buttons[X360_LS] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) >> 6;
+		pad.buttons[X360_RS] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) >> 7;
+		pad.buttons[X360_LB] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) >> 8;
+		pad.buttons[X360_RB] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) >> 9;
 
-		pad.buttons[X360_BIGX] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) >> 10;
+		pad.buttons[X360_BIGX] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) >> 10;
 
-		pad.buttons[X360_A] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) >> 12;
-		pad.buttons[X360_B] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) >> 13;
-		pad.buttons[X360_X] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) >> 14;
-		pad.buttons[X360_Y] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) >> 15;
+		pad.buttons[X360_A] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_A) >> 12;
+		pad.buttons[X360_B] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_B) >> 13;
+		pad.buttons[X360_X] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_X) >> 14;
+		pad.buttons[X360_Y] = (state[xport].Gamepad.wButtons & XINPUT_GAMEPAD_Y) >> 15;
 
-		pad.analog[X360_STICKLX] = state.Gamepad.sThumbLX;
-		pad.analog[X360_STICKLY] = state.Gamepad.sThumbLY;
-		pad.analog[X360_STICKRX] = state.Gamepad.sThumbRX;
-		pad.analog[X360_STICKRY] = state.Gamepad.sThumbRY;
+		pad.analog[X360_STICKLX] = state[xport].Gamepad.sThumbLX;
+		pad.analog[X360_STICKLY] = state[xport].Gamepad.sThumbLY;
+		pad.analog[X360_STICKRX] = state[xport].Gamepad.sThumbRX;
+		pad.analog[X360_STICKRY] = state[xport].Gamepad.sThumbRY;
 
-		pad.analog[X360_TRIGGERL] = state.Gamepad.bLeftTrigger;
-		pad.analog[X360_TRIGGERR] = state.Gamepad.bRightTrigger;
+		pad.analog[X360_TRIGGERL] = state[xport].Gamepad.bLeftTrigger;
+		pad.analog[X360_TRIGGERR] = state[xport].Gamepad.bRightTrigger;
 
 		pad.stickL.X = pad.analog[X360_STICKLX];
 		pad.stickL.Y = pad.analog[X360_STICKLY];
@@ -168,69 +155,64 @@ bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 
 void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged)
 {
+	if(!gamepadPlugged) return;
+	
+	//Debug("Vibrate! [%X] [%X]\n", smalldata, bigdata);
 	const u8 xport = set.xinputPort;
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(xport, &state);
 
-	if(result == ERROR_SUCCESS)
+	static XINPUT_VIBRATION vib[4];
+	static DWORD timerS[4], timerB[4];
+
+	if(smalldata)
 	{
-		//Debug("Vibrate! [%X] [%X]\n", smalldata, bigdata);
+		vib[xport].wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
+		timerS[xport] = GetTickCount();
+	}
+	else if (vib[xport].wRightMotorSpeed && GetTickCount() - timerS[xport] > 150)
+	{
+		vib[xport].wRightMotorSpeed = 0;
+	}
 
-		static XINPUT_VIBRATION vib[4];
-		static DWORD timerS[4], timerB[4];
+	/*
+	3.637978807091713*^-11 +
+	156.82454281087692 * x + -1.258165252213538 *  x^2 +
+	0.006474549734772402 * x^3;
+	*/
 
-		if(smalldata)
-		{
-			vib[xport].wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
-			timerS[xport] = GetTickCount();
-		}
-		else if (vib[xport].wRightMotorSpeed && GetTickCount() - timerS[xport] > 150)
-		{
-			vib[xport].wRightMotorSpeed = 0;
-		}
+	if(bigdata)
+	{
+		f64 broom = 0.006474549734772402 * pow(bigdata, 3.0) -
+			1.258165252213538 *  pow(bigdata, 2.0) +
+			156.82454281087692 * bigdata +
+			3.637978807091713e-11;
+
 
 		/*
-		3.637978807091713*^-11 +
-  156.82454281087692 * x + -1.258165252213538 *  x^2 +
-  0.006474549734772402 * x^3;
-  */
+		u32 broom = bigdata;
 
-		if(bigdata)
-		{
-			f64 broom = 0.006474549734772402 * pow(bigdata, 3.0) -
-				1.258165252213538 *  pow(bigdata, 2.0) +
-				156.82454281087692 * bigdata +
-				3.637978807091713e-11;
-
-
-			/*
-			u32 broom = bigdata;
-
-			if(bigdata <= 0x2C) broom *= 0x72;
-			else if(bigdata <= 0x53) broom = 0x13C7 + bigdata * 0x24;
-			else broom *= 0x205;
-			*/
-
-			vib[xport].wLeftMotorSpeed = Clamp(broom * set.rumble);
-			timerB[xport] = GetTickCount();
-		}
-		else if (vib[xport].wLeftMotorSpeed && GetTickCount() - timerB[xport] > 150)
-		{
-			vib[xport].wLeftMotorSpeed = 0;
-		}
-
-		/*
-
-		vib.wRightMotorSpeed = smalldata == 0? 0 : 0xFFFF;
-		vib.wLeftMotorSpeed = bigdata * 0x101;
-
-		vib.wRightMotorSpeed = Clamp(vib.wRightMotorSpeed * settings.rumble);
-		vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
+		if(bigdata <= 0x2C) broom *= 0x72;
+		else if(bigdata <= 0x53) broom = 0x13C7 + bigdata * 0x24;
+		else broom *= 0x205;
 		*/
 
-		XInputSetState(xport, &vib[xport]);
+		vib[xport].wLeftMotorSpeed = Clamp(broom * set.rumble);
+		timerB[xport] = GetTickCount();
 	}
-	else
+	else if (vib[xport].wLeftMotorSpeed && GetTickCount() - timerB[xport] > 150)
+	{
+		vib[xport].wLeftMotorSpeed = 0;
+	}
+
+	/*
+
+	vib.wRightMotorSpeed = smalldata == 0? 0 : 0xFFFF;
+	vib.wLeftMotorSpeed = bigdata * 0x101;
+
+	vib.wRightMotorSpeed = Clamp(vib.wRightMotorSpeed * settings.rumble);
+	vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
+	*/
+
+	if( XInputSetState(xport, &vib[xport]) != ERROR_SUCCESS )
 		gamepadPlugged = false;
 }
 
@@ -285,14 +267,7 @@ void VibrationWatchdog(LPVOID param)
 void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, u16 wait,
 	_Settings &set, bool &gamepadPlugged, HANDLE &thread)
 {
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
-
-	if(result != ERROR_SUCCESS)
-	{
-		gamepadPlugged = false;
-		return;
-	}
+	if(!gamepadPlugged) return;
 
 	XINPUT_VIBRATION vib;
 
@@ -314,7 +289,8 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, u16 wait,
 	
 	thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, th, 0, NULL);
 	
-	XInputSetState(set.xinputPort, &vib);
+	if(XInputSetState(set.xinputPort, &vib) != ERROR_SUCCESS)
+		gamepadPlugged = false;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -323,63 +299,47 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, u16 wait,
 
 void FASTCALL N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged)
 {
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(port, &state);
+	if(!gamepadPlugged) return;
 
 	static bool pressed[4] = {false};
 
-	if(result == ERROR_SUCCESS)
+	if(!pressed[port] && (state[port].Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
 	{
-		if(!pressed[port] && (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
-		{
-			pressed[port] = true;
-			rumble = !rumble;
-		}
-		else if(pressed[port] && !(state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
-		{
-			pressed[port] = false;
-		}
+		pressed[port] = true;
+		rumble = !rumble;
 	}
-	else
-		gamepadPlugged = false;
-
-	if(gamepadPlugged)
+	else if(pressed[port] && !(state[port].Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
 	{
-		bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
+		pressed[port] = false;
+	}
 
-		if((!rumble && !ledScrollLock) || (rumble && ledScrollLock))
-		{
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
-		}
+	bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
+
+	if((!rumble && !ledScrollLock) || (rumble && ledScrollLock))
+	{
+		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
+		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
 	}
 }
 
-
-
 void FASTCALL N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
 {
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
+	if(!gamepadPlugged) return;
 
-	if(result == ERROR_SUCCESS)
+	XINPUT_VIBRATION vib;
+
+	if(on)
 	{
-		static XINPUT_VIBRATION vib;
-
-		if(on)
-		{
-			vib.wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
-			vib.wLeftMotorSpeed = Clamp(0xFFFF * set.rumble);
-		}
-		else
-		{
-			vib.wRightMotorSpeed = 0;
-			vib.wLeftMotorSpeed = 0;
-		}
-
-		XInputSetState(set.xinputPort, &vib);
+		vib.wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
+		vib.wLeftMotorSpeed = Clamp(0xFFFF * set.rumble);
 	}
 	else
+	{
+		vib.wRightMotorSpeed = 0;
+		vib.wLeftMotorSpeed = 0;
+	}
+
+	if(XInputSetState(set.xinputPort, &vib) == ERROR_SUCCESS)
 		gamepadPlugged = false;
 }
 
