@@ -244,6 +244,8 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 	unsigned short analog = 0x8080;
 	unsigned short triggers = 0x0000;
 
+	static bool analogToggle = false;
+
 	if(result == ERROR_SUCCESS) 
 	{	
 		buttons = 0;
@@ -255,11 +257,19 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1)	<< 0x5; // Down
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1)	<< 0x6; // Left
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 0:1)	<< 0x7; // Right
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 0:1)	<< 0x9; // X
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1)	<< 0xA; // Y
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1)	<< 0x9; // Y
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 0:1)	<< 0xA; // X
 
-		triggers = ((state.Gamepad.bLeftTrigger&0xFF)<<8) | (state.Gamepad.bRightTrigger&0xFF);
-		analog = ConvertAnalog(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY, set);
+		triggers = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 0xFF : (state.Gamepad.bLeftTrigger&0xFF))<<8;
+		triggers |= state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 0xFF : state.Gamepad.bRightTrigger&0xFF;
+
+		if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
+		else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
+			
+		if(analogToggle)
+			analog = ConvertAnalog(state.Gamepad.sThumbRX, state.Gamepad.sThumbRY, set);
+		else
+			analog = ConvertAnalog(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY, set);		
 	}
 	else 
 		gamepadPlugged = false;
