@@ -92,6 +92,7 @@
     <ClInclude Include="ConfigDialog.h" />
     <ClInclude Include="ConsoleOutput.h" />
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="DebugStuff.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="Input.h" />
@@ -116,6 +117,7 @@
     <ClCompile Include="Controller2.cpp" />
     <ClCompile Include="ControllerGuitar.cpp" />
     <ClCompile Include="ControllerMtap.cpp" />
+    <ClCompile Include="DebugStuff.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="Input_Linux.cpp" />
     <ClCompile Include="Input_Shared.cpp" />

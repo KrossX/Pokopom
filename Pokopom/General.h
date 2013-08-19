@@ -55,10 +55,4 @@
 #include "Stuff.h"
 #include "Settings.h"
 
-#if 0
-	#define Debug printf
-	#define DebugFunc() printf("Pokopom -> "__FUNCTION__"\n")
-#else
-	#define Debug(...)
-	#define DebugFunc()
-#endif
+#include "DebugStuff.h"

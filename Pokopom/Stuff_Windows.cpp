@@ -138,7 +138,6 @@ void ScrollLockStuff(bool init)
 	static bool scrollLock = false;
 	static bool scrollLockSaved = false;
 
-
 	if(!scrollLockSaved && init)
 	{
 		scrollLock = GetKeyState(VK_SCROLL)&0x1;
@@ -161,12 +160,14 @@ BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
 	switch(dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-	case DLL_THREAD_ATTACH:
+	//case DLL_THREAD_ATTACH:
+		DebugOpen();
 		ScrollLockStuff(true);
 		break;
 
 	case DLL_PROCESS_DETACH:
-	case DLL_THREAD_DETACH:
+	//case DLL_THREAD_DETACH:
+		DebugClose();
 		Input::StopRumbleAll();
 		ScrollLockStuff(false);
 		break;

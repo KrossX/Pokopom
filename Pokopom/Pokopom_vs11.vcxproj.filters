@@ -96,6 +96,9 @@
     <ClInclude Include="nullDC_plugin_types_old.h">
       <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="DebugStuff.h">
+      <Filter>General\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Settings.cpp">
@@ -156,6 +159,9 @@
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="FileIO.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugStuff.cpp">
       <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>

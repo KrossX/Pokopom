@@ -210,7 +210,8 @@ void FASTCALL Unload()
 
 s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, u32 rootmenu)
 {
-	Debug("Pokopom -> CreateMain [%X|%X]\n", inst->port >> 6, id);
+	DebugPrint("[%X|%X]", inst->port >> 6, id);
+
 	u32 port = (inst->port >> 6);
 
 	switch(dcPlatform)
@@ -294,7 +295,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 {
 	u8 port = inst->port>>6;
 	u8 subport = GetSubport(inst->port);
-	Debug("Pokopom -> CreateSub [%X|%X|%X]\n", port, subport, id);
+	DebugPrint("[%X|%X|%X]", port, subport, id);
 
 	switch(dcPlatform)
 	{
@@ -348,7 +349,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 
 s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 {
-	Debug("Pokopom -> Init [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
+	DebugPrint("[%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 
 	Input::Pause(false);
 	KeepAwake(KEEPAWAKE_INIT);
@@ -358,7 +359,7 @@ s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 
 void FASTCALL Term(void* data, u32 id)
 {
-	Debug("Pokopom -> Term [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
+	DebugPrint("[%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 
 	Input::Pause(true);
 	KeepAwake(KEEPAWAKE_CLOSE);
@@ -366,7 +367,7 @@ void FASTCALL Term(void* data, u32 id)
 
 void FASTCALL Destroy(void* data, u32 id)
 {
-	Debug("Pokopom -> Destroy [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
+	DebugPrint("[%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 }
 
 //103////////////////////////////////////////////////////////////////////

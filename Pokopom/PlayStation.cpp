@@ -89,7 +89,7 @@ DllExport u32 CALLBACK PS2EgetLibVersion2(u32 type)
 DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 {
 	FileIO::INI_LoadSettings();
-	Debug("Pokopom -> PADinit [%X]\n", flags);
+	DebugPrint("[%X]", flags);
 
 	for(int pad = 0; pad < 2; pad++)
 	{
@@ -160,6 +160,7 @@ DllExport void CALLBACK PADshutdown() // PAD SHUTDOWN
 DllExport s32 CALLBACK PADopen(void* pDisplay) // PAD OPEN
 {
 	DebugFunc();
+
 	Input::Pause(false);
 
 	GetDisplay(pDisplay);
@@ -172,6 +173,7 @@ DllExport s32 CALLBACK PADopen(void* pDisplay) // PAD OPEN
 DllExport s32 CALLBACK PADclose() // PAD CLOSE
 {
 	DebugFunc();
+
 	Input::Pause(true);
 	KeyboardClose();
 	KeepAwake(KEEPAWAKE_CLOSE);
@@ -228,7 +230,7 @@ DllExport s32 CALLBACK PADquery()
 
 s32 FASTCALL PADreadPort(s32 port, emupro::pad::DataS* ppds)
 {
-	Debug("Pokopom -> PADreadPort [%X]\n", port);
+	DebugPrint("[%X]", port);
 
 	controller[port]->command(0, 0x01);
 	u8 cType = controller[port]->command(1, 0x42);
@@ -275,8 +277,8 @@ DllExport u8 CALLBACK PADstartPoll(s32 port)
 	
 	u8 data = controller[curPort]->command(bufferCount, curSlot);
 
-	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, curSlot, data);
-	Debug("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, curSlot, data);
+	//if(curPort == 0)
+	DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, curSlot, data);
 
 	return data;
 }
@@ -287,8 +289,8 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 
 	u8 doto = controller[curPort]->command(bufferCount, data);
 
-	//if(curPort == 0) printf("[%02d] [%02X|%02X]\n", bufferCount, data, doto);
-	Debug("[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, data, doto);
+	//if(curPort == 0)
+	DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, data, doto);
 
 	return doto;
 }
@@ -300,7 +302,8 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 
 DllExport u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 {
-	Debug("Pokopom -> PADfreeze [%X]\n", mode);
+	DebugPrint("[%X]", mode);
+
 	if(!data) return (u32)emupro::ERR_FATAL;
 
 	switch(mode)
@@ -350,6 +353,7 @@ DllExport u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 DllExport keyEvent* CALLBACK PADkeyEvent()
 {
 	DebugFunc();
+
 	static keyEvent pochy;
 
 	if(!isPs2Emulator)
@@ -373,8 +377,8 @@ DllExport s32 PADkeypressed()
 
 DllExport u32 CALLBACK PADqueryMtap(u8 port)
 {
-	printf("Pokopom -> PADqueryMtap [%X]\n", port);
-	
+	DebugPrint("[%X]", port);
+
 	if(multitap == 1 && port == 1) return 1;
 	else if(multitap == 2) return 1;
 	else return 0;
@@ -382,7 +386,8 @@ DllExport u32 CALLBACK PADqueryMtap(u8 port)
 
 DllExport void CALLBACK PADsetSettingsDir(const char *dir)
 {
-	Debug("Pokopom -> PadsetSettingsDir: %s\n", dir);
+	DebugPrint("%s", dir);
+
 	if(dir)
 		memcpy(settingsDirectory, dir, strlen(dir)+1);
 }
@@ -390,6 +395,7 @@ DllExport void CALLBACK PADsetSettingsDir(const char *dir)
 DllExport void  PADWriteEvent(keyEvent &evt)
 {
 	DebugFunc();
+
 	switch(evt.evt)
 	{
 	case 0x02:
@@ -407,7 +413,8 @@ DllExport void  PADWriteEvent(keyEvent &evt)
 
 DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)
 {
-	Debug("Pokopom -> PADsetSlot [%X|%X] ", port, slot);
+	DebugPrint("[%X|%X]", port, slot);
+
 	curPort = port - 1;
 	curSlot = slot;
 
@@ -429,7 +436,7 @@ DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)
 
 DllExport void CALLBACK PADupdate(s32 port)
 {
-	Debug("Pokopom -> PADupdate [%X]\n", port);
+	DebugPrint("[%X]", port);
 }
 
 
