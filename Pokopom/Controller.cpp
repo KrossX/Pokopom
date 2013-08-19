@@ -47,20 +47,20 @@ settings(config), sizeBuffer(bsize)
 }
 
 unsigned char Controller::command(const unsigned int counter, const unsigned char data)
-{						
-	if((counter >= sizeBuffer) && gamepadPlugged) 
-	{
-		printf("Pokopom: Out of Bound Buffer ERROR! [%02d:%02d]\n", sizeBuffer, counter); 
-		return 0x00;
-	}
-	
-	cmdBuffer[counter] = data;
-
+{							
 	if(!gamepadPlugged) 
 	{				
 		if(counter == 0) Recheck();
-		if(!gamepadPlugged) return 0x00;
+		if(!gamepadPlugged) return 0xFF;
 	}
+	
+	if (counter >= sizeBuffer)
+	{
+		printf("Pokopom: Out of Bound Buffer ERROR! [%02d:%02d]\n", sizeBuffer, counter); 
+		return 0xFF;
+	}
+
+	cmdBuffer[counter] = data;
 
 	switch(counter)
 	{

@@ -10,11 +10,11 @@ Pokopom is a PSEmu Pro pad plugin that emulates a DualShock1 and DualShock2
 controller for PS1 and PS2 emulators respectively. It only uses XInput, so as 
 to avoid the DirectInput troubles with X360 controllers.
 
-It currently has no configuration available, and defaults to use the first and
-second XInput controllers as pad1 and pad2 respectively. 
+It currently has only some basic configuration dialog, and defaults to use 
+the first and second XInput controllers as pad1 and pad2 respectively. 
 
-The plugin supports rumble, and has extended analog stick range to cover the 
-'square' on PSX's controllers.
+The plugin supports rumble with a nice custom curve, and has extended analog 
+stick range to cover the 'square' on PSX's controllers.
 
 To toggle between analog or digital mode, press the Scroll Lock key.
 
