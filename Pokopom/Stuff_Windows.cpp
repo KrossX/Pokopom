@@ -12,21 +12,41 @@ void ShowDialog(const wchar_t* message, const wchar_t* title)
 	MessageBox(NULL, message,title, MB_OK);
 }
 
+void MouseThread()
+{
+	while(true)
+	{
+		mouse_event( MOUSEEVENTF_MOVE, 0, 0, 0, NULL);
+		Sleep(50000);
+	}
+}
+
 void KeepAwake(u8 mode)
 {
+	static HANDLE hMouseThread = NULL;
+
 	if(bKeepAwake)
 	switch(mode)
 	{
 	case KEEPAWAKE_INIT:
-	SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
-	break;
+	{
+		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
-	case KEEPAWAKE_KEEP:
-	mouse_event( MOUSEEVENTF_MOVE, 0, 0, 0, NULL);
+		if(hMouseThread == NULL)
+			hMouseThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)MouseThread, 0, 0, NULL);
+	}
 	break;
 
 	case KEEPAWAKE_CLOSE:
-	SetThreadExecutionState(ES_CONTINUOUS);
+	{
+		SetThreadExecutionState(ES_CONTINUOUS);
+
+		if(hMouseThread)
+		{
+			TerminateThread(hMouseThread,0);
+			hMouseThread = NULL;
+		}
+	}
 	break;
 	}
 }

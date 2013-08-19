@@ -264,8 +264,6 @@ DllExport u8 CALLBACK PADstartPoll(s32 port)
 	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, 0x01, data);
 	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, 0x01, data);
 
-	KeepAwake(KEEPAWAKE_KEEP);
-
 	return data;
 }
 
@@ -339,7 +337,7 @@ DllExport keyEvent* CALLBACK PADkeyEvent()
 {
 	//printf("Pokopom -> PADkeyEvent\n");
 	static keyEvent pochy;
-	
+
 	if(!isPs2Emulator)
 		KeyboardCheck();
 
@@ -354,7 +352,7 @@ DllExport keyEvent* CALLBACK PADkeyEvent()
 }
 
 DllExport s32 PADkeypressed()
-{	
+{
 	keyEvent *pochy = PADkeyEvent();
 	return pochy? pochy->key : 0;
 }
@@ -368,7 +366,8 @@ DllExport u32 CALLBACK PADqueryMtap(u8 port)
 DllExport void CALLBACK PADsetSettingsDir(const char *dir)
 {
 	//printf("Pokopom -> PadsetSettingsDir: %s\n", dir);
-	memcpy(settingsDirectory, dir, strlen(dir)+1);
+	if(dir)
+		memcpy(settingsDirectory, dir, strlen(dir)+1);
 }
 
 DllExport void  PADWriteEvent(keyEvent &evt)

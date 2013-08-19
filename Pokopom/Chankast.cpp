@@ -24,6 +24,7 @@ s32 InitPads(void* hWnd)
 	memset(chankastData, 0, sizeof(chankastData));
 
 	Input::Pause(false);
+	KeepAwake(KEEPAWAKE_INIT);
 
 	return 0;
 }
@@ -50,6 +51,7 @@ void EndPads()
 	chankastPad[1] = NULL;
 
 	Input::Pause(true);
+	KeepAwake(KEEPAWAKE_CLOSE);
 }
 
 ////////////////////////////////////////////////////////////////////////

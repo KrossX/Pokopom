@@ -87,11 +87,6 @@ void KeepAwake(u8 mode)
 	}
 	break;
 
-	case KEEPAWAKE_KEEP:
-	{
-	}
-	break;
-
 	case KEEPAWAKE_CLOSE:
 	{
 	}

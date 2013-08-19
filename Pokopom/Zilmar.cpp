@@ -147,6 +147,7 @@ DllExport void CALL RomOpen()
 	//printf("Pokopom -> RomOpen\n");
 	//GimmeConsole();
 	Input::Pause(false);
+	KeepAwake(KEEPAWAKE_INIT);
 }
 
 /************************************************************************************
@@ -158,6 +159,7 @@ DllExport void CALL RomClosed()
 {
 	//printf("Pokopom -> RomClosed\n");
 	Input::Pause(true);
+	KeepAwake(KEEPAWAKE_CLOSE);
 }
 
 

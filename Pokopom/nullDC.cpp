@@ -153,6 +153,7 @@ s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
 	Input::Pause(false);
+	KeepAwake(KEEPAWAKE_INIT);
 
 	return nullDC::rv_ok;
 }
@@ -166,6 +167,7 @@ void FASTCALL Term(void* data, u32 id)
 		SetThreadExecutionState(ES_CONTINUOUS);
 
 	Input::Pause(true);
+	KeepAwake(KEEPAWAKE_CLOSE);
 }
 
 void FASTCALL Destroy(void* data, u32 id)
