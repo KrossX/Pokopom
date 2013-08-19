@@ -454,10 +454,11 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		}
 		else
 		{
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_B;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_B;
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0) << N64_A;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_A;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_B;
+
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_CDOWN;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_CLEFT;
 		}
 
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 1:0) << N64_TRIGGERR;
