@@ -2,6 +2,7 @@
 
 std::list <keyEvent> keyEventList;
 
+bool bPriority = false;
 bool isPs2Emulator = false;
 bool isPSemulator = false;
 bool bKeepAwake = false; // Screensaver and stuff

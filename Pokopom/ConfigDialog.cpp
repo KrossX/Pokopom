@@ -27,6 +27,7 @@
 #include "resource.h"
 
 HWND hChild, hParent = NULL;
+extern bool bPriority;
 extern u8 multitap;
 extern HINSTANCE hInstance;
 extern u8 dcPlatform;
@@ -270,6 +271,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			if(!isPSemulator)
 				EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), false);
 
+			CheckDlgButton(hwndDlg, IDC_PROCPRIORITY, bPriority ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_MULTITAP, multitap % 4);
 
@@ -282,6 +284,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			switch(command)
 			{
+			case IDC_PROCPRIORITY:
+				bPriority = IsDlgButtonChecked(hwndDlg, IDC_PROCPRIORITY) == BST_CHECKED? true:false;
+				break;
+
 			case IDC_SCREENSAVER:
 				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
 				break;

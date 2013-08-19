@@ -22,6 +22,15 @@ void MouseThread()
 	}
 }
 
+void SetPriority()
+{
+	if(bPriority)
+	{
+		const HANDLE currProc = GetCurrentProcess(); 
+		SetPriorityClass(currProc, ABOVE_NORMAL_PRIORITY_CLASS);
+	}
+}
+
 void KeepAwake(u8 mode)
 {
 	static HANDLE hMouseThread = NULL;

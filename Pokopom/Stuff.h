@@ -27,6 +27,8 @@ void GetDisplay(void* pDisplay);
 void ShowDialog(const wchar_t* message, const wchar_t* title);
 void KeepAwake(u8 mode);
 
+void SetPriority();
+
 void KeyboardOpen();
 void KeyboardClose();
 void KeyboardCheck();
@@ -41,6 +43,7 @@ extern std::list <keyEvent> keyEventList;
 
 extern bool isPs2Emulator;
 extern bool isPSemulator;
+extern bool bPriority;
 extern bool bKeepAwake;
 extern s32 INIversion;
 

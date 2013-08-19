@@ -28,6 +28,9 @@ extern HINSTANCE hInstance;
 extern char settingsDirectory[1024];
 extern u8 multitap;
 
+extern bool bPriority;
+extern void SetPriority();
+
 #define PATH_LENGTH 1024
 #define LINE_LENGTH 512
 
@@ -136,8 +139,9 @@ namespace FileIO
 		ready = iniFile == NULL? false : true;
 
 		if(ready)
-		{		
-			SaveEntry("General", -1, "KeepAwake", bKeepAwake?1:0, iniFile);
+		{	
+			SaveEntry("General", -1, "ProcPriority", bPriority? 1 : 0, iniFile);
+			SaveEntry("General", -1, "KeepAwake", bKeepAwake? 1 : 0, iniFile);
 			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);
 
@@ -196,6 +200,9 @@ namespace FileIO
 				fclose(iniFile);
 				return;
 			}
+
+			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1 ? true : false;
+				SetPriority();
 
 			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1 ? true : false;
 			multitap = ReadEntry("General", -1, "Multitap", iniFile) & 0xFF;
