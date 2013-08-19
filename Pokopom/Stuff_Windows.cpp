@@ -30,8 +30,6 @@ void KeepAwake(u8 mode)
 	{
 	case KEEPAWAKE_INIT:
 	{
-		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
-
 		if(hMouseThread == NULL)
 			hMouseThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)MouseThread, 0, 0, NULL);
 	}
@@ -39,8 +37,6 @@ void KeepAwake(u8 mode)
 
 	case KEEPAWAKE_CLOSE:
 	{
-		SetThreadExecutionState(ES_CONTINUOUS);
-
 		if(hMouseThread)
 		{
 			TerminateThread(hMouseThread,0);
