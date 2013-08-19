@@ -41,6 +41,8 @@ class PlayStationDevice
 	PlayStationDevice(const PlayStationDevice &);
     PlayStationDevice& operator=(const PlayStationDevice &);
 
+	bool disabled;
+
 protected:
 	_Settings &settings;
 
@@ -51,6 +53,9 @@ protected:
 	void Recheck();
 
 public:
+	void Enable() { disabled = false; }
+	void Disable() { disabled = true; }
+	
 	virtual void LoadState(PlayStationDeviceState state) = 0;
 	virtual void SaveState(PlayStationDeviceState &state) = 0;
 
@@ -129,4 +134,23 @@ class PS2_Guitar : public DualShock2
 
 public:
 	PS2_Guitar(_Settings &config);
+};
+
+class MultiTap : public PlayStationDevice
+{
+	MultiTap();
+	MultiTap(const MultiTap &);
+    MultiTap& operator=(const MultiTap &);
+
+	PlayStationDevice * Device[4];	
+	u8 slot;
+
+public:
+	void LoadState(PlayStationDeviceState state);
+	void SaveState(PlayStationDeviceState &state);
+
+	u8 command(const u32 counter, const u8 data);
+
+	MultiTap(_Settings *config);
+	~MultiTap();
 };

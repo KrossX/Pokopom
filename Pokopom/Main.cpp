@@ -23,8 +23,9 @@ HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
 extern _Settings settings[4];
 
+u8 multitap = 0;
 bool bKeepAwake = false; // Screensaver and stuff
-bool isPSemulator = false;
+
 
 s32 INIversion = 2; // INI version
 
@@ -53,11 +54,13 @@ char* CALLBACK PSEgetLibName(void)
 
 u32 CALLBACK PSEgetLibType(void)
 {
+	isPSemulator = true;
 	return emupro::LT_PAD;
 }
 
 u32 CALLBACK PSEgetLibVersion(void)
 {
+	isPSemulator = true;
 	return versionPS1;
 }
 
@@ -92,16 +95,35 @@ s32 CALLBACK PADinit(s32 flags) // PAD INIT
 
 	if (flags & emupro::pad::USE_PORT1)
 	{
-		if(isPs2Emulator) controller[0] = settings[0].isGuitar? new PS2_Guitar(settings[0]) : new DualShock2(settings[0]);
-		else controller[0] = new DualShock(settings[0]);
+		if(isPs2Emulator)
+		{
+			if(settings[0].isGuitar)	controller[0] = new PS2_Guitar(settings[0]);
+			else						controller[0] = new DualShock2(settings[0]);
+		}
+		else 
+		{
+			if(multitap == 1)	controller[0] = new MultiTap(settings);
+			else				controller[0] = new DualShock(settings[0]);
+		}
 	}
 
 	if (flags & emupro::pad::USE_PORT2)
 	{
-		if(isPs2Emulator) controller[1] = settings[1].isGuitar? new PS2_Guitar(settings[1]) : new DualShock2(settings[1]);
-		else controller[1] = new DualShock(settings[1]);
+		if(isPs2Emulator)
+		{
+			if(settings[0].isGuitar)	controller[1] = new PS2_Guitar(settings[1]);
+			else						controller[1] = new DualShock2(settings[1]);
+		}
+		else 
+		{
+			if(multitap == 2)	controller[1] = new MultiTap(settings);
+			else				controller[1] = new DualShock(settings[1]);
+
+			if(multitap == 1) controller[1]->Disable();
+		}
 	}
-	
+
+
 	return emupro::INIT_ERR_SUCCESS;
 }
 
@@ -187,6 +209,8 @@ s32 CALLBACK PADclose(void) // PAD CLOSE
 
 s32 CALLBACK PADconfigure(void)
 {			
+	isPSemulator = true;
+
 	FileIO::INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
 

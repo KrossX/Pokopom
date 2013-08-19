@@ -25,6 +25,7 @@ _Settings::_Settings()
 
 void _Settings::SetDefaults()
 {
+	greenAnalog = false;
 	defaultAnalog = false;
 	isGuitar = false;
 	xinputPort = 0;
@@ -41,6 +42,6 @@ void _Settings::SetDefaults()
 	{
 		axisInverted[i] = false;
 		axisRemap[i] = i;
-		axisValue[i] = 0;	
+		axisValue[i] = 0;
 	}
 }

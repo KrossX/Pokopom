@@ -28,6 +28,7 @@ extern _Settings settings[4];
 extern wchar_t  settingsDirectory[1024];
 extern bool bKeepAwake; 
 extern s32 INIversion;
+extern u8 multitap;
 
 namespace FileIO
 {
@@ -92,6 +93,7 @@ namespace FileIO
 		{		
 			SaveEntry(L"General", -1, L"KeepAwake", bKeepAwake?1:0, filename);
 			SaveEntry(L"General", -1, L"INIversion", INIversion, filename);
+			SaveEntry(L"General", -1, L"Multitap", multitap, filename);
 		
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -116,6 +118,7 @@ namespace FileIO
 				SaveEntry(L"Controller", port, L"XInputPort", settings[port].xinputPort, filename);
 				SaveEntry(L"Controller", port, L"DefautMode", settings[port].defaultAnalog ? 1 : 0, filename);
 				SaveEntry(L"Controller", port, L"GuitarController", settings[port].isGuitar ? 1 : 0, filename);
+				SaveEntry(L"Controller", port, L"GreenAnalog", settings[port].greenAnalog ? 1 : 0, filename);
 						
 			}		
 		}
@@ -153,8 +156,11 @@ namespace FileIO
 
 		if(ready)
 		{
-			bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
 			if( ReadEntry(L"General", -1, L"INIversion", filename) != INIversion ) return;
+			
+			bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
+			multitap = ReadEntry(L"General", -1, L"Multitap", filename) & 0xFF;
+			multitap = multitap > 2 ? 0 : multitap;
 		
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -205,6 +211,9 @@ namespace FileIO
 
 				result = ReadEntry(L"Controller", port, L"DefautMode", filename);
 				if(result != -1) settings[port].defaultAnalog = result == 1? true : false;
+
+				result = ReadEntry(L"Controller", port, L"GreenAnalog", filename);
+				if(result != -1) settings[port].greenAnalog = result == 1? true : false;
 			
 				result = ReadEntry(L"Controller", port, L"GuitarController", filename);
 				if(result != -1) settings[port].isGuitar = result == 1? true : false;

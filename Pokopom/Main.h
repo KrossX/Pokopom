@@ -25,7 +25,9 @@
 
 PlayStationDevice * controller[2] = {NULL, NULL};
 u32 bufferCount = 0, curPort = 0;
+
 bool isPs2Emulator = false;
+bool isPSemulator = false;
 
 struct freezeData 
 {

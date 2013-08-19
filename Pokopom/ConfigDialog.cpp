@@ -31,6 +31,7 @@ HWND hChild, hParent = NULL;
 extern bool bKeepAwake;
 extern bool isPs2Emulator;
 extern bool isPSemulator;
+extern u8 multitap;
 
 void UpdateControls(HWND hDialog, s32 port)
 {		
@@ -40,20 +41,34 @@ void UpdateControls(HWND hDialog, s32 port)
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
 	}
+
 	CheckDlgButton(hDialog, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_MULTITAP, multitap % 4);
 
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1044:1043, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1043:1044, BST_UNCHECKED);
-
-	if(!isPs2Emulator) EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
 
 	if(!isPSemulator)
 	{
 		EnableWindow(GetDlgItem(hDialog, 1043), false);
 		EnableWindow(GetDlgItem(hDialog, 1044), false);
+
+		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
+		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
 	}
 
+	if(!isPs2Emulator) 
+	{		
+		EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
+	}
+	else if(isPSemulator)
+	{
+		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
+		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
+	}
+	
 	s32 position = (s32)(settings[port].rumble * 100);
 	wchar_t text[8] = {0};					
 	
@@ -200,6 +215,18 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_SCREENSAVER:
 				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
 				break;
+
+			case IDC_GUITAR:
+				settings[port].isGuitar = IsDlgButtonChecked(hwndDlg, IDC_GUITAR) == BST_CHECKED? true:false;
+				break;
+
+			case IDC_ANALOG_GREEN:
+				settings[port].greenAnalog = IsDlgButtonChecked(hwndDlg, IDC_ANALOG_GREEN) == BST_CHECKED? true:false;
+				break;
+
+			case IDC_MULTITAP:
+				multitap = IsDlgButtonChecked(hwndDlg, IDC_MULTITAP) & 0xFF;
+				break;
 			}
 
 		} break;
@@ -235,14 +262,11 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			tci.pszText = L"Controller 2";
 			TabCtrl_InsertItem(hTabControl, 1, &tci); 
 
-			if(!isPSemulator)
-			{
-				tci.pszText = L"Controller 3";
-				TabCtrl_InsertItem(hTabControl, 2, &tci); 
+			tci.pszText = L"Controller 3";
+			TabCtrl_InsertItem(hTabControl, 2, &tci); 
 
-				tci.pszText = L"Controller 4";
-				TabCtrl_InsertItem(hTabControl, 3, &tci);
-			}
+			tci.pszText = L"Controller 4";
+			TabCtrl_InsertItem(hTabControl, 3, &tci);
 
 			hChild = CreateDialog((HINSTANCE)lParam, MAKEINTRESOURCE(IDD_INTAB), hwndDlg, DialogProc2);
 			EnableThemeDialogTexture(hChild, ETDT_ENABLETAB);

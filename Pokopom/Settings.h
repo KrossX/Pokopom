@@ -29,6 +29,7 @@ struct _Settings
 {
 	void SetDefaults();
 
+	bool greenAnalog;
 	bool defaultAnalog;
 	u8 xinputPort;
 	f32 deadzone, rumble, antiDeadzone;

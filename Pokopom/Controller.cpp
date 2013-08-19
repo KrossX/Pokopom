@@ -28,6 +28,7 @@ PlayStationDevice::PlayStationDevice(_Settings &config, u16 bufferSize) :
 	settings(config), sizeBuffer(bufferSize)
 {
 	gamepadPlugged = false;
+	disabled = false;
 	
 	cmdBuffer = new u8[sizeBuffer];
 	dataBuffer = new u8[sizeBuffer];
@@ -43,7 +44,7 @@ PlayStationDevice::~PlayStationDevice()
 
 void PlayStationDevice::Recheck()
 {
-	gamepadPlugged = XInput::Recheck(settings.xinputPort);
+	gamepadPlugged = disabled? false : XInput::Recheck(settings.xinputPort);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,7 +57,7 @@ void DualShock::Reset()
 	memset(cmdBuffer, 0x00, sizeBuffer);
 
 	dataBuffer[2] = 0x5A;
-	padID = settings.defaultAnalog ? (u8)ID_ANALOG_RED : (u8)ID_DIGITAL;	
+	padID = settings.defaultAnalog ? (settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED) : (u8)ID_DIGITAL;	
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
@@ -98,6 +99,8 @@ u8 DualShock::command(const u32 counter, const u8 data)
 		dataBuffer[1] = bConfig? ID_CONFIG : padID;
 		Cmd1(cmdBuffer[1]);
 		break;
+
+	case 0x02: dataBuffer[2] = 0x5A; break;
 		
 	case 0x04:Cmd4(cmdBuffer[1]); break;
 	case 0x08:Cmd8(cmdBuffer[1]); break;
@@ -145,26 +148,27 @@ void DualShock::Cmd0()
 
 	if(!bModeLock) 
 	{				
-		if(!bPressed && !!(GetAsyncKeyState(VK_SCROLL) >> 1))
+		if(!bPressed && !!(GetAsyncKeyState(0x31 + settings.xinputPort) >> 1))
 		{			
 			if(padID == ID_DIGITAL)
 			{
-				padID = ID_ANALOG_RED;
+				padID = settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED;
 				//printf("Pokopom -> [%d] Switched to analog mode.\n", Settings.padPort);
 			}
 			else 
 			{
-				padID = ID_DIGITAL;
+				padID = (u8)ID_DIGITAL;
 				//printf("Pokopom -> [%d] Switched to digital mode.\n", Settings.padPort);
 			}
 
 			bPressed = true;
 		} 
-		else if (bPressed && !(GetAsyncKeyState(VK_SCROLL) >> 1)) 
+		else if (bPressed && !(GetAsyncKeyState(0x31 + settings.xinputPort) >> 1)) 
 		{
 			bPressed = false; 
 		}
 	}
+	
 	
 	if(gamepadPlugged && !bPressed)
 	{
@@ -176,6 +180,7 @@ void DualShock::Cmd0()
 			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
 		}
 	}
+	
 }
 
 void DualShock::Cmd1(const u8 data)
