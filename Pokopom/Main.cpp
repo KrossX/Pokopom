@@ -318,7 +318,7 @@ unsigned int CALLBACK PADfreeze(int mode, freezeData *data)
 			Controller::State *state = (Controller::State *)data->data;
 			
 			if(memcmp(state[0].libraryName, libraryName, 25) == 0 &&
-				state[0].version == (revision << 8) | build)
+				state[0].version == ((revision << 8) | build))
 			{
 				controller[0]->LoadState(state[0]);
 				controller[1]->LoadState(state[1]);

@@ -40,6 +40,7 @@ public:
 	int axisValue[4];
 
 	unsigned short pressureRate;
+	short linearity;
 
 	bool isGuitar;
 

@@ -98,6 +98,7 @@ void INI_SaveSettings()
 			SaveEntry(L"Controller", port, L"AxisRemap", AxisRemap, filename);
 
 			SaveEntry(L"Controller", port, L"Pressure", settings[port].pressureRate, filename);
+			SaveEntry(L"Controller", port, L"Linearity", settings[port].linearity +3, filename);
 
 			SaveEntry(L"Controller", port, L"Deadzone", (int)(settings[port].deadzone * 100), filename);
 			SaveEntry(L"Controller", port, L"Rumble", (int)(settings[port].rumble * 100), filename);
@@ -166,6 +167,9 @@ void INI_LoadSettings()
 
 			result = ReadEntry(L"Controller", port, L"Pressure",  filename);
 			if(result != -1) settings[port].pressureRate = result & 0xFF;
+
+			result = ReadEntry(L"Controller", port, L"Linearity",  filename);
+			if(result != -1) settings[port].linearity = (result & 0xF) -3;
 
 			result = ReadEntry(L"Controller", port, L"Deadzone",  filename);
 			if(result != -1) settings[port].deadzone = result / 100.0f;

@@ -25,6 +25,7 @@ _Settings::_Settings()
 	deadzone = 0.0;
 	rumble = 1.0;
 	pressureRate = 10;
+	linearity = 0;
 	
 	for(short i = 0; i < 4; i++)
 	{

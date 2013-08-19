@@ -25,23 +25,33 @@
 
 const double root2 = 1.4142135623730950488016887242097;
 
-unsigned short ConvertAnalog(int X, int Y, double deadzone)
+inline double Linearity(double radius, short linearity)
+{
+	const double exp = linearity > 0 ? linearity +1 : 1.0/(-linearity+1);
+	return pow(radius / 32768.0, exp) * 32768.0;
+}
+
+unsigned short ConvertAnalog(int X, int Y, double deadzone, short linearity)
 {							
-	double radius = sqrt((double)X*X + (double)Y*Y);
+	double const max = 32768.0; // 40201 real max radius
 	
+	double radius = sqrt((double)X*X + (double)Y*Y);
+	double rX = X/radius, rY = Y/radius;
+	
+
 	if(deadzone > 0)
 	{	
-		double const max = 32768.0; // 40201 real max radius		
 		deadzone = max * deadzone; 		
-
-		double rX = X/radius, rY = Y/radius;
 
 		radius = radius <= deadzone ? 0 : (radius - deadzone) * max / (max - deadzone);
 
+		if(linearity != 0) Linearity(radius, linearity);
+
 		X = (int)(rX * radius);
-		Y = (int)(rY * radius);		
+		Y = (int)(rY * radius);
 	}
-	
+	else if(linearity != 0) Linearity(radius, linearity);
+			
 	if(radius > 32768.0f)
 	{
 		X = (int)(X * root2) ;
@@ -110,13 +120,13 @@ void Controller::poll()
 		if(settings.axisValue[GP_AXIS_RY] < -threshold) buttonsStick &= ~(1 << 0xE);
 		if(settings.axisValue[GP_AXIS_RX] < -threshold) buttonsStick &= ~(1 << 0xF);
 
-		analogL = ConvertAnalog(settings.axisValue[GP_AXIS_LX], settings.axisValue[GP_AXIS_LY], settings.deadzone);
-		analogR = ConvertAnalog(settings.axisValue[GP_AXIS_RX], settings.axisValue[GP_AXIS_RY], settings.deadzone);
-
+		analogL = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_LX]], settings.axisValue[settings.axisRemap[GP_AXIS_LY]], settings.deadzone, settings.linearity);
+		analogR = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_RX]], settings.axisValue[settings.axisRemap[GP_AXIS_RY]], settings.deadzone, settings.linearity);
+		
 		triggerL = state.Gamepad.bLeftTrigger;
 		triggerR = state.Gamepad.bRightTrigger;
 		
-		//printf("Pokopom: %4X %4X\n", analogL, analogR);
+		//printf("Pokopom: %04X %04X\n", analogL, analogR);
 	}
 	else
 		gamepadPlugged = false;

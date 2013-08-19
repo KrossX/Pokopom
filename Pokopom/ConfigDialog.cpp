@@ -39,6 +39,8 @@ void UpdateControls(HWND hDialog, int port)
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
 	}
+
+	SendMessage(GetDlgItem(hDialog, IDC_LINEARITY), CB_SETCURSEL, settings[port].linearity + 3, 0);
 	
 	CheckDlgButton(hDialog, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
@@ -70,7 +72,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 	switch(uMsg)
 	{
 	case WM_INITDIALOG: 
-		{																																
+		{
 			port = TabCtrl_GetCurSel(GetDlgItem(GetParent(hwndDlg), IDC_TAB1));
 			
 			for(int control = 1027; control < 1033; control++)
@@ -79,9 +81,17 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis LY");
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RX");
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RY");
-			}	
+			}
+
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-4");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-3");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-2");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"0");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"2");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"3");
+			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"4");
 			
-			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 100));			
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));
 			
 			UpdateControls(hwndDlg, port);
@@ -128,16 +138,20 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_MODE_ANALOG: settings[port].defaultAnalog = true; break;
 
 			case IDC_COMBO_LX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LX] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);								
+				settings[port].axisRemap[GP_AXIS_LX] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_LY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LY] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);								
+				settings[port].axisRemap[GP_AXIS_LY] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RX] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);								
+				settings[port].axisRemap[GP_AXIS_RX] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RY] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);								
+				settings[port].axisRemap[GP_AXIS_RY] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
+				break;
+
+			case IDC_LINEARITY: if(HIWORD(wParam) == CBN_SELCHANGE)
+				settings[port].linearity = (short)SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_GETCURSEL, 0, 0) - 3;
 				break;
 
 			case IDC_INVERT_LX:
@@ -178,7 +192,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 	switch(uMsg)
 	{
 	case WM_INITDIALOG: 
-		{																				
+		{
 			HWND hTabControl = GetDlgItem(hwndDlg, IDC_TAB1);
 			
 			TCITEM tci; 
@@ -217,7 +231,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			if ( ((LPNMHDR)lParam)->idFrom==IDC_TAB1 && ((LPNMHDR)lParam)->code == TCN_SELCHANGE  )
 			{
 				int port =  TabCtrl_GetCurSel(GetDlgItem(hwndDlg, IDC_TAB1));
-				SendMessage(hChild, WM_USER, 0xDEADBEEF, port);				
+				SendMessage(hChild, WM_USER, 0xDEADBEEF, port);
 			}
 			break;
 		
