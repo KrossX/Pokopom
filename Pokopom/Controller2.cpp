@@ -49,8 +49,8 @@ void Controller2::ReadInputPressure(unsigned char *buffer)
 		//l1, r1, l2, r2
 		pressureButton[0x08] = buttons & 0x400 ? 0x00 : ++pressureButton[0x08] << 1;
 		pressureButton[0x09] = buttons & 0x800 ? 0x00 : ++pressureButton[0x09] << 1;
-		pressureButton[0x0A] = buttons & 0x100 ? 0x00 : ++pressureButton[0x0A] << 1;
-		pressureButton[0x0B] = buttons & 0x200 ? 0x00 : ++pressureButton[0x0B] << 1;
+		pressureButton[0x0A] = buttons & 0x100 ? 0x00 : triggerL;
+		pressureButton[0x0B] = buttons & 0x200 ? 0x00 : triggerR;
 
 		for(int i = 0; i < 0x0C; i++) 					
 			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;			

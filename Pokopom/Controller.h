@@ -51,6 +51,7 @@ protected:
 	unsigned char padID;	
 	bool bConfig, bModeLock;	
 	unsigned char motorMapS, motorMapL;
+	unsigned char triggerL, triggerR;
 
 private:
 	Controller(const Controller &);

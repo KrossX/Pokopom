@@ -81,8 +81,8 @@ void Controller::poll()
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1) << 0x6; // Down		
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1) << 0x7; // Left
 
-		buttons |= (state.Gamepad.bLeftTrigger > 100 ? 0:1) << 0x8; // L2
-		buttons |= (state.Gamepad.bRightTrigger > 100 ? 0:1) << 0x9; // R2
+		buttons |= (state.Gamepad.bLeftTrigger > 10 ? 0:1) << 0x8; // L2
+		buttons |= (state.Gamepad.bRightTrigger > 10 ? 0:1) << 0x9; // R2
 
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 0:1) << 0xA; // L1
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 0:1) << 0xB; // R1
@@ -111,7 +111,10 @@ void Controller::poll()
 		if(settings.axisValue[GP_AXIS_RX] < -threshold) buttonsStick &= ~(1 << 0xF);
 
 		analogL = ConvertAnalog(settings.axisValue[GP_AXIS_LX], settings.axisValue[GP_AXIS_LY], settings.deadzone);
-		analogR = ConvertAnalog(settings.axisValue[GP_AXIS_RX], settings.axisValue[GP_AXIS_RY], settings.deadzone);							
+		analogR = ConvertAnalog(settings.axisValue[GP_AXIS_RX], settings.axisValue[GP_AXIS_RY], settings.deadzone);
+
+		triggerL = state.Gamepad.bLeftTrigger;
+		triggerR = state.Gamepad.bRightTrigger;
 		
 		//printf("Pokopom: %4X %4X\n", analogL, analogR);
 	}

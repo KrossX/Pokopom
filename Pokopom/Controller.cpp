@@ -29,6 +29,7 @@ void Controller::Reset()
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
+	triggerL = triggerR = 0x00;
 
 	motorMapS = 0xFF;
 	motorMapL = 0xFF;
@@ -51,13 +52,13 @@ unsigned char Controller::command(const unsigned int counter, const unsigned cha
 	if(!gamepadPlugged) 
 	{				
 		if(counter == 0) Recheck();
-		if(!gamepadPlugged) return 0xFF;
+		if(!gamepadPlugged) return 0x00;
 	}
 	
 	if (counter >= sizeBuffer)
 	{
 		printf("Pokopom: Out of Bound Buffer ERROR! [%02d:%02d]\n", sizeBuffer, counter); 
-		return 0xFF;
+		return 0x00;
 	}
 
 	cmdBuffer[counter] = data;
