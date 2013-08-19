@@ -1,3 +1,13 @@
+/*  Pokopom - Input Plugin for PSX/PS2 Emulators (now nullDC too)
+ *  - 2012  KrossX
+ *	
+ *	Content of this file is based on code from 
+ *	nullDC http://code.google.com/p/nulldc/
+ *
+ *  Licenced under GNU GPL v3
+ *  http://www.gnu.org/licenses/gpl.html
+ */
+
 #include "nullDC.h"
 #include "nullDC_Devices.h"
 #include "FileIO.h"
