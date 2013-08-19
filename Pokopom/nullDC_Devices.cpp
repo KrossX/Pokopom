@@ -1,5 +1,5 @@
-#include "nullDC_Devices.h"
 #include "General.h"
+#include "nullDC_Devices.h"
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors
@@ -15,13 +15,33 @@ DreamcastController::DreamcastController(unsigned int _port, _Settings &config) 
 
 PuruPuruPack::PuruPuruPack(unsigned int _port, _Settings &config) : nullDC_Device(_port, config)
 {
-	AST = 0x13;
+	AST = 0x13; // 5 seconds in 0.25s units
+	AST_ms = AST * 250 + 250; // 5000ms
+
+	Watchdog_ms = 150; // 150ms cycle... enough?
+
 	rSettings.RAW = 0x3B07E010;
 	rConfig.RAW = 0;
+
+	hVibrationThread = NULL;
 
 	FreqM = (rSettings.FM1 + rSettings.FM0) >> 1;
 	FreqL = (unsigned char)(FreqM * 2.0f/3.0f);
 	FreqH = (unsigned char)(FreqM * 1.5f);
+
+	StopVibration();
+}
+
+PuruPuruPack::~PuruPuruPack()
+{
+	if(hVibrationThread)
+	{
+		TerminateThread(hVibrationThread, 0);
+		CloseHandle(hVibrationThread);
+		hVibrationThread = NULL;
+	}
+
+	StopVibration();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -73,8 +93,6 @@ Dreamcast_DeviceInfo RumbleID =
 unsigned int __fastcall PuruPuruPack::DMA(void* device_instance, unsigned int command, 
 		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len)
 {
-	//Update();
-	
 	switch(command)
 	{
 	case GET_STATUS:
@@ -108,6 +126,7 @@ unsigned int __fastcall PuruPuruPack::DMA(void* device_instance, unsigned int co
 
 	case BLOCK_WRITE:
 		AST = (buffer_in[2] >> 16) & 0xFF;
+		AST_ms = AST * 250 + 250;
 		return RET_DEVICE_REPLY;
 
 	case SET_CONDITION:
@@ -116,12 +135,11 @@ unsigned int __fastcall PuruPuruPack::DMA(void* device_instance, unsigned int co
 		if(rConfig.EXH & rConfig.INH)
 			return RET_TRAMSMIT_AGAIN;
 
-		Update();
+		UpdateVibration();
 		return RET_DEVICE_REPLY;
 	
 	default:
 		printf("Pokopom Rumble -> Unknown MAPLE command: %X\n", command);
 		return RET_UNKNOWN_COMMAND;
 	}
-
 }

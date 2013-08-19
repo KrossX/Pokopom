@@ -117,13 +117,19 @@ class PuruPuruPack : public nullDC_Device
 	RumbleSettings rSettings;
 	RumbleConfig rConfig;
 	
+	unsigned short AST_ms;
 	unsigned char AST;
 	unsigned char FreqM, FreqL, FreqH;
 
-	void Update();
+	HANDLE hVibrationThread;
+	void UpdateVibration();
 	
 public:
+	unsigned short Watchdog_ms;
+	void StopVibration();
+
 	PuruPuruPack(unsigned int _port, _Settings &config);
+	~PuruPuruPack();
 
 public:
 	unsigned int __fastcall DMA(void* device_instance, unsigned int command, 

@@ -113,15 +113,15 @@ void Controller::poll()
 		settings.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (settings.axisInverted[GP_AXIS_RY] ? -1 : 1);
 		settings.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (settings.axisInverted[GP_AXIS_RX] ? -1 : 1);		
 				
-		if(settings.axisValue[GP_AXIS_LY] > threshold) buttonsStick &= ~(1 << 0x4);
-		if(settings.axisValue[GP_AXIS_LX] > threshold) buttonsStick &= ~(1 << 0x5);
-		if(settings.axisValue[GP_AXIS_LY] < -threshold) buttonsStick &= ~(1 << 0x6);
-		if(settings.axisValue[GP_AXIS_LX] < -threshold) buttonsStick &= ~(1 << 0x7);
+		if(state.Gamepad.sThumbLY > threshold) buttonsStick &= ~(1 << 0x4);
+		if(state.Gamepad.sThumbLX > threshold) buttonsStick &= ~(1 << 0x5);
+		if(state.Gamepad.sThumbLY < -threshold) buttonsStick &= ~(1 << 0x6);
+		if(state.Gamepad.sThumbLX < -threshold) buttonsStick &= ~(1 << 0x7);
 
-		if(settings.axisValue[GP_AXIS_RY] > threshold) buttonsStick &= ~(1 << 0xC);
-		if(settings.axisValue[GP_AXIS_RX] > threshold) buttonsStick &= ~(1 << 0xD);
-		if(settings.axisValue[GP_AXIS_RY] < -threshold) buttonsStick &= ~(1 << 0xE);
-		if(settings.axisValue[GP_AXIS_RX] < -threshold) buttonsStick &= ~(1 << 0xF);
+		if(state.Gamepad.sThumbRY > threshold) buttonsStick &= ~(1 << 0xC);
+		if(state.Gamepad.sThumbRX > threshold) buttonsStick &= ~(1 << 0xD);
+		if(state.Gamepad.sThumbRY < -threshold) buttonsStick &= ~(1 << 0xE);
+		if(state.Gamepad.sThumbRX < -threshold) buttonsStick &= ~(1 << 0xF);
 
 		analogL = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_LX]], settings.axisValue[settings.axisRemap[GP_AXIS_LY]], settings);
 		analogR = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_RX]], settings.axisValue[settings.axisRemap[GP_AXIS_RY]], settings);
@@ -265,11 +265,45 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 
 		if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
 		else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
-			
+
+		set.axisValue[GP_AXIS_LY] = state.Gamepad.sThumbLY * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
+		set.axisValue[GP_AXIS_LX] = state.Gamepad.sThumbLX * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
+		set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
+		set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
+
+		const int threshold = 16384;
+
 		if(analogToggle)
-			analog = ConvertAnalog(state.Gamepad.sThumbRX, state.Gamepad.sThumbRY, set);
+		{
+			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_RX]], set.axisValue[set.axisRemap[GP_AXIS_RY]], set);
+
+			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
+			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
+			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
+			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
+
+			// Inactive left stick to work as dpad
+			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] > threshold) buttons &= ~(1 << 0x4);
+			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] > threshold) buttons &= ~(1 << 0x7);
+			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] < -threshold) buttons &= ~(1 << 0x5);
+			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] < -threshold) buttons &= ~(1 << 0x6);
+		}
 		else
-			analog = ConvertAnalog(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY, set);		
+		{
+			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_LX]], set.axisValue[set.axisRemap[GP_AXIS_LY]], set);
+
+			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
+			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
+			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
+			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
+
+			// Inactive right stick to work as face buttons
+			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] > threshold) buttons &= ~(1 << 0x9);
+			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] > threshold) buttons &= ~(1 << 0x1);
+			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] < -threshold) buttons &= ~(1 << 0x2);
+			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] < -threshold) buttons &= ~(1 << 0xA);
+		}
+
 	}
 	else 
 		gamepadPlugged = false;
@@ -294,7 +328,14 @@ void ChankastController::PollData(ChankastPadData &Data)
 	memcpy(&Data, &buffer[2], 8);
 }
 
-void PuruPuruPack::Update()
+void VibrationWatchdog(LPVOID param)
+{
+	PuruPuruPack *pochy = (PuruPuruPack*)param;
+	Sleep(pochy->Watchdog_ms);
+	pochy->StopVibration();
+}
+
+void PuruPuruPack::StopVibration()
 {
 	XINPUT_STATE state;
 	DWORD result = XInputGetState(set.xinputPort, &state);
@@ -307,19 +348,46 @@ void PuruPuruPack::Update()
 
 	XINPUT_VIBRATION vib;
 
-	short direction = (short)(rConfig.Mpow - rConfig.Ppow);
-	unsigned short uDirection = direction < 0 ? -direction : direction;
-
-	if(direction != 0)
-	{
-		vib.wLeftMotorSpeed = rConfig.FREQ > FreqH ? 0 : (WORD)((uDirection * 9362) * set.rumble);
-		vib.wRightMotorSpeed = rConfig.FREQ < FreqL ? 0 : (WORD)((uDirection * 8192 + 8190) * set.rumble);
-	}
-	else
-	{
-		vib.wLeftMotorSpeed = 0;
-		vib.wRightMotorSpeed = 0;
-	}
+	vib.wLeftMotorSpeed = 0;
+	vib.wRightMotorSpeed = 0;
 
 	XInputSetState(set.xinputPort, &vib);
+}
+
+void PuruPuruPack::UpdateVibration()
+{
+	short intensity = (short)(rConfig.Mpow - rConfig.Ppow);
+	
+	if(intensity != 0)
+	{
+		XINPUT_STATE state;
+		DWORD result = XInputGetState(set.xinputPort, &state);
+
+		if(result != ERROR_SUCCESS)
+		{
+			gamepadPlugged = false;
+			return;
+		}
+
+		XINPUT_VIBRATION vib;
+			
+		unsigned short uIntensity = intensity < 0 ? -intensity : intensity;
+		
+		vib.wLeftMotorSpeed = rConfig.FREQ > FreqH ? 0 : (WORD)((uIntensity * 9362) * set.rumble);
+		vib.wRightMotorSpeed = rConfig.FREQ < FreqL ? 0 : (WORD)((uIntensity * 8192 + 8190) * set.rumble);
+
+		if(hVibrationThread) 
+		{
+			TerminateThread(hVibrationThread, 0);
+			CloseHandle(hVibrationThread);
+			hVibrationThread = NULL;
+		}
+
+		hVibrationThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, (LPVOID)this, 0, NULL);
+		
+		XInputSetState(set.xinputPort, &vib);
+	}
+	else
+		StopVibration();
+	
 }
