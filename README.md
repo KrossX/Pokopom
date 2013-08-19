@@ -1,0 +1,57 @@
+Pokopom - Input plugin for emulators
+===============================================================================
+
+Main repo: https://github.com/KrossX/Pokopom
+Wiki: https://github.com/KrossX/Pokopom/wiki
+
+
+Description and information
+-------------------------------------------------------------------------------
+
+Pokopom is an imput plugin that supports many emulators like PCSX, PCSX2, PJ64,
+nullDC, Chankast, etc. Started as a XInput only plugin for X360 controllers, but
+now it supports linux too (also for X360 controllers) though GUI less. Supports
+rumble, though it depends on emulator/device.
+
+DualShock3 are supported on Windows by using Scarlet.Crush's driver:
+http://tiny.cc/msp11w
+
+Also for ePSXe, Shark would be needed:
+Shark: http://forums.ngemu.com/showthread.php?t=142361
+Shark Enhanced: http://forums.ngemu.com/showthread.php?t=154634
+
+For more information, check the Wiki.
+
+
+Thanks / Contact
+-------------------------------------------------------------------------------
+
+Lots of thanks to gunshin (Harakiri), for his source and information helped 
+lots. Site: http://www.geocities.co.jp/Playtown-Rook/2087/
+
+Tons of thanks to Curious Inventor too, for this great source of information:
+http://store.curiousinventor.com/guides/ps2/
+
+Thanks to H.Kashima, fundamental information to get multitap working
+http://kaele.com/~kashima/games/ps_jpn.txt
+
+= Contact =
+KrossX, krossx@live.com
+
+
+License / Disclaimer
+-------------------------------------------------------------------------------
+
+Copyright (C) 2012  KrossX
+
+This program is free software: you can redistribute it and/or modify it under 
+the terms of the GNU General Public License as published by the Free Software 
+Foundation, either version 3 of the License, or (at your option) any later 
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT 
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
