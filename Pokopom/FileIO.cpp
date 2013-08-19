@@ -136,7 +136,7 @@ namespace FileIO
 		ready = iniFile == NULL? false : true;
 
 		if(ready)
-		{
+		{		
 			SaveEntry("General", -1, "KeepAwake", bKeepAwake?1:0, iniFile);
 			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);

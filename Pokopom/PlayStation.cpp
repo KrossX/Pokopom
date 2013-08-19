@@ -335,12 +335,13 @@ DllExport u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 	return emupro::ERR_SUCCESS;
 }
 
-
 DllExport keyEvent* CALLBACK PADkeyEvent()
 {
 	//printf("Pokopom -> PADkeyEvent\n");
-
 	static keyEvent pochy;
+	
+	if(!isPs2Emulator)
+		KeyboardCheck();
 
 	if(!keyEventList.empty())
 	{
@@ -353,21 +354,9 @@ DllExport keyEvent* CALLBACK PADkeyEvent()
 }
 
 DllExport s32 PADkeypressed()
-{
-	//printf("Pokopom -> PADkeypressed\n");
-
-	static keyEvent pochy;
-
-	KeyboardCheck();
-
-	if(!keyEventList.empty())
-	{
-		pochy = keyEventList.front();
-		keyEventList.pop_back();
-		return pochy.key;
-	}
-
-	return 0;
+{	
+	keyEvent *pochy = PADkeyEvent();
+	return pochy? pochy->key : 0;
 }
 
 DllExport u32 CALLBACK PADqueryMtap(u8 port)
@@ -378,7 +367,26 @@ DllExport u32 CALLBACK PADqueryMtap(u8 port)
 
 DllExport void CALLBACK PADsetSettingsDir(const char *dir)
 {
+	//printf("Pokopom -> PadsetSettingsDir: %s\n", dir);
 	memcpy(settingsDirectory, dir, strlen(dir)+1);
+}
+
+DllExport void  PADWriteEvent(keyEvent &evt)
+{
+	//printf("Pokopom -> PADWriteEvent\n");
+	switch(evt.evt)
+	{
+	case 0x02:
+		evt.evt -= 1;
+		keyEventList.push_back(evt);
+		break;
+
+	case 0x03:
+		evt.evt -= 1;
+		evt.key |= 0x40000000;
+		keyEventList.push_back(evt);
+		break;
+	}
 }
 
 DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)
@@ -391,5 +399,8 @@ DllExport void CALLBACK PADupdate(s32 port)
 {
 	//printf("Pokopom -> PADupdate [%X]\n", port);
 }
+
+
+
 
 

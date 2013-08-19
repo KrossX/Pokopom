@@ -65,7 +65,7 @@ void KeyboardCheck()
 		}
 		break;
 		}
-    }
+	}
 }
 
 void GetDisplay(void* pDisplay)
