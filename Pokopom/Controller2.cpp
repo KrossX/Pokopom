@@ -18,6 +18,7 @@
 #include "General.h"
 #include "Codes_IDs.h"
 #include "Controller.h"
+#include "Input.h"
 
 DualShock2::DualShock2(_Settings &config) : DualShock(config, 21)
 {
@@ -27,29 +28,35 @@ DualShock2::DualShock2(_Settings &config) : DualShock(config, 21)
 
 void DualShock2::ReadInputPressure(u8 *buffer)
 {
+	u8 pressure[12] = {0};
 	u32 mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;
 
 	ReadInput(buffer);
 
-	if(mask)
+	if(Input::DualshockPressure(pressure, mask, settings, gamepadPlugged))
+	{
+		for(s32 i = 0; i < 0x0C; i++)
+			pressureButton[i] = buffer[i+9] = pressure[i];
+	}
+	else if(mask)
 	{
 		//Right, left, up, down
 		pressureButton[0x00] = (mask & 0x01) && (buttons & 0x20) ? 0x00 : pressureButton[0x00] + settings.pressureRate;
 		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + settings.pressureRate;
-		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + settings.pressureRate;
-		pressureButton[0x03] = (mask & 0x04) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + settings.pressureRate;
+		pressureButton[0x02] = (mask & 0x04) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + settings.pressureRate;
+		pressureButton[0x03] = (mask & 0x08) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + settings.pressureRate;
 
 		//triangle, circle, cross, square
-		pressureButton[0x04] = (mask & 0x05) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + settings.pressureRate;
-		pressureButton[0x05] = (mask & 0x06) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + settings.pressureRate;
-		pressureButton[0x06] = (mask & 0x07) && (buttons & 0x4000) ? 0x00 : pressureButton[0x06] + settings.pressureRate;
-		pressureButton[0x07] = (mask & 0x08) && (buttons & 0x8000) ? 0x00 : pressureButton[0x07] + settings.pressureRate;
+		pressureButton[0x04] = (mask & 0x10) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + settings.pressureRate;
+		pressureButton[0x05] = (mask & 0x20) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + settings.pressureRate;
+		pressureButton[0x06] = (mask & 0x40) && (buttons & 0x4000) ? 0x00 : pressureButton[0x06] + settings.pressureRate;
+		pressureButton[0x07] = (mask & 0x80) && (buttons & 0x8000) ? 0x00 : pressureButton[0x07] + settings.pressureRate;
 
 		//l1, r1, l2, r2
-		pressureButton[0x08] = (mask & 0x09) && (buttons & 0x400) ? 0x00 : pressureButton[0x08] + settings.pressureRate;
-		pressureButton[0x09] = (mask & 0x0A) && (buttons & 0x800) ? 0x00 : pressureButton[0x09] + settings.pressureRate;
-		pressureButton[0x0A] = (mask & 0x0B) && (buttons & 0x100) ? 0x00 : triggerL;
-		pressureButton[0x0B] = (mask & 0x0C) && (buttons & 0x200) ? 0x00 : triggerR;
+		pressureButton[0x08] = (mask & 0x100) && (buttons & 0x400) ? 0x00 : pressureButton[0x08] + settings.pressureRate;
+		pressureButton[0x09] = (mask & 0x200) && (buttons & 0x800) ? 0x00 : pressureButton[0x09] + settings.pressureRate;
+		pressureButton[0x0A] = (mask & 0x400) && (buttons & 0x100) ? 0x00 : triggerL;
+		pressureButton[0x0B] = (mask & 0x800) && (buttons & 0x200) ? 0x00 : triggerR;
 
 		for(s32 i = 0; i < 0x0C; i++)
 			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;

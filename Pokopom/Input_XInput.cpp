@@ -16,6 +16,7 @@
  */
 
 #include "General.h"
+#include "../../Common/SCPExtensions.cpp"
 #include "Input.h"
 #include "Input_Shared.h"
 
@@ -209,6 +210,36 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 	}
 	else
 		gamepadPlugged = false;
+}
+
+bool FASTCALL DualshockPressure(u8 * bufferOut, u32 mask, _Settings &set, bool &gamepadPlugged)
+{
+	SCP_EXTN pressure;
+
+	if(XInputGetExtended(set.xinputPort, &pressure) == ERROR_SUCCESS)
+	{
+		//Right, left, up, down
+		bufferOut[0x00] = (mask & 0x01) ? (u8)(pressure.SCP_RIGHT* 255) : 0x00;
+		bufferOut[0x01] = (mask & 0x02) ? (u8)(pressure.SCP_LEFT * 255) : 0x00;
+		bufferOut[0x02] = (mask & 0x04) ? (u8)(pressure.SCP_UP   * 255) : 0x00;
+		bufferOut[0x03] = (mask & 0x08) ? (u8)(pressure.SCP_DOWN * 255) : 0x00;
+
+		//triangle, circle, cross, square
+		bufferOut[0x04] = (mask & 0x10) ? (u8)(pressure.SCP_T * 255) : 0x00;
+		bufferOut[0x05] = (mask & 0x20) ? (u8)(pressure.SCP_C * 255) : 0x00;
+		bufferOut[0x06] = (mask & 0x40) ? (u8)(pressure.SCP_X * 255) : 0x00;
+		bufferOut[0x07] = (mask & 0x80) ? (u8)(pressure.SCP_S * 255) : 0x00;
+
+		//l1, r1, l2, r2
+		bufferOut[0x08] = (mask & 0x100) ? (u8)(pressure.SCP_L1 * 255) : 0x00;
+		bufferOut[0x09] = (mask & 0x200) ? (u8)(pressure.SCP_R1 * 255) : 0x00;
+		bufferOut[0x0A] = (mask & 0x400) ? (u8)(pressure.SCP_L2 * 255) : 0x00;
+		bufferOut[0x0B] = (mask & 0x800) ? (u8)(pressure.SCP_R2 * 255) : 0x00;
+
+		return true;
+	}
+	else
+		return false;
 }
 
 ////////////////////////////////////////////////////////////////////////

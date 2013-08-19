@@ -28,6 +28,7 @@ namespace Input
 
 	void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged);
 	void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged);
+	bool FASTCALL DualshockPressure(u8 * bufferOut, u32 mask, _Settings &set, bool &gamepadPlugged);
 
 	void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
 	void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, void* thread, _Settings &set, bool &gamepadPlugged);
