@@ -70,9 +70,9 @@ void UpdateControls(HWND hDialog, s32 port)
 {
 	for(s32 i = 0; i<4; i++)
 	{
-		SendMessage(GetDlgItem(hDialog, i + 1027), CB_SETCURSEL, settings[port].axisRemap[i], 0);
-		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
-		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);
+		SendMessage(GetDlgItem(hDialog, i + IDC_COMBO_LX), CB_SETCURSEL, settings[port].axisRemap[i], 0);
+		CheckDlgButton(hDialog, i + IDC_INVERT_LX, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
+		CheckDlgButton(hDialog, i + IDC_XINPUT1, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);
 	}
 
 	CheckDlgButton(hDialog, IDC_DISABLED, settings[port].disabled ? BST_CHECKED : BST_UNCHECKED);
@@ -80,13 +80,13 @@ void UpdateControls(HWND hDialog, s32 port)
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_LOCKSLIDERS, settings[port].sticksLocked ? BST_CHECKED : BST_UNCHECKED);
 
-	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1044:1043, BST_CHECKED);
-	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1043:1044, BST_UNCHECKED);
+	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_ANALOG : IDC_MODE_DIGITAL, BST_CHECKED);
+	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_DIGITAL : IDC_MODE_ANALOG, BST_UNCHECKED);
 
 	if(!isPSemulator)
 	{
-		EnableWindow(GetDlgItem(hDialog, 1043), false);
-		EnableWindow(GetDlgItem(hDialog, 1044), false);
+		EnableWindow(GetDlgItem(hDialog, IDC_MODE_DIGITAL), false);
+		EnableWindow(GetDlgItem(hDialog, IDC_MODE_ANALOG), false);
 
 		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
 		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
@@ -128,7 +128,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 		{
 			port = TabCtrl_GetCurSel(GetDlgItem(GetParent(hwndDlg), IDC_TAB1));
 
-			for(s32 control = 1027; control < 1033; control++)
+			for(s32 control = IDC_COMBO_LX; control <= IDC_COMBO_RY; control++)
 			{
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis LX");
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis LY");
