@@ -293,6 +293,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPPORTS), isPSemulator);
 			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPSTICKS), !isPSemulator);
 
+			CheckDlgButton(hwndDlg, IDC_4WAYSTICK, b4wayStick ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SWAPSTICKS, SwapSticksEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SWAPPORTS, SwapPortsEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_PROCPRIORITY, bPriority ? BST_CHECKED : BST_UNCHECKED);
@@ -314,6 +315,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			case IDC_SWAPPORTS:
 				SwapPortsEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPPORTS) == BST_CHECKED;
+				break;
+
+			case IDC_4WAYSTICK:
+				b4wayStick = IsDlgButtonChecked(hwndDlg, IDC_4WAYSTICK) == BST_CHECKED;
 				break;
 
 			case IDC_SWAPSTICKS:

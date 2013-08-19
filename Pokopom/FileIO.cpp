@@ -146,6 +146,7 @@ namespace FileIO
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);
 			SaveEntry("General", -1, "SwapPorts", SwapPortsEnabled, iniFile); 
 			SaveEntry("General", -1, "SwapSticks", SwapSticksEnabled, iniFile);
+			SaveEntry("General", -1, "4wayStick", b4wayStick, iniFile);
 
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -210,7 +211,8 @@ namespace FileIO
 
 			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1;
 				SetPriority();
-				
+			
+			b4wayStick = ReadEntry("General", -1, "4wayStick", iniFile) == 1;
 			SwapSticksEnabled = ReadEntry("General", -1, "SwapSticks", iniFile) == 1;
 			SwapPortsEnabled = ReadEntry("General", -1, "SwapPorts", iniFile) == 1;
 			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1;

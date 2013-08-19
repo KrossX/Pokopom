@@ -41,6 +41,7 @@ struct keyEvent
 
 extern std::list <keyEvent> keyEventList;
 
+extern bool b4wayStick;
 extern bool SwapSticksEnabled;
 extern bool SwapPortsEnabled;
 extern bool isPs2Emulator;

@@ -226,7 +226,7 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		if(digital)
 		{
 			u8 stickLD = GetAnalogDigital(pad.stickL);
-			u8 stickRD = GetAnalogDigital(pad.stickR, true);
+			u8 stickRD = GetAnalogDigital(pad.stickR, b4wayStick && true);
 
 			buttonsStick = buttons | 0x06;
 			buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
@@ -326,7 +326,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, true);
+			u8 stickD = GetAnalogDigital(stickR, b4wayStick && true);
 
 			// Inactive right stick to work as face buttons
 			buttons |= (stickD & ANALOGD_XP) << DC_B;
@@ -515,7 +515,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
 			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
 
-			u8 stickD = GetAnalogDigital(stickL, true);
+			u8 stickD = GetAnalogDigital(stickL, b4wayStick && true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
@@ -530,7 +530,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, true);
+			u8 stickD = GetAnalogDigital(stickR, b4wayStick && true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
