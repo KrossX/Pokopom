@@ -31,9 +31,11 @@
 	#endif
 #elif defined __linux__
 	#define EXPORT_CALL __stdcall
+	#define FASTCALL
 	#define CALLBACK
 	#define HWND void*
 	#define WNDPROC void*
+	#define WORD short
 
 	#include <string.h>
 	#include <X11/Xlib.h>
@@ -48,7 +50,7 @@
 #include <stdio.h>
 #include <list>
 
-#include "..\..\Common\TypeDefs.h"
+#include "../../Common/TypeDefs.h"
 #include "Stuff.h"
 #include "Settings.h"
 

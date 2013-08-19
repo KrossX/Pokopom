@@ -21,7 +21,10 @@
 #include <fstream>
 #include <stdlib.h>
 
+#ifdef _WIN32
 extern HINSTANCE hInstance;
+#endif
+
 extern char settingsDirectory[1024];
 extern u8 multitap;
 
@@ -51,7 +54,7 @@ namespace FileIO
 				sprintf(filename, "padPokopom.ini");
 		}
 #elif defined __linux__
-		else */
+		else
 			sprintf(filename, "padPokopom.ini");
 #endif
 
@@ -261,6 +264,7 @@ namespace FileIO
 
 	bool FASTCALL LoadMempak(u8 *data, u8 port)
 	{
+#ifdef  _WIN32
 		char filename[256];
 
 		sprintf(filename, "MemPaks\\Pokopom%d.mempak", port+1);
@@ -280,10 +284,14 @@ namespace FileIO
 		file.close();
 
 		return true;
+#else
+		return false;
+#endif
 	}
 
 	void FASTCALL SaveMempak(u8* data, u8 port)
 	{
+#ifdef _WIN32
 		CreateDirectoryA("MemPaks", NULL);
 
 		char filename[1024] = {0};
@@ -296,6 +304,7 @@ namespace FileIO
 
 		file.write((char*)data, 0x8000);
 		file.close();
+#endif
 	}
 
 } // End namespace FileIO
