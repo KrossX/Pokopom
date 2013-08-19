@@ -80,7 +80,7 @@
       <AdditionalDependencies>UxTheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)README.md" "$(TargetDir)Readme.txt" /Y</Command>
+      <Command>copy "$(SolutionDir)README" "$(TargetDir)Readme.txt" /Y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
