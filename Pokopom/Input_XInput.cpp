@@ -142,7 +142,7 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 
 	if(result == ERROR_SUCCESS)
 	{
-		//printf("Vibrate! [%X] [%X]\n", smalldata, bigdata);
+		//Debug("Vibrate! [%X] [%X]\n", smalldata, bigdata);
 
 		static XINPUT_VIBRATION vib;
 		static DWORD timerS = 0, timerB = 0;
@@ -196,7 +196,7 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 		vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
 		*/
 
-		//printf("Vibrate! [%X] [%X]\n", vib.wLeftMotorSpeed, vib.wRightMotorSpeed);
+		//Debug("Vibrate! [%X] [%X]\n", vib.wLeftMotorSpeed, vib.wRightMotorSpeed);
 
 
 		XInputSetState(set.xinputPort, &vib);

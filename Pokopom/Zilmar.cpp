@@ -30,7 +30,7 @@ input: A pointer to a PLUGIN_INFO stucture that needs to be filled by the functi
 *************************************************************************************/
 DllExport void CALL GetDllInfo(Zilmar::PLUGIN_INFO *PluginInfo)
 {
-	//printf("Pokopom -> GetDLLInfo\n");
+	//Debug("Pokopom -> GetDLLInfo\n");
 
 	strcpy_s(PluginInfo->Name, "Pokopom XInput Plugin v2.0");
 	PluginInfo->Type = Zilmar::PLUGIN_TYPE_CONTROLLER;
@@ -52,7 +52,7 @@ DllExport void CALL InitiateControllers(HWND hMain, Zilmar::CONTROL Controls[4])
 {
 	// 1.0 seems to be the supported version around.
 
-	//printf("Pokopom -> InitControllers\n");
+	//Debug("Pokopom -> InitControllers\n");
 
 	zilmarInfo = new Zilmar::CONTROL_INFO;
 	zilmarInfo->hMainWindow = hMain;
@@ -80,7 +80,7 @@ Purpose: This function is called when the emulator is closing down allowing the 
 
 DllExport void CALL CloseDLL()
 {
-	//printf("Pokopom -> CloseDLL\n");
+	//Debug("Pokopom -> CloseDLL\n");
 
 	if(zilmarInfo)
 	{
@@ -105,7 +105,7 @@ input: A handle to the window that calls this function.
 *************************************************************************************/
 DllExport void CALL DllConfig(HWND hParent)
 {
-	//printf("Pokopom -> DLLConfig\n");
+	//Debug("Pokopom -> DLLConfig\n");
 
 	FileIO::INI_LoadSettings();
 	CreateConfigDialog();
@@ -144,7 +144,7 @@ Purpose:  This function is called when a rom is open. (from the emulation thread
 *************************************************************************************/
 DllExport void CALL RomOpen()
 {
-	//printf("Pokopom -> RomOpen\n");
+	//Debug("Pokopom -> RomOpen\n");
 	//GimmeConsole();
 	Input::Pause(false);
 	KeepAwake(KEEPAWAKE_INIT);
@@ -157,7 +157,7 @@ Purpose:  This function is called when a rom is closed.
 *************************************************************************************/
 DllExport void CALL RomClosed()
 {
-	//printf("Pokopom -> RomClosed\n");
+	//Debug("Pokopom -> RomClosed\n");
 	Input::Pause(true);
 	KeepAwake(KEEPAWAKE_CLOSE);
 }
@@ -174,7 +174,7 @@ input: - Controller Number (0 to 3).
 DllExport void CALL GetKeys(s32 port, Zilmar::BUTTONS *keys)
 {
 	// Only raw here...
-	//printf("Pokopom -> GetKeys\n");
+	//Debug("Pokopom -> GetKeys\n");
 }
 
 /************************************************************************************
@@ -195,7 +195,7 @@ note: This function is only needed if the DLL is allowing raw data, or the plugi
 DllExport void CALL ControllerCommand(s32 port, u8 *cmd)
 {
 	if(port < 0 || cmd == NULL) return;
-	//printf("Pokopom -> ControllerCommand\t(%2d) | %02X\n", port, cmd[2]);
+	//Debug("Pokopom -> ControllerCommand\t(%2d) | %02X\n", port, cmd[2]);
 	zController[port]->Command(cmd);
 }
 
@@ -212,7 +212,7 @@ note: This function is only needed if the DLL is allowing raw data.
 DllExport void CALL ReadController(s32 port, u8 *cmd)
 {
 	if(port < 0 || cmd == NULL) return;
-	//printf("Pokopom -> ReadController\t(%2d) | %02X\n", port, cmd[2]);
+	//Debug("Pokopom -> ReadController\t(%2d) | %02X\n", port, cmd[2]);
 	zController[port]->Read(cmd);
 }
 

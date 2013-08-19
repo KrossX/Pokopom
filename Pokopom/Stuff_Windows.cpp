@@ -49,7 +49,14 @@ void KeepAwake(u8 mode)
 
 void GetDisplay(void* pDisplay)
 {
-	emuStuff.hWnd = *(HWND*)pDisplay;
+	if(IsWindow((HWND)pDisplay))
+		emuStuff.hWnd = (HWND)pDisplay;
+	else if(IsWindow(*(HWND*)pDisplay)) // And hopefully doesn't crash...
+		emuStuff.hWnd = *(HWND*)pDisplay;
+	else
+		emuStuff.hWnd = NULL;
+
+	hDisplay = emuStuff.hWnd;
 }
 
 LRESULT CALLBACK KeyboardProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

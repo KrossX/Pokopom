@@ -158,12 +158,12 @@ void DualShock::Cmd0()
 			if(padID == ID_DIGITAL)
 			{
 				padID = settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED;
-				//printf("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
+				//Debug("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
 			}
 			else
 			{
 				padID = (u8)ID_DIGITAL;
-				//printf("Pokopom -> [%d] Switched to digital mode (%X).\n", port, padID);
+				//Debug("Pokopom -> [%d] Switched to digital mode (%X).\n", port, padID);
 			}
 
 			bPressed[port] = true;

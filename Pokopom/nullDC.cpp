@@ -64,7 +64,7 @@ void FASTCALL dcGetInterfaceVersion(nullDC::plugin_interface* info)
 
 DllExport void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 {
-	//printf("Pokopom -> GetInterface\n");
+	//Debug("Pokopom -> GetInterface\n");
 	dcGetInterfaceVersion(info);
 	wcscpy_s(info->common.Name, pluginName);
 
@@ -111,7 +111,7 @@ DllExport void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 
 s32 FASTCALL Load(nullDC::emu_info* emu)
 {
-	//printf("Pokopom -> Load\n");
+	//Debug("Pokopom -> Load\n");
 	if(emu == NULL) return nullDC::rv_error;
 	memcpy(&nullDCemu, emu, sizeof(nullDCemu));
 
@@ -149,7 +149,7 @@ void FASTCALL Unload()
 
 s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, u32 rootmenu)
 {
-	//printf("Pokopom -> CreateMain [%X|%X]\n", inst->port, id);
+	//Debug("Pokopom -> CreateMain [%X|%X]\n", inst->port, id);
 	u32 port = (inst->port >> 6);
 
 	switch(dcPlatform)
@@ -222,7 +222,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 {
 	u8 port = inst->port>>6;
 	u8 subport = GetSubport(inst->port);
-	//printf("Pokopom -> CreateSub [%X|%X|%X]\n", port, subport, id);
+	//Debug("Pokopom -> CreateSub [%X|%X|%X]\n", port, subport, id);
 
 	switch(dcPlatform)
 	{
@@ -266,7 +266,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 {
 	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//printf("Pokopom -> Init [%d]\n", port);
+	//Debug("Pokopom -> Init [%d]\n", port);
 
 	Input::Pause(false);
 	KeepAwake(KEEPAWAKE_INIT);
@@ -277,7 +277,7 @@ s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 void FASTCALL Term(void* data, u32 id)
 {
 	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//printf("Pokopom -> Term [%d]\n", port);
+	//Debug("Pokopom -> Term [%d]\n", port);
 
 	Input::Pause(true);
 	KeepAwake(KEEPAWAKE_CLOSE);
@@ -286,7 +286,7 @@ void FASTCALL Term(void* data, u32 id)
 void FASTCALL Destroy(void* data, u32 id)
 {
 	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//printf("Pokopom -> Destroy [%d]\n", port);
+	//Debug("Pokopom -> Destroy [%d]\n", port);
 }
 
 ////////////////////////////////////////////////////////////////////////

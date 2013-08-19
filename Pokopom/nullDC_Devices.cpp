@@ -127,7 +127,7 @@ u32 FASTCALL NaomiController::DMA(void* device_instance, u32 command,
 
 	static long long counter = 0;
 
-	//printf("Pokopom NAOMI -> Cmd %2X / Jcmd %2X | State cmd %2X, mode %2X, node %2X | %lX\n", 
+	//Debug("Pokopom NAOMI -> Cmd %2X / Jcmd %2X | State cmd %2X, mode %2X, node %2X | %lX\n", 
 	//	command, bufferIn[0], State.cmd, State.mode, State.node, counter++);
 
 	switch(command)

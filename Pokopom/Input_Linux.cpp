@@ -229,7 +229,7 @@ bool CheckAnalogToggle(u8 port)
 
 void SetAnalogLed(u8 port, bool digital)
 {
-	//printf("Pokopom -> [%d] Mode: (%s).\n", port, digital? "Digital" : "Analog");
+	//Debug("Pokopom -> [%d] Mode: (%s).\n", port, digital? "Digital" : "Analog");
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -297,7 +297,7 @@ void DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
 		triggerL = (js.axis[LIN_AXIS_LT] + 32767)/256;
 		triggerR = (js.axis[LIN_AXIS_RT] + 32767)/256;
 
-		//printf("Pokopom: %04X %04X\n", analogL, analogR);
+		//Debug("Pokopom: %04X %04X\n", analogL, analogR);
 	}
 	else
 		gamepadPlugged = false;
@@ -355,7 +355,7 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 			return;
 		}
 
-		//printf("Vibrate! [%2X] %04X : [%2X] %04X\n", smalldata, smallMotor, bigdata, bigMotor);
+		//Debug("Vibrate! [%2X] %04X : [%2X] %04X\n", smalldata, smallMotor, bigdata, bigMotor);
 	}
 
 }

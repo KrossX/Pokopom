@@ -199,7 +199,7 @@ void FASTCALL N64controller::Command(u8 *cmd) // Input ?
 			u16 blockAddress = (cmd[3] << 3) | (cmd[4] >> 5);
 			//u16 crcAddress = cmd[4] & 0x1F; // Wut for?
 
-			//printf("Pokopom -> WP\t%4X %4X\n", blockAddress, crcAddress);
+			//Debug("Pokopom -> WP\t%4X %4X\n", blockAddress, crcAddress);
 			if (bRumble && blockAddress == 0x600) RumbleIt(cmd[5] != 0);
 			mempak.WriteBlock(&cmd[5], blockAddress, bRumble);
 		}
@@ -211,7 +211,7 @@ void FASTCALL N64controller::Command(u8 *cmd) // Input ?
 	case RAW_RESET: break;
 
 	default:
-		//printf("Pokopom(%d) -> Command\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
+		//Debug("Pokopom(%d) -> Command\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
 		break;
 	}
 
@@ -264,7 +264,7 @@ void FASTCALL N64controller::Read(u8 *cmd) // Output ?
 			u16 blockAddress = (cmd[3] << 3) | (cmd[4] >> 5);
 			//u16 crcAddress = cmd[4] & 0x1F; // Wut for?
 
-			//printf("Pokopom -> RP\t%4X %4X\n", blockAddress, crcAddress);
+			//Debug("Pokopom -> RP\t%4X %4X\n", blockAddress, crcAddress);
 			mempak.ReadBlock(&cmd[5], blockAddress, bRumble);
 		}break;
 
@@ -280,7 +280,7 @@ void FASTCALL N64controller::Read(u8 *cmd) // Output ?
 		break;
 
 	default:
-		//printf("Pokopom(%d) -> Read\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
+		//Debug("Pokopom(%d) -> Read\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
 		cmd[1] |= RAW_RET_WRONG_SIZE;
 	}
 }

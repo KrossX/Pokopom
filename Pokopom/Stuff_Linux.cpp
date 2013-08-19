@@ -12,7 +12,7 @@ Atom aProtocols = 0, aDeleteWindow = 0;
 
 void KeyboardOpen()
 {
-	//printf("Pokopom -> Keyboard Open\n");
+	//Debug("Pokopom -> Keyboard Open\n");
 	aProtocols = XInternAtom(hDisplay, "WM_PROTOCOLS", 0);
 	aDeleteWindow = XInternAtom(hDisplay, "WM_DELETE_WINDOW", 0);
 
@@ -21,7 +21,7 @@ void KeyboardOpen()
 
 void KeyboardClose()
 {
-	//printf("Pokopom -> Keyboard Close\n");
+	//Debug("Pokopom -> Keyboard Close\n");
 	XkbSetDetectableAutoRepeat(hDisplay, false, NULL);
 }
 
@@ -70,7 +70,7 @@ void KeyboardCheck()
 
 void GetDisplay(void* pDisplay)
 {
-	//printf("Pokopom -> GetDisplay\n");
+	//Debug("Pokopom -> GetDisplay\n");
 	hDisplay = (Display*)*(uPointer*)pDisplay;
 }
 

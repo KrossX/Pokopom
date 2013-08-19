@@ -75,7 +75,7 @@ u8 MultiTap::command(const u32 _counter, const u8 data)
 	}
 
 	//if(counter == 0) printf("\n");
-	//printf("[%02d|%d] %02X:%02X\n", counter, slot, data, output);
+	//Debug("[%02d|%d] %02X:%02X\n", counter, slot, data, output);
 
 	return output;
 }

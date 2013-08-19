@@ -217,7 +217,7 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 			triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
 		}
 
-		//printf("Pokopom: %04X %04X\n", analogL, analogR);
+		//Debug("Pokopom: %04X %04X\n", analogL, analogR);
 	}
 	else
 		gamepadPlugged = false;
