@@ -24,7 +24,8 @@ PlayStationDevice * controller[2] = {NULL, NULL};
 
 char settingsDirectory[1024] = {0}; // for PCSX2
 
-u32 bufferCount = 0, curPort = 0;
+u32 bufferCount = 0;
+u8 curPort = 0, curSlot = 1;
 u8 multitap = 0;
 
 ////////////////////////////////////////////////////////////////////////
@@ -90,42 +91,63 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 	FileIO::INI_LoadSettings();
 	//printf("Pokopom -> PADinit [%X]\n", flags);
 
+	for(int pad = 0; pad < 2; pad++)
+	{
+		if(isPs2Emulator)
+		{
+			switch(multitap)
+			{
+			case 0: 
+				if(settings[pad].isGuitar)	controller[pad] = new PS2_Guitar(settings[pad]);
+				else						controller[pad] = new DualShock2(settings[pad]);
+				break;
+
+			case 1: 
+				if(pad == 0) controller[pad] = new MultiTap2(settings);
+				else controller[pad] = new DualShock(settings[pad]);
+				break;
+
+			case 2: 
+				if(pad == 0) controller[pad] = new DualShock(settings[pad]);
+				else controller[pad] = new MultiTap2(settings);
+				break;
+			}
+
+		}
+		else
+		{
+			switch(multitap)
+			{
+			case 0: 
+				controller[pad] = new DualShock(settings[pad]); 
+				break;
+
+			case 1: 
+				if(pad == 0) controller[pad] = new MultiTap(settings);
+				else controller[pad] = new DualShock(settings[pad]);
+				break;
+
+			case 2: 
+				if(pad == 0) controller[pad] = new DualShock(settings[pad]);
+				else controller[pad] = new MultiTap(settings);
+				break;
+			}
+		}
+
+		if(controller[pad])
+		{
+			controller[pad]->SetPort((u8)pad);
+			controller[pad]->Disable();
+		}
+		else 
+			return emupro::ERR_FATAL;
+	}
+
 	if (flags & emupro::pad::USE_PORT1)
-	{
-		if(isPs2Emulator)
-		{
-			if(settings[0].isGuitar)	controller[0] = new PS2_Guitar(settings[0]);
-			else						controller[0] = new DualShock2(settings[0]);
-		}
-		else
-		{
-			if(multitap == 1)	controller[0] = new MultiTap(settings);
-			else				controller[0] = new DualShock(settings[0]);
-		}
-
-		if(controller[0]) controller[0]->SetPort(0);
-		else return emupro::ERR_FATAL;
-	}
-
+		controller[0]->Enable();
 	if (flags & emupro::pad::USE_PORT2)
-	{
-		if(isPs2Emulator)
-		{
-			if(settings[0].isGuitar)	controller[1] = new PS2_Guitar(settings[1]);
-			else						controller[1] = new DualShock2(settings[1]);
-		}
-		else
-		{
-			if(multitap == 2)	controller[1] = new MultiTap(settings);
-			else				controller[1] = new DualShock(settings[1]);
-
-			if(multitap == 1) controller[1]->Disable();
-		}
-
-		if(controller[1]) controller[1]->SetPort(1);
-		else return emupro::ERR_FATAL;
-	}
-
+		controller[1]->Enable();
+	
 	return emupro::INIT_ERR_SUCCESS;
 }
 
@@ -256,13 +278,13 @@ DllExport s32 CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 
 DllExport u8 CALLBACK PADstartPoll(s32 port)
 {
-	curPort = port - 1;
+	curPort = (u8)(port - 1);
 	bufferCount = 0;
 
-	u8 data = controller[curPort]->command(bufferCount, 0x01);
+	u8 data = controller[curPort]->command(bufferCount, curSlot);
 
-	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, 0x01, data);
-	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, 0x01, data);
+	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, curSlot, data);
+	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, curSlot, data);
 
 	return data;
 }
@@ -359,8 +381,11 @@ DllExport s32 PADkeypressed()
 
 DllExport u32 CALLBACK PADqueryMtap(u8 port)
 {
-	//printf("Pokopom -> PADqueryMtap [%X]\n", port);
-	return 0;
+	printf("Pokopom -> PADqueryMtap [%X]\n", port);
+	
+	if(multitap == 1 && port == 1) return 1;
+	else if(multitap == 2) return 1;
+	else return 0;
 }
 
 DllExport void CALLBACK PADsetSettingsDir(const char *dir)
@@ -390,7 +415,23 @@ DllExport void  PADWriteEvent(keyEvent &evt)
 
 DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)
 {
-	//printf("Pokopom -> PADsetSlot [%X|%X]\n", port, slot);
+	//printf("Pokopom -> PADsetSlot [%X|%X] ", port, slot);
+	curPort = port - 1;
+	curSlot = slot;
+
+	switch(multitap)
+	{
+	case 0:
+		if(slot == 1) return 1;
+
+	case 1:
+		if(port == 1) return 1;
+
+	case 2:
+		if(port == 1 && slot == 1) return 1;
+		else if(port == 2 && slot < 4) return 1;
+	}
+
 	return 0;
 }
 

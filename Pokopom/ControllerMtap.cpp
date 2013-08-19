@@ -87,3 +87,17 @@ void MultiTap::LoadState(PlayStationDeviceState state)
 void MultiTap::SaveState(PlayStationDeviceState &state)
 {
 }
+
+////////////////////////////////////////////////////////////////////////
+// PCSX2 Multitap
+////////////////////////////////////////////////////////////////////////
+
+MultiTap2::MultiTap2(_Settings *config) : MultiTap(config)
+{}
+
+u8 MultiTap2::command(const u32 counter, const u8 data)
+{
+	if(counter == 0) slot = data - 1;
+
+	return Device[slot]->command(counter, data);
+}

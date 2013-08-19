@@ -249,7 +249,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			tci.pszText = L"Controller 2";
 			TabCtrl_InsertItem(hTabControl, 1, &tci);
 
-			if(!isPSemulator || (!isPs2Emulator && multitap > 0))
+			if(!isPSemulator || multitap > 0)
 			{
 				tci.pszText = L"Controller 3";
 				TabCtrl_InsertItem(hTabControl, 2, &tci);
@@ -261,7 +261,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			hChild = CreateDialog((HINSTANCE)lParam, MAKEINTRESOURCE(IDD_INTAB), hwndDlg, DialogProc2);
 			EnableThemeDialogTexture(hChild, ETDT_ENABLETAB);
 
-			if(!isPSemulator || isPs2Emulator)
+			if(!isPSemulator)
 				EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), false);
 
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);

@@ -36,7 +36,7 @@ class PlayStationDevice
 {
 	PlayStationDevice();
 	PlayStationDevice(const PlayStationDevice &);
-    PlayStationDevice& operator=(const PlayStationDevice &);
+	PlayStationDevice& operator=(const PlayStationDevice &);
 
 	bool disabled;
 
@@ -69,7 +69,7 @@ class DualShock : public PlayStationDevice
 {
 	DualShock();
 	DualShock(const DualShock &);
-    DualShock& operator=(const DualShock &);
+	DualShock& operator=(const DualShock &);
 
 protected:
 	virtual void Cmd0(); // To use the analog toggle or whatever before command
@@ -102,7 +102,7 @@ class DualShock2 : public DualShock
 {
 	DualShock2();
 	DualShock2(const DualShock2 &);
-    DualShock2& operator=(const DualShock2 &);
+	DualShock2& operator=(const DualShock2 &);
 
 protected:
 	void Cmd1(const u8 data);
@@ -124,7 +124,7 @@ class PS2_Guitar : public DualShock2
 {
 	PS2_Guitar();
 	PS2_Guitar(const PS2_Guitar &);
-    PS2_Guitar& operator=(const PS2_Guitar &);
+	PS2_Guitar& operator=(const PS2_Guitar &);
 
 	void Cmd1(const u8 data);
 	void Cmd4(const u8 data);
@@ -139,10 +139,11 @@ class MultiTap : public PlayStationDevice
 {
 	MultiTap();
 	MultiTap(const MultiTap &);
-    MultiTap& operator=(const MultiTap &);
+	MultiTap& operator=(const MultiTap &);
 
-	PlayStationDevice * Device[4];
+protected:
 	u8 slot;
+	PlayStationDevice * Device[4];
 
 public:
 	void LoadState(PlayStationDeviceState state);
@@ -153,3 +154,16 @@ public:
 	MultiTap(_Settings *config);
 	~MultiTap();
 };
+
+class MultiTap2 : public MultiTap
+{
+	MultiTap2();
+	MultiTap2(const MultiTap2 &);
+	MultiTap2& operator=(const MultiTap2 &);
+
+public:
+	u8 command(const u32 counter, const u8 data);
+
+	MultiTap2(_Settings *config);
+};
+
