@@ -158,16 +158,16 @@ namespace FileIO
 				SaveEntry("Controller", port, "AxisRemap", AxisRemap, iniFile);
 
 				SaveEntry("Controller", port, "Pressure", settings[port].pressureRate, iniFile);
-				SaveEntry("Controller", port, "Rumble", (s32)(settings[port].rumble * 100), iniFile);
+				SaveEntry("Controller", port, "Rumble", (s32)(settings[port].rumble * 100.1), iniFile);
 				SaveEntry("Controller", port, "SticksLocked", settings[port].sticksLocked ? 1 : 0, iniFile);
 
-				SaveEntry("Controller", port, "Linearity", (s32)(settings[port].stickL.linearity * 10)+40, iniFile);
-				SaveEntry("Controller", port, "AntiDeadzone", (s32)(settings[port].stickL.antiDeadzone * 100), iniFile);
-				SaveEntry("Controller", port, "Deadzone", (s32)(settings[port].stickL.deadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Linearity", (s32)(settings[port].stickL.linearity * 10.1)+40, iniFile);
+				SaveEntry("Controller", port, "AntiDeadzone", (s32)(settings[port].stickL.antiDeadzone * 100.1), iniFile);
+				SaveEntry("Controller", port, "Deadzone", (s32)(settings[port].stickL.deadzone * 100.1), iniFile);
 				
-				SaveEntry("Controller", port, "Linearity2", (s32)(settings[port].stickR.linearity * 10)+40, iniFile);
-				SaveEntry("Controller", port, "AntiDeadzone2", (s32)(settings[port].stickR.antiDeadzone * 100), iniFile);
-				SaveEntry("Controller", port, "Deadzone2", (s32)(settings[port].stickR.deadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Linearity2", (s32)(settings[port].stickR.linearity * 10.1)+40, iniFile);
+				SaveEntry("Controller", port, "AntiDeadzone2", (s32)(settings[port].stickR.antiDeadzone * 100.1), iniFile);
+				SaveEntry("Controller", port, "Deadzone2", (s32)(settings[port].stickR.deadzone * 100.1), iniFile);
 
 				SaveEntry("Controller", port, "ExtentionThreshold", (s32)(settings[port].extThreshold), iniFile);
 

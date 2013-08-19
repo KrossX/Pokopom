@@ -33,21 +33,22 @@ extern u8 dcPlatform;
 
 f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
 {
-	wchar_t text[8] = {0};
+	wchar_t text[8];
+	f64 value = 0.0;
 
-	f64 value = SendMessage(GetDlgItem(hDialog, sliderID),TBM_GETPOS,0,0);
+	LRESULT res = SendMessage(GetDlgItem(hDialog, sliderID),TBM_GETPOS,0,0);
 
 	if(Linearity)
 	{
-		value = value < 0? value -10 : value > 0? value +10: value;
-		value /= 10.0f;
+		res = res < 0? res -10 : res > 0? res +10: res;
+		value =  res / 10.00;
 
 		swprintf(text, 6, L"%1.2f", value);
 	}
 	else
 	{
-		swprintf(text, 5, L"%d%%", (int)value);
-		value /= 100.0f;
+		swprintf(text, 5, L"%d%%", res);
+		value = res / 100.00;
 	}
 	
 	SetDlgItemText(hDialog, textID, text);
@@ -57,12 +58,19 @@ f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
 
 void SliderSet(HWND hDialog, s32 sliderID, f64 value, bool Linearity = false)
 {
-	s32 position = Linearity? (s32)(value * 10) : (s32)(value * 100);
+	LRESULT position;
 
 	if(Linearity)
+	{
+		position = (LRESULT)(value * 10.1);
 		position = position > 0? position - 10 : position < 0 ? position +10 : position;
+	}
+	else
+	{
+		position = (LRESULT)(value * 100.1);
+	}
 	
-	SendMessage(GetDlgItem(hDialog, sliderID), TBM_SETPOS, TRUE, (LONG)position);
+	SendMessage(GetDlgItem(hDialog, sliderID), TBM_SETPOS, TRUE, position);
 	SendMessage(hDialog, WM_HSCROLL, 0, (LPARAM)GetDlgItem(hDialog, sliderID));
 }
 
