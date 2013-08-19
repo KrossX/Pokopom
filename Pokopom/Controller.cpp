@@ -151,7 +151,7 @@ void DualShock::Cmd0()
 
 	if(!bModeLock && gamepadPlugged)
 	{
-		bool analogPressed = Input::CheckAnalogToggle(port);
+		bool analogPressed = Input::CheckAnalogToggle(settings.xinputPort);
 
 		if(!bPressed[port] && analogPressed)
 		{

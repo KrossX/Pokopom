@@ -31,6 +31,12 @@
 #include <XInput.h>
 #pragma comment(lib, "Xinput.lib")
 
+HINSTANCE hXInput = NULL;
+typedef DWORD (WINAPI* XInputGetStateEx_t)(DWORD dwUserIndex, XINPUT_STATE *pState);
+XInputGetStateEx_t XInputGetStateEx;
+
+#define XINPUT_GAMEPAD_GUIDE 0x400
+
 namespace Input
 {
 
@@ -62,7 +68,22 @@ void FASTCALL StopRumble(u8 port)
 
 bool FASTCALL CheckAnalogToggle(u8 port)
 {
-	return !!(GetAsyncKeyState(0x31 + port) >> 1);
+	//return !!(GetAsyncKeyState(0x31 + port) >> 1);
+
+	XINPUT_STATE state;
+	
+	if(!hXInput)
+	{
+		hXInput = LoadLibrary(XINPUT_DLL);
+		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
+	}
+
+	DWORD result = XInputGetStateEx(port, &state);
+
+	if(result == ERROR_SUCCESS)
+		return !!(state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
+	else
+		return false;
 }
 
 void FASTCALL SetAnalogLed(u8 port, bool digital)
@@ -79,7 +100,15 @@ void FASTCALL SetAnalogLed(u8 port, bool digital)
 bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 {
 	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
+	
+	if(!hXInput)
+	{
+		hXInput = LoadLibrary(XINPUT_DLL);
+		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
+	}
+
+	DWORD result = XInputGetStateEx(set.xinputPort, &state);
+
 
 	if(result == ERROR_SUCCESS)
 	{
@@ -95,6 +124,8 @@ bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 		pad.buttons[X360_RS] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) >> 7;
 		pad.buttons[X360_LB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) >> 8;
 		pad.buttons[X360_RB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) >> 9;
+
+		pad.buttons[X360_BIGX] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) >> 10;
 
 		pad.buttons[X360_A] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) >> 12;
 		pad.buttons[X360_B] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) >> 13;
