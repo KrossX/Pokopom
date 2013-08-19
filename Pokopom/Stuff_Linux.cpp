@@ -78,6 +78,29 @@ void ShowDialog(const wchar_t* message, const wchar_t* title)
 {
 }
 
+void SetPriority()
+{
+}
+
+u8 SwapPorts()
+{
+	static u8 swapIt = 0; /*
+	static bool pressed = false;
+	const bool currPress = !!(GetAsyncKeyState(0x30) >> 1);
+
+	if(!pressed && currPress)
+	{
+		swapIt ^= 1;
+		pressed = true;
+	}
+	else if(pressed && !currPress)
+	{
+		pressed = false;
+	}
+*/
+	return swapIt;
+}
+
 void KeepAwake(u8 mode)
 {
 	switch(mode)

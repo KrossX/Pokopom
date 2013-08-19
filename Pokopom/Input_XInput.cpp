@@ -16,12 +16,12 @@
  */
 
 #include "General.h"
-#include "../../Common/SCPExtensions.cpp"
 #include "Input.h"
 #include "Input_Shared.h"
 
 #ifdef _WIN32
 
+#include "../../Common/SCPExtensions.cpp"
 //#include "Controller.h"
 //#include "General.h"
 #include "nullDC_Devices.h"

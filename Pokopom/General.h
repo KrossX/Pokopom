@@ -33,6 +33,7 @@
 	#define EXPORT_CALL __stdcall
 	#define FASTCALL
 	#define CALLBACK
+	#define HANDLE void*
 	#define HWND void*
 	#define WNDPROC void*
 	#define WORD short

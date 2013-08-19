@@ -232,82 +232,67 @@ void SetAnalogLed(u8 port, bool digital)
 	//Debug("Pokopom -> [%d] Mode: (%s).\n", port, digital? "Digital" : "Analog");
 }
 
+bool InputGetState(_Pad& pad, _Settings &set)
+{
+	const bool pollSuccess = JoyPoll(set.xinputPort);
+
+	if(pollSuccess)
+	{
+		jstate &js = joy_state[set.xinputPort];
+		
+		pad.buttons[X360_DUP] = js.axis[LIN_AXIS_DY] < 0? 1:0;
+		pad.buttons[X360_DDOWN] = js.axis[LIN_AXIS_DY] > 0? 1:0;
+		pad.buttons[X360_DLEFT] = js.axis[LIN_AXIS_DX] < 0? 1:0;
+		pad.buttons[X360_DRIGHT] = js.axis[LIN_AXIS_DX] > 0? 1:0;
+
+		pad.buttons[X360_START] = js.button[LIN_BTN_START] ? 1:0;
+		pad.buttons[X360_BACK] = js.button[LIN_BTN_BACK] ? 1:0;
+
+		pad.buttons[X360_LS] = js.button[LIN_BTN_LS] ? 1:0;
+		pad.buttons[X360_RS] = js.button[LIN_BTN_RS] ? 1:0;
+		pad.buttons[X360_LB] = js.button[LIN_BTN_LB] ? 1:0;
+		pad.buttons[X360_RB] = js.button[LIN_BTN_RB] ? 1:0;
+
+		pad.buttons[X360_BIGX] = js.button[LIN_BTN_BIGX] ? 1:0;
+
+		pad.buttons[X360_A] = js.button[LIN_BTN_A] ? 1:0;
+		pad.buttons[X360_B] = js.button[LIN_BTN_B] ? 1:0;
+		pad.buttons[X360_X] = js.button[LIN_BTN_X] ? 1:0;
+		pad.buttons[X360_Y] = js.button[LIN_BTN_Y] ? 1:0;
+
+		pad.analog[X360_STICKLX] = js.axis[LIN_AXIS_LX];
+		pad.analog[X360_STICKLY] = js.axis[LIN_AXIS_LY];
+		pad.analog[X360_STICKRX] = js.axis[LIN_AXIS_RX];
+		pad.analog[X360_STICKRY] = js.axis[LIN_AXIS_RY];
+
+		pad.analog[X360_TRIGGERL] = (js.axis[LIN_AXIS_LT] + 32767) / 256;
+		pad.analog[X360_TRIGGERR] = (js.axis[LIN_AXIS_RT] + 32767) / 256;
+
+		pad.stickL.X = pad.analog[X360_STICKLX];
+		pad.stickL.Y = pad.analog[X360_STICKLY];
+		pad.stickR.X = pad.analog[X360_STICKRX];
+		pad.stickR.Y = pad.analog[X360_STICKRY];
+
+		set.axisValue[GP_AXIS_LY] = pad.analog[X360_STICKLY] * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
+		set.axisValue[GP_AXIS_LX] = pad.analog[X360_STICKLX] * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
+		set.axisValue[GP_AXIS_RY] = pad.analog[X360_STICKRY] * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
+		set.axisValue[GP_AXIS_RX] = pad.analog[X360_STICKRX] * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
+
+		pad.modL.X = set.axisValue[set.axisRemap[GP_AXIS_LX]];
+		pad.modL.Y = set.axisValue[set.axisRemap[GP_AXIS_LY]];
+		pad.modR.X = set.axisValue[set.axisRemap[GP_AXIS_RX]];
+		pad.modR.Y = set.axisValue[set.axisRemap[GP_AXIS_RY]];
+
+		GetRadius(pad.stickL); GetRadius(pad.stickR);
+		GetRadius(pad.modL); GetRadius(pad.modR);
+	}
+	
+	return pollSuccess;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // DualShock
 ////////////////////////////////////////////////////////////////////////
-
-void DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
-{
-	u16 buttons, buttonsStick, analogL, analogR;
-	u8 triggerL, triggerR;
-
-	buttons = buttonsStick = 0xFFFF;
-	analogL = analogR = 0x7F7F;
-	triggerL = triggerR = 0;
-
-	if(JoyPoll(set.xinputPort))
-	{
-		jstate &js = joy_state[set.xinputPort];
-
-		buttons = 0;
-		buttons |= (js.button[LIN_BTN_BACK] ? 0:1) << 0x0; // Select
-		buttons |= (js.button[LIN_BTN_LS] ? 0:1) << 0x1; // L3
-		buttons |= (js.button[LIN_BTN_RS] ? 0:1) << 0x2; // R3
-		buttons |= (js.button[LIN_BTN_START] ? 0:1) << 0x3; // Start
-		buttons |= (js.axis[LIN_AXIS_DY] < 0? 0:1) << 0x4; // Up
-		buttons |= (js.axis[LIN_AXIS_DX] > 0? 0:1) << 0x5; // Right
-		buttons |= (js.axis[LIN_AXIS_DY] > 0? 0:1) << 0x6; // Down
-		buttons |= (js.axis[LIN_AXIS_DX] < 0? 0:1) << 0x7; // Left
-
-		buttons |= (js.axis[LIN_AXIS_LT] > -30000 ? 0:1) << 0x8; // L2
-		buttons |= (js.axis[LIN_AXIS_RT] > -30000 ? 0:1) << 0x9; // R2
-
-		buttons |= (js.button[LIN_BTN_LB] ? 0:1) << 0xA; // L1
-		buttons |= (js.button[LIN_BTN_RB] ? 0:1) << 0xB; // R1
-
-		buttons |= (js.button[LIN_BTN_Y] ? 0:1) << 0xC; // Triangle
-		buttons |= (js.button[LIN_BTN_B] ? 0:1) << 0xD; // Circle
-		buttons |= (js.button[LIN_BTN_A] ? 0:1) << 0xE; // Cross
-		buttons |= (js.button[LIN_BTN_X] ? 0:1) << 0xF; // Square
-
-		buttonsStick = buttons | 0x06;
-		const s32 threshold = 16384;
-
-		set.axisValue[GP_AXIS_LY] = js.axis[LIN_AXIS_LY] * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
-		set.axisValue[GP_AXIS_LX] = js.axis[LIN_AXIS_LX] * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
-		set.axisValue[GP_AXIS_RY] = js.axis[LIN_AXIS_RY] * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
-		set.axisValue[GP_AXIS_RX] = js.axis[LIN_AXIS_RX] * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
-
-		if(js.axis[LIN_AXIS_LY] < -threshold) buttonsStick &= ~(1 << 0x4);
-		if(js.axis[LIN_AXIS_LX] >  threshold) buttonsStick &= ~(1 << 0x5);
-		if(js.axis[LIN_AXIS_LY] >  threshold) buttonsStick &= ~(1 << 0x6);
-		if(js.axis[LIN_AXIS_LX] < -threshold) buttonsStick &= ~(1 << 0x7);
-
-		if(js.axis[LIN_AXIS_RY] < -threshold) buttonsStick &= ~(1 << 0xC);
-		if(js.axis[LIN_AXIS_RX] >  threshold) buttonsStick &= ~(1 << 0xD);
-		if(js.axis[LIN_AXIS_RY] >  threshold) buttonsStick &= ~(1 << 0xE);
-		if(js.axis[LIN_AXIS_RX] < -threshold) buttonsStick &= ~(1 << 0xF);
-
-		analogL = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_LX]],
-								-set.axisValue[set.axisRemap[GP_AXIS_LY]], set, 0);
-
-		analogR = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_RX]],
-								-set.axisValue[set.axisRemap[GP_AXIS_RY]], set, 0);
-
-		triggerL = (js.axis[LIN_AXIS_LT] + 32767)/256;
-		triggerR = (js.axis[LIN_AXIS_RT] + 32767)/256;
-
-		//Debug("Pokopom: %04X %04X\n", analogL, analogR);
-	}
-	else
-		gamepadPlugged = false;
-
-	bufferOut[0] = buttons;
-	bufferOut[1] = buttonsStick;
-	bufferOut[2] = analogL;
-	bufferOut[3] = analogR;
-	bufferOut[4] = (triggerL << 8) | triggerR;
-}
 
 void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged)
 {
@@ -340,7 +325,7 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 		// Update the same effect...
 		if (ioctl(rumble.fd, EVIOCSFF, &rumble.effect) == -1)
 		{
-			perror("Rumble Upload");
+			//perror("Rumble Upload");
 			rumble.fd = 0;
 			return;
 		}
@@ -350,7 +335,7 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 		// And play it!
 		if (write(rumble.fd, (const void*) &rumble.play, sizeof(rumble.play)) == -1)
 		{
-			perror("Rumble Playback");
+			//perror("Rumble Playback");
 			rumble.fd = 0;
 			return;
 		}
@@ -360,34 +345,14 @@ void DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlug
 
 }
 
+bool FASTCALL DualshockPressure(u8 * bufferOut, u32 mask, _Settings &set, bool &gamepadPlugged)
+{
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Dreamcast
 ////////////////////////////////////////////////////////////////////////
-
-void DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged)
-{
-	u16* buffer = (u16*) buffer_out;
-
-	// Some magic number...
-	buffer[0] = 0x0000;
-	buffer[1] = 0x0100;
-
-	u16 buttons = 0xFFFF;
-	u16 analog = 0x8080;
-	u16 triggers = 0x0000;
-
-	// Buttons
-	buffer[2] = buttons | 0xF901;
-
-	// Triggers
-	buffer[3] = triggers;
-
-	// Left Stick
-	buffer[4] = analog;
-
-	// Right Stick... not present.
-	buffer[5] = 0x8080;
-}
 
 void VibrationWatchdog(void* param)
 {
@@ -404,38 +369,9 @@ void DreamcastRumble(s16 intensity, bool freqH, bool freqL, void* thread,
 // Zilmar
 ////////////////////////////////////////////////////////////////////////
 
-enum
-{
-	N64_RIGHT = 0,
-	N64_LEFT,
-	N64_DOWN,
-	N64_UP,
-	N64_START,
-	N64_TRIGGERZ,
-	N64_B,
-	N64_A,
-	N64_CRIGHT,
-	N64_CLEFT,
-	N64_CDOWN,
-	N64_CUP,
-	N64_TRIGGERR,
-	N64_TRIGGERL
-};
-
 void N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged)
 {
 	return;
-}
-
-void N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged)
-{
-	u16 buttons = 0;
-	u16 analog = 0x0000;
-
-	u16 * outBig = (u16*)outBuffer;
-
-	outBig[0] = buttons;
-	outBig[1] = analog;
 }
 
 void N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
