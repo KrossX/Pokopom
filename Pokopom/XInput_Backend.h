@@ -29,6 +29,7 @@ namespace XInput
 	void __fastcall DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
 	void __fastcall DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thread, _Settings &set, bool &gamepadPlugged);
 
+	void __fastcall N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged);
 	void __fastcall N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
 	void __fastcall N64rumble(bool on, _Settings &set, bool &gamepadPlugged);
 }

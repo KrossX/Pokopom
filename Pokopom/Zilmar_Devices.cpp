@@ -18,6 +18,7 @@
 #include "General.h"
 #include "Zilmar_Devices.h"
 #include "XInput_Backend.h"
+#include "FileIO.h"
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors, etc...
@@ -26,21 +27,17 @@
 Zilmar_Device::Zilmar_Device(_Settings &settings, Zilmar::CONTROL &control, u8 port) :
 	set(settings), zControl(control), zPort(port)
 {
-	gamepadPlugged = true;
+	gamepadPlugged = false;
 };
 
-Zilmar_Device::Zilmar_Device(const Zilmar_Device& other) :
-	set(other.set), zControl(other.zControl), zPort(other.zPort)
-{
-}
-
-Zilmar_Device& Zilmar_Device::operator=(const Zilmar_Device&) 
-{
-	return *this;
-}
+N64mempak::N64mempak(u8 port) : zPort(port) 
+{ 
+	if(!Load())
+		memset(MEMPAK.RAW8, 0xFF, 0x8000);
+};
 
 N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 port) :
-	Zilmar_Device(settings, control, port)
+	Zilmar_Device(settings, control, port), mempak(port)
 {	
 	// 0x00 : No plugin
 	// 0x01 : Plugin ... plugged
@@ -56,20 +53,11 @@ N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 p
 	// 0x01 : Absolute
 	// 0x02 : Relative
 	// 0x04 : Gamepad
-	status.Mode = 0x04 | 0x01;	
+	status.Mode = 0x04 | 0x01;
 
 	bPolled = false;
+	bRumble = true;
 };
-
-N64controller::N64controller(const N64controller& other):
-	Zilmar_Device(other.set, other.zControl, other.zPort)
-{
-}
-
-N64controller& N64controller::operator=(const N64controller&) 
-{
-	return *this;
-}
 
 ////////////////////////////////////////////////////////////////////////
 // Generic
@@ -90,29 +78,85 @@ void Zilmar_Device::Recheck()
 // -. I was getting mad trying to make it work, and I already had 
 //    the CRC wrong. So yay Mupen and OpenSource-ness! =D
 
-static u8 DataCRC(u8 *Data, s32 iLenght)
+
+u8 N64mempak::CRC(u8 *data, s32 iLenght)
 {
-    u8 Remainder = Data[0];
+    u8 remainder = data[0];
 
     s32 iByte = 1;
     u8 bBit = 0;
 
     while( iByte <= iLenght )
     {
-        s32 HighBit = ((Remainder & 0x80) != 0);
-        Remainder = Remainder << 1;
+        s32 hBit = ((remainder & 0x80) != 0);
+        remainder = remainder << 1;
 
-        Remainder += ( iByte < iLenght && Data[iByte] & (0x80 >> bBit )) ? 1 : 0;
+        remainder += ( iByte < iLenght && data[iByte] & (0x80 >> bBit )) ? 1 : 0;
 
-        Remainder ^= (HighBit) ? 0x85 : 0;
+        remainder ^= (hBit) ? 0x85 : 0;
 
         bBit++;
         iByte += bBit/8;
         bBit %= 8;
     }
 
-    return Remainder;
+    return remainder;
 }
+
+void __fastcall N64mempak::ReadBlock(u8 *data, u16 address, bool rumble)
+{
+	u32 *dest = (u32*)data;
+	
+	if(rumble)
+	{
+		dest[0] = dest[1] = dest[2] = dest[3] = //
+		dest[4] = dest[5] = dest[6] = dest[7] = address < 0x400 ? 0 : 0x80808080;
+	}
+	else if(address < 0x400)
+	{	
+		u32 *src = (u32*)MEMPAK.BLOCK[address];
+					
+		dest[0] = src[0];	dest[1] = src[1];
+		dest[2] = src[2];	dest[3] = src[3];
+		dest[4] = src[4];	dest[5] = src[5];
+		dest[6] = src[6];	dest[7] = src[7];
+	}
+	else
+	{
+		dest[0] = dest[1] = dest[2] = dest[3] = //
+		dest[4] = dest[5] = dest[6] = dest[7] = 0;
+	}
+
+	data[32] = CRC(data, 32);
+}
+
+void __fastcall N64mempak::WriteBlock(u8 *data, u16 address, bool rumble)
+{
+	u32 *src = (u32*)data;
+
+	if(rumble)
+	{
+		// Nothing here!
+	}
+	else if(address < 0x400)
+	{
+		u32 *dest = (u32*)MEMPAK.BLOCK[address];
+		
+		dest[0] = src[0];	dest[1] = src[1]; 
+		dest[2] = src[2];	dest[3] = src[3];
+		dest[4] = src[4];	dest[5] = src[5];
+		dest[6] = src[6];	dest[7] = src[7];
+
+		Save();
+	}
+
+	data[32] = CRC(data, 32);
+}
+
+bool N64mempak::Load() { return FileIO::LoadMempak(MEMPAK.RAW8, zPort); }
+void N64mempak::Save() { FileIO::SaveMempak(MEMPAK.RAW8, zPort); }
+
+////////////////////////////////////////////////////////////////////////
 
 void __fastcall N64controller::Command(u8 *cmd) // Input ?
 {
@@ -146,12 +190,16 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 		bPolled = true; // for PJ64
 		break;
 
-	case RAW_READ_PACK: break; // 3 / 33 ? // Handled on Read		
+	case RAW_READ_PACK: break; // 3 / 33 ? // Handled on Read
 
 	case RAW_WRITE_PACK: // 35 / 1 ?
 		{
-			if (cmd[3] == 0xC0) RumbleIt(cmd[5] != 0);
-            cmd[32+5] = DataCRC(&cmd[5], 32);
+			u16 blockAddress = (cmd[3] << 3) | (cmd[4] >> 5);
+			//u16 crcAddress = cmd[4] & 0x1F; // Wut for?
+
+			//printf("Pokopom -> WP\t%4X %4X\n", blockAddress, crcAddress);
+			if (bRumble && blockAddress == 0x600) RumbleIt(cmd[5] != 0);
+			mempak.WriteBlock(&cmd[5], blockAddress, bRumble);
         }
 		break;
 	
@@ -198,6 +246,8 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	case RAW_READ_KEYS:
 		if(cmd[1] != 4) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
 
+		XInput::N64rumbleSwitch(set.xinputPort, bRumble, gamepadPlugged);
+
 		if(!bPolled) Poll();	// Let's do a Poll here if there wasn't a command() before.
 		bPolled = false;		// For PJ64 that doesn't seem to use command() much.
 
@@ -208,16 +258,15 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 		break;
 
 	case RAW_READ_PACK:
-		{
-            if((cmd[3] >= 0x80) && (cmd[3] < 0x90))
-                memset(&cmd[5], 0x80, 32);
-            else
-                memset(&cmd[5], 0x00, 32);
+		{            
+			u16 blockAddress = (cmd[3] << 3) | (cmd[4] >> 5);
+			//u16 crcAddress = cmd[4] & 0x1F; // Wut for?
 
-            cmd[32+5] = DataCRC(&cmd[5], 32);
+			//printf("Pokopom -> RP\t%4X %4X\n", blockAddress, crcAddress);
+			mempak.ReadBlock(&cmd[5], blockAddress, bRumble);
 		}break;
 
-	case RAW_WRITE_PACK: break; // Handled on Command
+	case RAW_WRITE_PACK: break; // Handled on Command	
 
 	case RAW_READ_ROM: break; // Handled by the emu?
 	case RAW_WRITE_ROM: break;// Handled by the emu?

@@ -79,13 +79,13 @@ namespace XInput
 	u16 __fastcall ConvertAnalog(s32 X, s32 Y, _Settings &set)
 	{							
 		// If input is dead, no need to check or do anything else
-		if((X == 0) && (Y == 0)) return 0x7F7F;
+		if((X == 0) && (Y == 0)) return mode == 0 ? 0x7F7F : 0;
 
 		f64 radius = sqrt((f64)X*X + (f64)Y*Y);
 		const f64 deadzone = set.extThreshold * set.deadzone;
 
 		// Input should be effectively dead under deadzone, no need to do more
-		if(radius <= deadzone) return 0x7F7F;
+		if(radius <= deadzone) return mode == 0? 0x7F7F : 0;
 
 		f64 rX = X/radius, rY = Y/radius;
 
@@ -103,16 +103,16 @@ namespace XInput
 		}
 
 		if(radius > set.extThreshold) radius *= set.extMult;
-	
-		X = ClampAnalog(rX * radius);
-		Y = ClampAnalog(rY * radius);
 
-		u16 result = 0;
+		u16 result = mode == 0? 0x7F7F : 0;
 
 		switch(mode)
 		{
 		case 0: // Dualshock, Dreamcast...
 			{
+				X = ClampAnalog(rX * radius);
+				Y = ClampAnalog(rY * radius);
+				
 				Y = 32767 - Y;
 				X = X + 32767;
 
@@ -125,15 +125,17 @@ namespace XInput
 			} break;
 
 		case 1: // N64
-			{
-				X >>= 8;	Y >>= 8;
+			{	
+				//radius modifier should go here...
 
+				X = ClampAnalog(rX * radius);
+				Y = ClampAnalog(rY * radius);
+				
 				s8 res[2];
-				res[0] = (s8)X;
-				res[1] = (s8)Y;
+				res[0] = (s8)(X>>8);
+				res[1] = (s8)(Y>>8);
 				
 				result = *(u16*)&res;
-
 			} break;
 		}
 	
@@ -429,6 +431,58 @@ namespace XInput
 	// Zilmar
 	////////////////////////////////////////////////////////////////////////
 
+	enum
+	{
+		N64_RIGHT = 0,
+		N64_LEFT,
+		N64_DOWN,
+		N64_UP,
+		N64_START,
+		N64_TRIGGERZ,
+		N64_B,
+		N64_A,
+		N64_CRIGHT,
+		N64_CLEFT,		
+		N64_CDOWN,		
+		N64_CUP,
+		N64_TRIGGERR,
+		N64_TRIGGERL
+	};
+
+	void __fastcall N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged)
+	{
+		XINPUT_STATE state;
+		DWORD result = XInputGetState(port, &state);
+
+		static bool pressed[4] = {false};
+
+		if(result == ERROR_SUCCESS)
+		{
+			if(!pressed[port] && (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
+			{
+				pressed[port] = true;
+				rumble = !rumble;
+			}
+			else if(pressed[port] && !(state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
+			{
+				pressed[port] = false;
+			}
+		}
+		else
+			gamepadPlugged = false;
+
+		if(gamepadPlugged && !pressed[port])		
+		{
+			bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
+
+			if((!rumble && !ledScrollLock) || (rumble && ledScrollLock))
+			{
+				keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
+				keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );	
+			}
+		}
+	}
+
 	void __fastcall N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged)
 	{
 		XINPUT_STATE state;
@@ -443,19 +497,31 @@ namespace XInput
 		{	
 			buttons = 0;
 
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 1:0)	<< 0x0; // Right
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 1:0)	<< 0x1; // Left
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 1:0)	<< 0x2; // Down
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 1:0)		<< 0x3; // Up
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 1:0)		<< 0x4; // Start
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 1:0) << N64_RIGHT;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 1:0)  << N64_LEFT;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 1:0)  << N64_DOWN;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 1:0)	  << N64_UP;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 1:0)	  << N64_START;
 
-			buttons |= ((state.Gamepad.bLeftTrigger > 10 || state.Gamepad.bRightTrigger > 10)? 1:0)	<< 0x5; // Z Trigger
-				
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0)	<< 0x6; // B
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0)	<< 0x7; // A
+			buttons |= (state.Gamepad.bRightTrigger > 10? 1:0)	<< N64_TRIGGERZ;
+			
+			if(state.Gamepad.bLeftTrigger > 100)
+			{
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_CLEFT;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_CUP;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0) << N64_CDOWN;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_CRIGHT;
+			}
+			else
+			{
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_B;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_B;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0) << N64_A;
+				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_A;
+			}
 
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 1:0)	<< 0xC; // R Trigger
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 1:0)	<< 0xD; // L Trigger
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 1:0) << N64_TRIGGERR;
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 1:0)  << N64_TRIGGERL;
 		
 			if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
 			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
@@ -477,11 +543,10 @@ namespace XInput
 				set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 				set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 
-				// Left stick as C buttons			
-				if(set.axisValue[set.axisRemap[GP_AXIS_LX]] >  threshold) buttons |= (1 << 0xA); // C-Right
-				if(set.axisValue[set.axisRemap[GP_AXIS_LX]] < -threshold) buttons |= (1 << 0x8); // C-Left
-				if(set.axisValue[set.axisRemap[GP_AXIS_LY]] < -threshold) buttons |= (1 << 0x9); // C-Down
-				if(set.axisValue[set.axisRemap[GP_AXIS_LY]] >  threshold) buttons |= (1 << 0xB); // C-Up
+				if(set.axisValue[set.axisRemap[GP_AXIS_LX]] >  threshold) buttons |= (1 << N64_CRIGHT);
+				if(set.axisValue[set.axisRemap[GP_AXIS_LX]] < -threshold) buttons |= (1 << N64_CLEFT);
+				if(set.axisValue[set.axisRemap[GP_AXIS_LY]] < -threshold) buttons |= (1 << N64_CDOWN);
+				if(set.axisValue[set.axisRemap[GP_AXIS_LY]] >  threshold) buttons |= (1 << N64_CUP);
 			}
 			else
 			{
@@ -493,16 +558,16 @@ namespace XInput
 				set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 				set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 
-				if(set.axisValue[set.axisRemap[GP_AXIS_RX]] >  threshold) buttons |= (1 << 0x8);
-				if(set.axisValue[set.axisRemap[GP_AXIS_RX]] < -threshold) buttons |= (1 << 0x9);
-				if(set.axisValue[set.axisRemap[GP_AXIS_RY]] < -threshold) buttons |= (1 << 0xA);
-				if(set.axisValue[set.axisRemap[GP_AXIS_RY]] >  threshold) buttons |= (1 << 0xB);
+				if(set.axisValue[set.axisRemap[GP_AXIS_RX]] >  threshold) buttons |= (1 << N64_CRIGHT);
+				if(set.axisValue[set.axisRemap[GP_AXIS_RX]] < -threshold) buttons |= (1 << N64_CLEFT);
+				if(set.axisValue[set.axisRemap[GP_AXIS_RY]] < -threshold) buttons |= (1 << N64_CDOWN);
+				if(set.axisValue[set.axisRemap[GP_AXIS_RY]] >  threshold) buttons |= (1 << N64_CUP);
 			}
 
 		}
 		else 
 			gamepadPlugged = false;
-	
+
 		u16 * outBig = (u16*)outBuffer;
 	
 		outBig[0] = buttons;

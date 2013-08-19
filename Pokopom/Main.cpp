@@ -88,7 +88,7 @@ s32 CALLBACK PADinit(s32 flags) // PAD INIT
 {				
 	bScrollLock = GetKeyState(VK_SCROLL)&0x1;
 	
-	INI_LoadSettings();	
+	FileIO::INI_LoadSettings();	
 
 	//printf("Pokopom -> PADinit [%X]\n", flags);
 
@@ -195,7 +195,7 @@ s32 CALLBACK PADclose(void) // PAD CLOSE
 
 s32 CALLBACK PADconfigure(void)
 {			
-	INI_LoadSettings();
+	FileIO::INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
 
 	return emupro::pad::ERR_SUCCESS;

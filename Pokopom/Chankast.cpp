@@ -16,8 +16,8 @@ ChankastPadData chankastData[2];
 
 s32 InitPads(void* hWnd)
 {
-	INI_LoadSettings();
-	INI_SaveSettings();
+	FileIO::INI_LoadSettings();
+	FileIO::INI_SaveSettings();
 
 	chankastPad[0] = new ChankastController(0, settings[0]);
 	chankastPad[1] = new ChankastController(1, settings[1]);
@@ -59,7 +59,7 @@ void EndPads()
 
 s32 ConfigurePads(void* hWnd)
 {
-	INI_LoadSettings();
+	FileIO::INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
 	return 0;
 }

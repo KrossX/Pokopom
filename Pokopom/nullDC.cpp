@@ -66,8 +66,8 @@ s32 FASTCALL Load(nullDC::emu_info* emu)
 	if(emu == NULL) return nullDC::rv_error;
 	memcpy(&nullDCemu, emu, sizeof(nullDCemu));
 	
-	INI_LoadSettings();
-	INI_SaveSettings();
+	FileIO::INI_LoadSettings();
+	FileIO::INI_SaveSettings();
 	
 	return nullDC::rv_ok;
 }
@@ -201,6 +201,6 @@ u32 FASTCALL RumbleDMA(void* device_instance, u32 command,
 
 void EXPORT_CALL ConfigMenuCallback(u32 id, void* w, void* p)
 {
-	INI_LoadSettings();
+	FileIO::INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
 }

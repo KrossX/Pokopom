@@ -18,6 +18,7 @@ http://www.emutalk.net/cgi-bin/ikonboard/ikonboard.cgi?s=3bd272222f66ffff;act=SF
 extern _Settings settings[4];
 extern HINSTANCE hInstance;
 extern bool bKeepAwake;
+extern bool bScrollLock; // backup to restore on exit
 
 Zilmar::CONTROL_INFO * zilmarInfo = NULL;
 Zilmar_Device * zController[4] = {NULL, NULL, NULL, NULL};
@@ -56,11 +57,13 @@ void CALL InitiateControllers(HWND hMain, Zilmar::CONTROL Controls[4])
 	
 	//printf("Pokopom -> InitControllers\n");
 
+	bScrollLock = GetKeyState(VK_SCROLL)&0x1;
+
 	zilmarInfo = new Zilmar::CONTROL_INFO;
 	zilmarInfo->hMainWindow = hMain;
 	zilmarInfo->Controls = Controls;
 
-	INI_LoadSettings();
+	FileIO::INI_LoadSettings();
 	
 	for(u8 i = 0; i < 4; i++)
 	{
@@ -83,6 +86,12 @@ Purpose: This function is called when the emulator is closing down allowing the 
 void CALL CloseDLL()
 {
 	//printf("Pokopom -> CloseDLL\n");
+
+	if(bScrollLock != (GetKeyState(VK_SCROLL)&0x1)) 
+	{
+		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
+		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );		
+	}
 
 	if(zilmarInfo)
 	{
@@ -109,7 +118,7 @@ void CALL DllConfig(HWND hParent)
 {
 	//printf("Pokopom -> DLLConfig\n");
 	
-	INI_LoadSettings();
+	FileIO::INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
 }
 
@@ -147,6 +156,7 @@ Purpose:  This function is called when a rom is open. (from the emulation thread
 void CALL RomOpen()
 {
 	//printf("Pokopom -> RomOpen\n");
+	//GimmeConsole();
 	XInput::Pause(false);
 }
 

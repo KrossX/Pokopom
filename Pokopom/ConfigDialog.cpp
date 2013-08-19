@@ -265,7 +265,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 				break;
 			
 			case ID_OK: 
-					INI_SaveSettings(); // SAVE SETTINGS
+					FileIO::INI_SaveSettings(); // SAVE SETTINGS
 			case ID_CANCEL:
 					EndDialog(hwndDlg, command); // .. and QUIT
 					PostQuitMessage(0);
