@@ -80,10 +80,13 @@
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Readme.txt" "$(TargetDir)" /Y</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"$(SolutionDir)..\Common\svnrev" *.*</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Codes_IDs.h" />
-    <ClInclude Include="Config.h" />
+    <ClInclude Include="ConfigDialog.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
@@ -93,7 +96,7 @@
     <ClInclude Include="Settings.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="ConfigDialog.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Controller2.cpp" />
     <ClCompile Include="ControllerGuitar.cpp" />

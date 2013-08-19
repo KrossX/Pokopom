@@ -18,3 +18,4 @@
 #pragma once
 
 
+void CreateDialogs (HINSTANCE hInstance);

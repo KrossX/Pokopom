@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "resource.h"
+#include "ConfigDialog.h"
 
 _Settings settings[2];
 HWND hChild = NULL;

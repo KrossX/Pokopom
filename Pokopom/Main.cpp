@@ -16,11 +16,11 @@
  */
 
 #include "Main.h"
+#include "ConfigDialog.h"
 
 HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
 extern _Settings settings[2];
-extern void CreateDialogs (HINSTANCE hInstance);
 bool bScrollLock; // backup to restore on exit
 
 ////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ bool bScrollLock; // backup to restore on exit
 ////////////////////////////////////////////////////////////////////////
 
 const unsigned int revision = 2;
-const unsigned int build    = 6;
+const unsigned int build    = 0;
 
 const unsigned int versionPS1 = (emupro::PLUGIN_VERSION << 16) | (revision << 8) | build;
 const unsigned int versionPS2 = (0x02 << 16) | (revision << 8) | build;
