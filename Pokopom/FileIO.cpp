@@ -144,6 +144,7 @@ namespace FileIO
 			SaveEntry("General", -1, "KeepAwake", bKeepAwake? 1 : 0, iniFile);
 			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);
+			SaveEntry("General", -1, "SwapPorts", SwapPortsEnabled, iniFile);
 
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -157,11 +158,16 @@ namespace FileIO
 				SaveEntry("Controller", port, "AxisRemap", AxisRemap, iniFile);
 
 				SaveEntry("Controller", port, "Pressure", settings[port].pressureRate, iniFile);
-				SaveEntry("Controller", port, "Linearity", (s32)(settings[port].linearity * 10)+40, iniFile);
-
-				SaveEntry("Controller", port, "AntiDeadzone", (s32)(settings[port].antiDeadzone * 100), iniFile);
-				SaveEntry("Controller", port, "Deadzone", (s32)(settings[port].deadzone * 100), iniFile);
 				SaveEntry("Controller", port, "Rumble", (s32)(settings[port].rumble * 100), iniFile);
+				SaveEntry("Controller", port, "SticksLocked", settings[port].sticksLocked ? 1 : 0, iniFile);
+
+				SaveEntry("Controller", port, "Linearity", (s32)(settings[port].stickL.linearity * 10)+40, iniFile);
+				SaveEntry("Controller", port, "AntiDeadzone", (s32)(settings[port].stickL.antiDeadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Deadzone", (s32)(settings[port].stickL.deadzone * 100), iniFile);
+				
+				SaveEntry("Controller", port, "Linearity2", (s32)(settings[port].stickR.linearity * 10)+40, iniFile);
+				SaveEntry("Controller", port, "AntiDeadzone2", (s32)(settings[port].stickR.antiDeadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Deadzone2", (s32)(settings[port].stickR.deadzone * 100), iniFile);
 
 				SaveEntry("Controller", port, "ExtentionThreshold", (s32)(settings[port].extThreshold), iniFile);
 
@@ -204,6 +210,7 @@ namespace FileIO
 			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1 ? true : false;
 				SetPriority();
 
+			SwapPortsEnabled = ReadEntry("General", -1, "SwapPorts", iniFile) == 1 ? true : false;
 			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1 ? true : false;
 			multitap = ReadEntry("General", -1, "Multitap", iniFile) & 0xFF;
 			multitap = multitap > 2 ? 0 : multitap;
@@ -241,13 +248,22 @@ namespace FileIO
 				if(result != -1) settings[port].pressureRate = result & 0xFF;
 
 				result = ReadEntry("Controller", port, "Linearity",  iniFile);
-				if(result != -1) settings[port].linearity = (result-40) / 10.0;
+				if(result != -1) settings[port].stickL.linearity = (result-40) / 10.0;
 
 				result = ReadEntry("Controller", port, "AntiDeadzone",  iniFile);
-				if(result != -1) settings[port].antiDeadzone = result / 100.0f;
+				if(result != -1) settings[port].stickL.antiDeadzone = result / 100.0f;
 
 				result = ReadEntry("Controller", port, "Deadzone",  iniFile);
-				if(result != -1) settings[port].deadzone = result / 100.0f;
+				if(result != -1) settings[port].stickL.deadzone = result / 100.0f;
+
+				result = ReadEntry("Controller", port, "Linearity2",  iniFile);
+				if(result != -1) settings[port].stickR.linearity = (result-40) / 10.0;
+
+				result = ReadEntry("Controller", port, "AntiDeadzone2",  iniFile);
+				if(result != -1) settings[port].stickR.antiDeadzone = result / 100.0f;
+
+				result = ReadEntry("Controller", port, "Deadzone2",  iniFile);
+				if(result != -1) settings[port].stickR.deadzone = result / 100.0f;
 
 				result = ReadEntry("Controller", port, "Rumble", iniFile);
 				if(result != -1) settings[port].rumble = result / 100.0f;
@@ -256,16 +272,19 @@ namespace FileIO
 				if(result != -1) settings[port].xinputPort = result & 0xF;
 
 				result = ReadEntry("Controller", port, "Disabled", iniFile);
-				if(result != -1) settings[port].disabled = result == 1? true : false;
+				if(result != -1) settings[port].disabled = result == 1;
+
+				result = ReadEntry("Controller", port, "SticksLocked", iniFile);
+				if(result != -1) settings[port].sticksLocked = result == 1;
 
 				result = ReadEntry("Controller", port, "DefautMode", iniFile);
-				if(result != -1) settings[port].defaultAnalog = result == 1? true : false;
+				if(result != -1) settings[port].defaultAnalog = result == 1;
 
 				result = ReadEntry("Controller", port, "GreenAnalog", iniFile);
-				if(result != -1) settings[port].greenAnalog = result == 1? true : false;
+				if(result != -1) settings[port].greenAnalog = result == 1;
 
 				result = ReadEntry("Controller", port, "GuitarController", iniFile);
-				if(result != -1) settings[port].isGuitar = result == 1? true : false;
+				if(result != -1) settings[port].isGuitar = result == 1;
 			}
 
 			fclose(iniFile);

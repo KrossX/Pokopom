@@ -27,10 +27,44 @@
 #include "resource.h"
 
 HWND hChild, hParent = NULL;
-extern bool bPriority;
 extern u8 multitap;
 extern HINSTANCE hInstance;
 extern u8 dcPlatform;
+
+f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
+{
+	wchar_t text[8] = {0};
+
+	f64 value = SendMessage(GetDlgItem(hDialog, sliderID),TBM_GETPOS,0,0);
+
+	if(Linearity)
+	{
+		value = value < 0? value -10 : value > 0? value +10: value;
+		value /= 10.0f;
+
+		swprintf(text, 6, L"%1.2f", value);
+	}
+	else
+	{
+		swprintf(text, 5, L"%d%%", (int)value);
+		value /= 100.0f;
+	}
+	
+	SetDlgItemText(hDialog, textID, text);
+
+	return value;
+}
+
+void SliderSet(HWND hDialog, s32 sliderID, f64 value, bool Linearity = false)
+{
+	s32 position = Linearity? (s32)(value * 10) : (s32)(value * 100);
+
+	if(Linearity)
+		position = position > 0? position - 10 : position < 0 ? position +10 : position;
+	
+	SendMessage(GetDlgItem(hDialog, sliderID), TBM_SETPOS, TRUE, (LONG)position);
+	SendMessage(hDialog, WM_HSCROLL, 0, (LPARAM)GetDlgItem(hDialog, sliderID));
+}
 
 void UpdateControls(HWND hDialog, s32 port)
 {
@@ -44,6 +78,7 @@ void UpdateControls(HWND hDialog, s32 port)
 	CheckDlgButton(hDialog, IDC_DISABLED, settings[port].disabled ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_LOCKSLIDERS, settings[port].sticksLocked ? BST_CHECKED : BST_UNCHECKED);
 
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1044:1043, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1043:1044, BST_UNCHECKED);
@@ -67,32 +102,19 @@ void UpdateControls(HWND hDialog, s32 port)
 		}
 	}
 
-	s32 position = (s32)(settings[port].rumble * 100);
-	wchar_t text[8] = {0};
+	SliderSet(hDialog, IDC_SLIDER_RUMBLE, settings[port].rumble);
 
-	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_RUMBLE), TBM_SETPOS, TRUE, (LONG)position);
-	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_RUMBLE, text);
+	SliderSet(hDialog, IDC_SLIDER_DEADZONE2, settings[port].stickR.deadzone);
+	SliderSet(hDialog, IDC_SLIDER_ANTIDEADZONE2, settings[port].stickR.antiDeadzone);
+	SliderSet(hDialog, IDC_SLIDER_LINEARITY2, settings[port].stickR.linearity, true);
 
-	position = (s32)(settings[port].deadzone * 100);
+	SliderSet(hDialog, IDC_SLIDER_DEADZONE, settings[port].stickL.deadzone);
+	SliderSet(hDialog, IDC_SLIDER_ANTIDEADZONE, settings[port].stickL.antiDeadzone);
+	SliderSet(hDialog, IDC_SLIDER_LINEARITY, settings[port].stickL.linearity, true);
 
-	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_DEADZONE), TBM_SETPOS, TRUE, (LONG)position);
-	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_DEADZONE, text);
-
-	position = (s32)(settings[port].antiDeadzone * 100);
-
-	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_ANTIDEADZONE), TBM_SETPOS, TRUE, (LONG)position);
-	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_ANTIDEADZONE, text);
-
-	position = (s32)(settings[port].linearity * 10);
-
-	swprintf(text, 6, L"%1.2f", position/10.0f);
-	SetDlgItemText(hDialog, IDC_TEXT_LINEARITY, text);
-
-	position = position > 0? position - 10 : position < 0 ? position +10 : position;
-	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_LINEARITY), TBM_SETPOS, TRUE, (LONG)position);
+	EnableWindow(GetDlgItem(hDialog, IDC_SLIDER_DEADZONE2), !settings[port].sticksLocked);
+	EnableWindow(GetDlgItem(hDialog, IDC_SLIDER_ANTIDEADZONE2), !settings[port].sticksLocked);
+	EnableWindow(GetDlgItem(hDialog, IDC_SLIDER_LINEARITY2), !settings[port].sticksLocked);
 }
 
 
@@ -119,6 +141,10 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 90));
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY), TBM_SETRANGE, TRUE, MAKELONG(-30, 30));
 
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE2), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE2), TBM_SETRANGE, TRUE, MAKELONG(0, 90));
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY2), TBM_SETRANGE, TRUE, MAKELONG(-30, 30));
+
 			UpdateControls(hwndDlg, port);
 
 			ShowWindow(hwndDlg, SW_SHOW);
@@ -128,46 +154,36 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 		{
 			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE))
 			{
-				wchar_t text[8] = {0};
-
-				s32 rumble = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE),TBM_GETPOS,0,0);
-				settings[port].rumble =  rumble / 100.0f;
-
-				swprintf(text, 5, L"%d%%", rumble);
-				SetDlgItemText(hwndDlg, IDC_TEXT_RUMBLE, text);
+				settings[port].rumble = (f32)SliderUpdate(hwndDlg, IDC_SLIDER_RUMBLE, IDC_TEXT_RUMBLE);
 			}
 			else  if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE))
 			{
-				wchar_t text[8] = {0};
-
-				s32 deadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE),TBM_GETPOS,0,0);
-				settings[port].deadzone =  deadzone / 100.0f;
-
-				swprintf(text, 5, L"%d%%", deadzone);
-				SetDlgItemText(hwndDlg, IDC_TEXT_DEADZONE, text);
+				settings[port].stickL.deadzone =  (f32)SliderUpdate(hwndDlg, IDC_SLIDER_DEADZONE, IDC_TEXT_DEADZONE);
+				if(settings[port].sticksLocked) SliderSet(hwndDlg, IDC_SLIDER_DEADZONE2, settings[port].stickL.deadzone);
 			}
 			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE))
 			{
-				wchar_t text[8] = {0};
-
-				s32 antiDeadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE),TBM_GETPOS,0,0);
-				settings[port].antiDeadzone =  antiDeadzone / 100.0f;
-
-				swprintf(text, 5, L"%d%%", antiDeadzone);
-				SetDlgItemText(hwndDlg, IDC_TEXT_ANTIDEADZONE, text);
+				settings[port].stickL.antiDeadzone =   (f32)SliderUpdate(hwndDlg, IDC_SLIDER_ANTIDEADZONE, IDC_TEXT_ANTIDEADZONE);
+				if(settings[port].sticksLocked) SliderSet(hwndDlg, IDC_SLIDER_ANTIDEADZONE2, settings[port].stickL.antiDeadzone);
 			}
 			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY))
 			{
-				wchar_t text[8] = {0};
-
-				s32 linearity = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY),TBM_GETPOS,0,0);
-
-				linearity = linearity < 0? linearity -10 : linearity > 0? linearity +10: linearity;
-				settings[port].linearity =  linearity / 10.0f;
-
-				swprintf(text, 6, L"%1.2f", settings[port].linearity);
-				SetDlgItemText(hwndDlg, IDC_TEXT_LINEARITY, text);
+				settings[port].stickL.linearity =  SliderUpdate(hwndDlg, IDC_SLIDER_LINEARITY, IDC_TEXT_LINEARITY, true);
+				if(settings[port].sticksLocked) SliderSet(hwndDlg, IDC_SLIDER_LINEARITY2, settings[port].stickL.linearity, true);
 			}
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE2))
+			{
+				settings[port].stickR.deadzone =  (f32)SliderUpdate(hwndDlg, IDC_SLIDER_DEADZONE2, IDC_TEXT_DEADZONE2);
+			}
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE2))
+			{
+				settings[port].stickR.antiDeadzone =   (f32)SliderUpdate(hwndDlg, IDC_SLIDER_ANTIDEADZONE2, IDC_TEXT_ANTIDEADZONE2);
+			}
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY2))
+			{
+				settings[port].stickR.linearity =  SliderUpdate(hwndDlg, IDC_SLIDER_LINEARITY2, IDC_TEXT_LINEARITY2, true);
+			}
+
 		} break;
 
 	case WM_COMMAND:
@@ -198,28 +214,37 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				break;
 
 			case IDC_INVERT_LX:
-				settings[port].axisInverted[GP_AXIS_LX] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_LX) == BST_CHECKED? true:false;
+				settings[port].axisInverted[GP_AXIS_LX] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_LX) == BST_CHECKED;
 				break;
 			case IDC_INVERT_LY:
-				settings[port].axisInverted[GP_AXIS_LY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_LY) == BST_CHECKED? true:false;
+				settings[port].axisInverted[GP_AXIS_LY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_LY) == BST_CHECKED;
 				break;
 			case IDC_INVERT_RX:
-				settings[port].axisInverted[GP_AXIS_RX] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RX) == BST_CHECKED? true:false;
+				settings[port].axisInverted[GP_AXIS_RX] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RX) == BST_CHECKED;
 				break;
 			case IDC_INVERT_RY:
-				settings[port].axisInverted[GP_AXIS_RY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RY) == BST_CHECKED? true:false;
+				settings[port].axisInverted[GP_AXIS_RY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RY) == BST_CHECKED;
 				break;
 
 			case IDC_GUITAR:
-				settings[port].isGuitar = IsDlgButtonChecked(hwndDlg, IDC_GUITAR) == BST_CHECKED? true:false;
+				settings[port].isGuitar = IsDlgButtonChecked(hwndDlg, IDC_GUITAR) == BST_CHECKED;
 				break;
 
 			case IDC_DISABLED:
-				settings[port].disabled = IsDlgButtonChecked(hwndDlg, IDC_DISABLED) == BST_CHECKED? true:false;
+				settings[port].disabled = IsDlgButtonChecked(hwndDlg, IDC_DISABLED) == BST_CHECKED;
 				break;
 
 			case IDC_ANALOG_GREEN:
-				settings[port].greenAnalog = IsDlgButtonChecked(hwndDlg, IDC_ANALOG_GREEN) == BST_CHECKED? true:false;
+				settings[port].greenAnalog = IsDlgButtonChecked(hwndDlg, IDC_ANALOG_GREEN) == BST_CHECKED;
+				break;
+
+			case IDC_LOCKSLIDERS:
+				settings[port].sticksLocked = IsDlgButtonChecked(hwndDlg, IDC_LOCKSLIDERS) == BST_CHECKED;
+
+				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE2), !settings[port].sticksLocked);
+				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE2), !settings[port].sticksLocked);
+				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY2), !settings[port].sticksLocked);
+
 				break;
 			}
 
@@ -268,9 +293,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			hChild = CreateDialog((HINSTANCE)lParam, MAKEINTRESOURCE(IDD_INTAB), hwndDlg, DialogProc2);
 			EnableThemeDialogTexture(hChild, ETDT_ENABLETAB);
 
-			if(!isPSemulator)
-				EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), false);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), isPSemulator);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPPORTS), isPSemulator);
 
+			CheckDlgButton(hwndDlg, IDC_SWAPPORTS, SwapPortsEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_PROCPRIORITY, bPriority ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_MULTITAP, multitap % 4);
@@ -285,11 +311,15 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			switch(command)
 			{
 			case IDC_PROCPRIORITY:
-				bPriority = IsDlgButtonChecked(hwndDlg, IDC_PROCPRIORITY) == BST_CHECKED? true:false;
+				bPriority = IsDlgButtonChecked(hwndDlg, IDC_PROCPRIORITY) == BST_CHECKED;
+				break;
+
+			case IDC_SWAPPORTS:
+				SwapPortsEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPPORTS) == BST_CHECKED;
 				break;
 
 			case IDC_SCREENSAVER:
-				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
+				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED;
 				break;
 
 			case IDC_MULTITAP:

@@ -88,7 +88,7 @@ u8 FASTCALL GetAnalogDigital(_Stick& stick)
 	return data;
 }
 
-u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
+u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8 mode)
 {
 	s32 X = stick.X;
 	s32 Y = stick.Y;
@@ -98,23 +98,23 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
 	if((X == 0) && (Y == 0)) return result;
 
 	f64 radius = stick.radius;
-	const f64 deadzone = set.extThreshold * set.deadzone;
+	const f64 deadzone = set.extThreshold * aset.deadzone;
 
 	// Input should be effectively dead under deadzone, no need to do more
 	if(radius <= deadzone) return result;
 
 	f64 rX = X/radius, rY = Y/radius;
 
-	if(set.linearity != 0)
-		radius = pow(radius / set.extThreshold, set.linearity) * set.extThreshold;
+	if(aset.linearity != 0)
+		radius = pow(radius / set.extThreshold, aset.linearity) * set.extThreshold;
 
 	if(deadzone > 0)
 		radius =  (radius - deadzone) * set.extThreshold / (set.extThreshold - deadzone);
 
 	//Antideadzone, inspired by x360ce's setting
-	if(set.antiDeadzone > 0)
+	if(aset.antiDeadzone > 0)
 	{
-		const f64 antiDeadzone = set.extThreshold * set.antiDeadzone;
+		const f64 antiDeadzone = set.extThreshold * aset.antiDeadzone;
 		radius = radius * ((set.extThreshold - antiDeadzone) / set.extThreshold) + antiDeadzone;
 	}
 
@@ -210,8 +210,8 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		}
 		else
 		{
-			analogL = ConvertAnalog(pad.modL, set, 0);
-			analogR = ConvertAnalog(pad.modR, set, 0);
+			analogL = ConvertAnalog(pad.modL, set, set.stickL, 0);
+			analogR = ConvertAnalog(pad.modR, set, set.stickR, 0);
 
 			triggerL = pad.analog[X360_TRIGGERL] & 0xFF;
 			triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
@@ -273,7 +273,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 
 		if(analogToggle)
 		{
-			analog = ConvertAnalog(pad.modR, set, 0);
+			analog = ConvertAnalog(pad.modR, set, set.stickR, 0);
 
 			_Stick stickL = pad.modL;
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
@@ -289,7 +289,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 		}
 		else
 		{
-			analog = ConvertAnalog(pad.modL, set, 0);
+			analog = ConvertAnalog(pad.modL, set, set.stickL, 0);
 
 			_Stick stickR = pad.modR;
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
@@ -478,7 +478,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 
 		if(analogToggle)
 		{
-			analog = ConvertAnalog(pad.modR, set, 1);
+			analog = ConvertAnalog(pad.modR, set, set.stickR, 1);
 
 			_Stick stickL = pad.modL;
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
@@ -493,7 +493,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		}
 		else
 		{
-			analog = ConvertAnalog(pad.modL, set, 1);
+			analog = ConvertAnalog(pad.modL, set, set.stickL, 1);
 
 			_Stick stickR = pad.modR;
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;

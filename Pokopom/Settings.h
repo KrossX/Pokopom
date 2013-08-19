@@ -25,22 +25,30 @@ enum GAMEPAD_AXES
 	GP_AXIS_RY
 };
 
+struct AxisSettings
+{
+	f32 deadzone, antiDeadzone;
+	f64 linearity;
+};
+
 struct _Settings
 {
 	void SetDefaults();
 
 	bool greenAnalog;
 	bool defaultAnalog;
+	bool sticksLocked;
+
 	u8 xinputPort;
-	f32 deadzone, rumble, antiDeadzone;
+	f32 rumble;
 	f64 extThreshold, extMult;
+	AxisSettings stickL, stickR;
 
 	bool axisInverted[4];
 	s16 axisRemap[4];
 	s32 axisValue[4];
 
 	u16 pressureRate;
-	f64 linearity;
 
 	bool isGuitar;
 	bool disabled;

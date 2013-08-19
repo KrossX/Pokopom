@@ -159,7 +159,7 @@ namespace Input
 	void FASTCALL GetRadius(_Stick& stick);
 	u8 FASTCALL GetAnalogDigital(_Stick& stick);
 
-	u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode);
+	u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8 mode);
 
 	bool FASTCALL InputGetState(_Pad& pad, _Settings &set);
 }
