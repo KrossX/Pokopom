@@ -309,7 +309,32 @@ unsigned char CALLBACK PADpoll(unsigned char data)
 unsigned int CALLBACK PADfreeze(int mode, freezeData *data)
 {
 	//printf("Pokopom -> PADfreeze [%X]\n", mode);
-	return 0;
+	if(!data) return emupro::ERR_FATAL;
+	
+	switch(mode)
+	{
+	case emupro::Savestate::LOAD:
+		{
+			Controller::State *state = (Controller::State *)data->data;
+			controller[0]->LoadState(state[0]);
+			controller[1]->LoadState(state[1]);
+		} break;
+
+	case emupro::Savestate::SAVE:
+		{
+			Controller::State state[2];
+			controller[0]->SaveState(state[0]);
+			controller[1]->SaveState(state[1]);			
+			memcpy(data->data, state, sizeof(state));
+		} break;
+
+	case emupro::Savestate::QUERY_SIZE:
+		{
+			data->size = sizeof(Controller::State) * 2;
+		} break;
+	}
+	
+	return emupro::ERR_SUCCESS;
 }
 
 

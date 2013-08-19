@@ -279,3 +279,34 @@ void Controller::Cmd8(const unsigned char data)
 	case 0x4F: break;
 	}
 }
+
+
+void Controller::SaveState(State &state)
+{
+	state.buttons = buttons;
+	state.buttonsStick = buttonsStick;
+	state.analogL = analogL;
+	state.analogR = analogR;
+	state.padID = padID;
+	state.bConfig = bConfig;
+	state.bModeLock = bModeLock;
+	state.motorMapS = motorMapS;
+	state.motorMapL = motorMapL;
+	state.triggerL = triggerL;
+	state.triggerR = triggerR;
+}
+
+void Controller::LoadState(State state)
+{
+	buttons = state.buttons;
+	buttonsStick = state.buttonsStick;
+	analogL = state.analogL;
+	analogR = state.analogR;
+	padID = state.padID;
+	bConfig = state.bConfig;
+	bModeLock = state.bModeLock;
+	motorMapS = state.motorMapS;
+	motorMapL = state.motorMapL;
+	triggerL = state.triggerL;
+	triggerR = state.triggerR;
+}

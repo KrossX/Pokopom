@@ -23,8 +23,21 @@ class Controller
 public: 	
 	Controller(_Settings &config, unsigned short bsize = 9);		
 
+public:
+	struct State
+	{
+		unsigned short buttons, buttonsStick, analogL, analogR;
+		unsigned char padID;	
+		bool bConfig, bModeLock;	
+		unsigned char motorMapS, motorMapL;
+		unsigned char triggerL, triggerR;
+	};
+
+	void LoadState(State state);
+	void SaveState(State &state);
+
 public:			
-	unsigned char command(const unsigned int counter, const unsigned char data);		
+	unsigned char command(const unsigned int counter, const unsigned char data);
 	bool gamepadPlugged;
 
 protected:

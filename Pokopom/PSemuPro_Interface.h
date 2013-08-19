@@ -200,4 +200,12 @@ namespace emupro
 		} DataS;
 	}
 
+	//Savestates stuff
+	namespace Savestate
+	{
+		const int LOAD = 0;
+		const int SAVE = 1;
+		const int QUERY_SIZE = 2;
+	}
+
 }
