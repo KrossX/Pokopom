@@ -15,18 +15,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Not using general.h here for _wtoi
 #include <Windows.h>
 #include <stdio.h>
 
+#include "..\..\Common\TypeDefs.h"
 #include "Settings.h"
 
 extern HINSTANCE hInstance;
 extern _Settings settings[4];
 extern wchar_t  settingsDirectory[1024];
 extern bool bKeepAwake; 
-extern int INIversion;
+extern s32 INIversion;
 
-bool SaveEntry(wchar_t * section, int sectionNumber, wchar_t * key, int value, wchar_t * filename)
+bool SaveEntry(wchar_t * section, s32 sectionNumber, wchar_t * key, s32 value, wchar_t * filename)
 {	
 	wchar_t controller[512] = {0};
 
@@ -41,7 +43,7 @@ bool SaveEntry(wchar_t * section, int sectionNumber, wchar_t * key, int value, w
 	return WritePrivateProfileString(controller,  key, valuestring, filename) ? true : false;
 }
 
-int ReadEntry(wchar_t * section, int sectionNumber, wchar_t * key, wchar_t * filename)
+s32 ReadEntry(wchar_t * section, s32 sectionNumber, wchar_t * key, wchar_t * filename)
 {	
 	wchar_t controller[512] = {0};
 
@@ -50,9 +52,9 @@ int ReadEntry(wchar_t * section, int sectionNumber, wchar_t * key, wchar_t * fil
 	else
 		swprintf(controller, 512, L"%s%d", section, sectionNumber);
 	
-	int returnInteger = -1;
+	s32 returnInteger = -1;
 	wchar_t returnvalue[512] = {0};
-	int nSize = GetPrivateProfileString(controller, key, L"-1", returnvalue, 512, filename);
+	s32 nSize = GetPrivateProfileString(controller, key, L"-1", returnvalue, 512, filename);
 
 	 if(nSize < 256) returnInteger = _wtoi(returnvalue);	 
 
@@ -71,7 +73,7 @@ void INI_SaveSettings()
 	}
 	else
 	{		
-		int length = GetModuleFileName(hInstance, filename, 1024);
+		s32 length = GetModuleFileName(hInstance, filename, 1024);
 
 		if(length)
 		{
@@ -88,25 +90,25 @@ void INI_SaveSettings()
 		SaveEntry(L"General", -1, L"KeepAwake", bKeepAwake?1:0, filename);
 		SaveEntry(L"General", -1, L"INIversion", INIversion, filename);
 		
-		for(int port = 0; port < 4; port++)
+		for(s32 port = 0; port < 4; port++)
 		{
-			int AxisInverted =	((settings[port].axisInverted[GP_AXIS_LX]?1:0) << 12) | ((settings[port].axisInverted[GP_AXIS_LY]?1:0) << 8) |
+			s32 AxisInverted =	((settings[port].axisInverted[GP_AXIS_LX]?1:0) << 12) | ((settings[port].axisInverted[GP_AXIS_LY]?1:0) << 8) |
 											((settings[port].axisInverted[GP_AXIS_RX]?1:0) << 4) | (settings[port].axisInverted[GP_AXIS_RY]?1:0);
 			
-			int AxisRemap =	(settings[port].axisRemap[GP_AXIS_LX] << 12) | (settings[port].axisRemap[GP_AXIS_LY] << 8) |
+			s32 AxisRemap =	(settings[port].axisRemap[GP_AXIS_LX] << 12) | (settings[port].axisRemap[GP_AXIS_LY] << 8) |
 										(settings[port].axisRemap[GP_AXIS_RX] << 4) | (settings[port].axisRemap[GP_AXIS_RY]);
 			
 			SaveEntry(L"Controller", port, L"AxisInverted", AxisInverted, filename);						
 			SaveEntry(L"Controller", port, L"AxisRemap", AxisRemap, filename);
 
 			SaveEntry(L"Controller", port, L"Pressure", settings[port].pressureRate, filename);
-			SaveEntry(L"Controller", port, L"Linearity", (int)(settings[port].linearity * 10)+40, filename);
+			SaveEntry(L"Controller", port, L"Linearity", (s32)(settings[port].linearity * 10)+40, filename);
 
-			SaveEntry(L"Controller", port, L"AntiDeadzone", (int)(settings[port].antiDeadzone * 100), filename);
-			SaveEntry(L"Controller", port, L"Deadzone", (int)(settings[port].deadzone * 100), filename);
-			SaveEntry(L"Controller", port, L"Rumble", (int)(settings[port].rumble * 100), filename);
+			SaveEntry(L"Controller", port, L"AntiDeadzone", (s32)(settings[port].antiDeadzone * 100), filename);
+			SaveEntry(L"Controller", port, L"Deadzone", (s32)(settings[port].deadzone * 100), filename);
+			SaveEntry(L"Controller", port, L"Rumble", (s32)(settings[port].rumble * 100), filename);
 
-			SaveEntry(L"Controller", port, L"ExtentionThreshold", (int)(settings[port].extThreshold), filename);
+			SaveEntry(L"Controller", port, L"ExtentionThreshold", (s32)(settings[port].extThreshold), filename);
 
 			SaveEntry(L"Controller", port, L"XInputPort", settings[port].xinputPort, filename);
 			SaveEntry(L"Controller", port, L"DefautMode", settings[port].defaultAnalog ? 1 : 0, filename);
@@ -134,7 +136,7 @@ void INI_LoadSettings()
 	}
 	else
 	{		
-		int length = GetModuleFileName(hInstance, filename, 1024);
+		s32 length = GetModuleFileName(hInstance, filename, 1024);
 
 		if(length)
 		{
@@ -151,9 +153,9 @@ void INI_LoadSettings()
 		bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
 		if( ReadEntry(L"General", -1, L"INIversion", filename) != INIversion ) return;
 		
-		for(int port = 0; port < 4; port++)
+		for(s32 port = 0; port < 4; port++)
 		{
-			int result;
+			s32 result;
 						
 			result = ReadEntry(L"Controller", port, L"AxisInverted", filename);
 			if(result != -1)
@@ -196,7 +198,7 @@ void INI_LoadSettings()
 			if(result != -1) settings[port].rumble = result / 100.0f;
 
 			result = ReadEntry(L"Controller", port, L"XInputPort", filename);
-			if(result != -1) settings[port].xinputPort = result;
+			if(result != -1) settings[port].xinputPort = result & 0xF;
 
 			result = ReadEntry(L"Controller", port, L"DefautMode", filename);
 			if(result != -1) settings[port].defaultAnalog = result == 1? true : false;

@@ -2,6 +2,7 @@ EXPORTS
 	PS2EgetLibType
 	PS2EgetLibName
 	PS2EgetLibVersion2
+
 	PSEgetLibType
 	PSEgetLibName
 	PSEgetLibVersion
@@ -23,5 +24,20 @@ EXPORTS
 	PADsetSlot
 	PADsetSettingsDir
 	PADqueryMtap
+
 	dcGetInterface
 	GetInputInterface
+
+	GetDllInfo
+	CloseDLL
+	DllConfig
+	DllAbout
+	DllTest
+	RomOpen
+	RomClosed
+	InitiateControllers
+	GetKeys
+	ControllerCommand
+	ReadController
+	WM_KeyDown
+	WM_KeyUp

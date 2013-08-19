@@ -27,3 +27,5 @@
 
 #include <Windows.h>
 #include <stdio.h>
+
+#include "..\..\Common\TypeDefs.h"

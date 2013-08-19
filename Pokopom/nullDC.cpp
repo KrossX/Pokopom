@@ -12,6 +12,7 @@
 #include "nullDC_Devices.h"
 #include "FileIO.h"
 #include "ConfigDialog.h"
+#include "XInput_Backend.h"
 
 nullDC_Device * ndcDevice[4] = {NULL, NULL, NULL, NULL};
 nullDC_Device * ndcSubDevice[4] = {NULL, NULL, NULL, NULL};
@@ -20,7 +21,6 @@ nullDC::emu_info nullDCemu;
 extern _Settings settings[4];
 extern HINSTANCE hInstance;
 extern bool bKeepAwake;
-bool is_nullDC = false;
 
 void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 {
@@ -29,8 +29,7 @@ void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 	info->InterfaceVersion = PLUGIN_I_F_VERSION;
 	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
 	
-	is_nullDC = true;
-	wcscpy_s(info->common.Name, L"Pokopom XInput Plugin ");
+	wcscpy_s(info->common.Name, L"Pokopom XInput Plugin v2.0 by KrossX");
 
 	// Assign callback functions
 	info->common.Load = Load;
@@ -42,7 +41,7 @@ void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 	info->maple.Term = Term;
 	info->maple.Destroy = Destroy;
 		
-	unsigned char id = 0;
+	u8 id = 0;
 
 	wcscpy_s(info->maple.devices[id].Name, L"Pokopom Dreamcast Controller");	
 	info->maple.devices[id].Type = nullDC::MDT_Main;	
@@ -61,7 +60,7 @@ void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 // Common functions
 ////////////////////////////////////////////////////////////////////////
 
-int FASTCALL Load(nullDC::emu_info* emu)
+s32 FASTCALL Load(nullDC::emu_info* emu)
 {	
 	//printf("Pokopom -> Load\n");
 	if(emu == NULL) return nullDC::rv_error;
@@ -75,7 +74,7 @@ int FASTCALL Load(nullDC::emu_info* emu)
 
 void FASTCALL Unload()
 {
-	for(int i = 0; i < 4; i++)
+	for(s32 i = 0; i < 4; i++)
 	{
 		if(ndcDevice[i] != NULL)
 		{
@@ -97,11 +96,11 @@ void FASTCALL Unload()
 // Create devices
 ////////////////////////////////////////////////////////////////////////
 
-int FASTCALL CreateMain(nullDC::maple_device_instance* inst, unsigned int id, unsigned int flags, unsigned int rootmenu)
+s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, u32 rootmenu)
 {
 	//printf("Pokopom -> CreateMain [%X|%X]\n", inst->port, id);
 
-	unsigned int port = (inst->port >> 6);
+	u32 port = (inst->port >> 6);
 
 	ndcDevice[port] = new DreamcastController(port, settings[port]);
 
@@ -112,7 +111,7 @@ int FASTCALL CreateMain(nullDC::maple_device_instance* inst, unsigned int id, un
 		
 	WCHAR temp[512];
 	swprintf(temp, sizeof(temp), L"Player %d settings...", (inst->port >> 6) + 1);	
-	unsigned int hMenu = nullDCemu.AddMenuItem(rootmenu, -1, temp, ConfigMenuCallback, 0);
+	u32 hMenu = nullDCemu.AddMenuItem(rootmenu, -1, temp, ConfigMenuCallback, 0);
 
 	nullDC::MenuItem menuItem;
 	menuItem.PUser = inst;
@@ -121,10 +120,10 @@ int FASTCALL CreateMain(nullDC::maple_device_instance* inst, unsigned int id, un
 	return nullDC::rv_ok;
 }
 
-int FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, unsigned int id, unsigned int flags, unsigned int rootmenu)
+s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags, u32 rootmenu)
 {		
 	//printf("Pokopom -> CreateSub [%X|%X]\n", inst->port, id);
-	int port = inst->port>>6;
+	s32 port = inst->port>>6;
 
 	if ((inst->port&3) != 2) 
 	{
@@ -146,35 +145,33 @@ int FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, unsigned int id, 
 // Emulation start, stop... quit?
 ////////////////////////////////////////////////////////////////////////
 
-extern void XInputPaused(bool pewpew);
-
-int FASTCALL Init(void* data, unsigned int id, nullDC::maple_init_params* params)
+s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 {
-	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
 	//printf("Pokopom -> Init [%d]\n", port);
 
 	if(bKeepAwake)
 		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
-	XInputPaused(false);
+	XInput::Pause(false);
 	
 	return nullDC::rv_ok;
 }
 
-void FASTCALL Term(void* data, unsigned int id)
+void FASTCALL Term(void* data, u32 id)
 {
-	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
 	//printf("Pokopom -> Term [%d]\n", port);
 	
 	if(bKeepAwake)
 		SetThreadExecutionState(ES_CONTINUOUS);
 	
-	XInputPaused(true);
+	XInput::Pause(true);
 }
 
-void FASTCALL Destroy(void* data, unsigned int id)
+void FASTCALL Destroy(void* data, u32 id)
 {
-	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
 	//printf("Pokopom -> Destroy [%d]\n", port);
 }
 
@@ -182,19 +179,19 @@ void FASTCALL Destroy(void* data, unsigned int id)
 // Commands and stuff
 ////////////////////////////////////////////////////////////////////////
 
-unsigned int FASTCALL ControllerDMA(void* device_instance, unsigned int command, 
-	unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len)
+u32 FASTCALL ControllerDMA(void* device_instance, u32 command, 
+	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	if(bKeepAwake) mouse_event( MOUSEEVENTF_MOVE, 0, 0, 0, NULL);
 	
-	unsigned int port=((nullDC::maple_device_instance*)device_instance)->port>>6;
+	u32 port=((nullDC::maple_device_instance*)device_instance)->port>>6;
 	return ndcDevice[port]->DMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
 
-unsigned int FASTCALL RumbleDMA(void* device_instance, unsigned int command, 
-	unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len)
+u32 FASTCALL RumbleDMA(void* device_instance, u32 command, 
+	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
-	unsigned int port=((nullDC::maple_device_instance*)device_instance)->port>>6;
+	u32 port=((nullDC::maple_device_instance*)device_instance)->port>>6;
 	return ndcSubDevice[port]->DMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
 
@@ -202,7 +199,7 @@ unsigned int FASTCALL RumbleDMA(void* device_instance, unsigned int command,
 // The Config Menu call... figures.
 ////////////////////////////////////////////////////////////////////////
 
-void EXPORT_CALL ConfigMenuCallback(unsigned int id, void* w, void* p)
+void EXPORT_CALL ConfigMenuCallback(u32 id, void* w, void* p)
 {
 	INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());

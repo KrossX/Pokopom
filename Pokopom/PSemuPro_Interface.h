@@ -21,32 +21,32 @@
 namespace emupro
 {
 	// header version
-	const int _PPDK_HEADER_VERSION = 1;
-	const int PLUGIN_VERSION	 = 1;
+	const s32 _PPDK_HEADER_VERSION = 1;
+	const s32 PLUGIN_VERSION	 = 1;
 
 	// plugin type returned by PSEgetLibType (types can be merged if plugin is multi type!)
-	const int LT_CDR = 1;
-	const int LT_GPU = 2;
-	const int LT_SPU = 4;
-	const int LT_PAD = 8;
+	const s32 LT_CDR = 1;
+	const s32 LT_GPU = 2;
+	const s32 LT_SPU = 4;
+	const s32 LT_PAD = 8;
 
 	// every function in DLL if completed sucessfully should return this value
-	const int ERR_SUCCESS = 0;
+	const s32 ERR_SUCCESS = 0;
 	// undefined error but fatal one, that kills all functionality
-	const int ERR_FATAL = -1;
+	const s32 ERR_FATAL = -1;
 
 
 	// XXX_Init return values
 	// Those return values apply to all libraries
 
 	// initialization went OK
-	const int INIT_ERR_SUCCESS = 0;
+	const s32 INIT_ERR_SUCCESS = 0;
 
 	// this driver is not configured
-	const int INIT_ERR_NOTCONFIGURED = -2;
+	const s32 INIT_ERR_NOTCONFIGURED = -2;
 
 	// this driver can not operate properly on this hardware or hardware is not detected
-	const int INIT_ERR_NOHARDWARE = -3;
+	const s32 INIT_ERR_NOHARDWARE = -3;
 
 
 	/*         GPU PlugIn          */
@@ -56,28 +56,28 @@ namespace emupro
 		//  Test return values
 
 		// sucess, everything configured, and went OK.
-		const int ERR_SUCCESS = 0;
+		const s32 ERR_SUCCESS = 0;
 
 		// this driver is not configured
-		const int ERR_NOTCONFIGURED = 1;
+		const s32 ERR_NOTCONFIGURED = 1;
 
 		//  Query		- will be implemented in v2
 
 		typedef struct
 		{
-			unsigned long	flags;
-			unsigned long	status;
-			HWND			window;
-			unsigned char reserved[100];
+			u32		flags;
+			u32		status;
+			HWND	window;
+			u8		reserved[100];
 		} QueryS;
 
 		// gpuQueryS.flags
 		// this driver requests windowed mode,
-		const int FLAGS_WINDOWED = 1;
+		const s32 FLAGS_WINDOWED = 1;
 
 		// gpuQueryS.status
 		// this driver cannot operate in this windowed mode
-		const int STATUS_WINDOWWRONG = 1;
+		const s32 STATUS_WINDOWWRONG = 1;
 
 		//  Query	End	- will be implemented in v2
 	}
@@ -89,20 +89,20 @@ namespace emupro
 		//	Test return values
 
 		// sucess, everything configured, and went OK.
-		const int ERR_SUCCESS = 0;
+		const s32 ERR_SUCCESS = 0;
 
 		// ERRORS
-		const int ERR = -40;
+		const s32 ERR = -40;
 		// this driver is not configured
-		const int ERR_NOTCONFIGURED = ERR - 0;
+		const s32 ERR_NOTCONFIGURED = ERR - 0;
 		// if this driver is unable to read data from medium
-		const int ERR_NOREAD = ERR - 1;
+		const s32 ERR_NOREAD = ERR - 1;
 
 		// WARNINGS
-		const int WARN = 40;
+		const s32 WARN = 40;
 		// if this driver emulates lame mode ie. can read only 2048 tracks and sector header is emulated
 		// this might happen to CDROMS that do not support RAW mode reading - surelly it will kill many games
-		const int WARN_LAMECD = WARN + 0;
+		const s32 WARN_LAMECD = WARN + 0;
 	}
 
 	/*         SPU PlugIn          */
@@ -111,21 +111,21 @@ namespace emupro
 		// some info retricted (now!)
 
 		// sucess, everything configured, and went OK.
-		const int ERR_SUCCESS = 0;
+		const s32 ERR_SUCCESS = 0;
 
 		// ERRORS
 		// this error might be returned as critical error but none of below
-		const int ERR = -60;
+		const s32 ERR = -60;
 
 		// this driver is not configured
-		const int ERR_NOTCONFIGURED	 = ERR - 1;
+		const s32 ERR_NOTCONFIGURED	 = ERR - 1;
 		// this driver failed Init
-		const int ERR_INIT = ERR - 2;
+		const s32 ERR_INIT = ERR - 2;
 
 
 		// WARNINGS
 		// this warning might be returned as undefined warning but allowing driver to continue
-		const int WARN = 60;
+		const s32 WARN = 60;
 	}	
 
 	/*         PAD PlugIn          */
@@ -137,65 +137,65 @@ namespace emupro
 		// same plugin
 
 		// might be used in port 1 (must support PADreadPort1() function)
-		const int USE_PORT1 = 1;
+		const s32 USE_PORT1 = 1;
 		// might be used in port 2 (must support PADreadPort2() function)
-		const int USE_PORT2 = 2;
+		const s32 USE_PORT2 = 2;
 
 
 
 		// MOUSE SCPH-1030
-		const int TYPE_MOUSE = 1;
+		const s32 TYPE_MOUSE = 1;
 		// NEGCON - 16 button analog controller SLPH-00001
-		const int TYPE_NEGCON	 = 2;
+		const s32 TYPE_NEGCON	 = 2;
 		// GUN CONTROLLER - gun controller SLPH-00014 from Konami
-		const int TYPE_GUN = 3;
+		const s32 TYPE_GUN = 3;
 		// STANDARD PAD SCPH-1080, SCPH-1150
-		const int TYPE_STANDARD = 4;
+		const s32 TYPE_STANDARD = 4;
 		// ANALOG JOYSTICK SCPH-1110
-		const int TYPE_ANALOGJOY = 5;
+		const s32 TYPE_ANALOGJOY = 5;
 		// GUNCON - gun controller SLPH-00034 from Namco
-		const int TYPE_GUNCON	 = 6;
+		const s32 TYPE_GUNCON	 = 6;
 		// ANALOG CONTROLLER SCPH-1150
-		const int TYPE_ANALOGPAD = 7;
+		const s32 TYPE_ANALOGPAD = 7;
 
 
 		// sucess, everything configured, and went OK.
-		const int ERR_SUCCESS = 0;
+		const s32 ERR_SUCCESS = 0;
 		// general plugin failure (undefined error)
-		const int ERR_FAILURE = -1;
+		const s32 ERR_FAILURE = -1;
 
 
 		// ERRORS
 		// this error might be returned as critical error but none of below
-		const int ERR = -80;
+		const s32 ERR = -80;
 		// this driver is not configured
-		const int ERR_NOTCONFIGURED = ERR - 1;
+		const s32 ERR_NOTCONFIGURED = ERR - 1;
 		// this driver failed Init
-		const int ERR_INIT = ERR - 2;
+		const s32 ERR_INIT = ERR - 2;
 
 
 		// WARNINGS
 		// this warning might be returned as undefined warning but allowing driver to continue
-		const int WARN = 80;
+		const s32 WARN = 80;
 
 
 		typedef struct
 		{
 			// controler type - fill it withe predefined values above
-			unsigned char controllerType;
+			u8 controllerType;
 	
 			// status of buttons - every controller fills this field
-			unsigned short buttonStatus;
+			u16 buttonStatus;
 	
 			// for analog pad fill those next 4 bytes
 			// values are analog in range 0-255 where 128 is center position
-			unsigned char rightJoyX, rightJoyY, leftJoyX, leftJoyY;
+			u8 rightJoyX, rightJoyY, leftJoyX, leftJoyY;
 
 			// for mouse fill those next 2 bytes
 			// values are in range -128 - 127
-			unsigned char moveX, moveY;
+			u8 moveX, moveY;
 
-			unsigned char reserved[91];
+			u8 reserved[91];
 
 		} DataS;
 	}
@@ -203,9 +203,9 @@ namespace emupro
 	//Savestates stuff
 	namespace Savestate
 	{
-		const int LOAD = 0;
-		const int SAVE = 1;
-		const int QUERY_SIZE = 2;
+		const s32 LOAD = 0;
+		const s32 SAVE = 1;
+		const s32 QUERY_SIZE = 2;
 	}
 
 }

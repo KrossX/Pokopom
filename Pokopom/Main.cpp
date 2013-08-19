@@ -17,24 +17,26 @@
 
 #include "Main.h"
 #include "ConfigDialog.h"
+#include "XInput_Backend.h"
 
 HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
 extern _Settings settings[4];
 bool bScrollLock = false; // backup to restore on exit
 bool bKeepAwake = false; // Screensaver and stuff
+bool isPSemulator = false;
 
-int INIversion = 2; // INI version
+s32 INIversion = 2; // INI version
 
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build
 ////////////////////////////////////////////////////////////////////////
 
-const unsigned int revision = 2;
-const unsigned int build    = 0;
+const u32 revision = 2;
+const u32 build    = 0;
 
-const unsigned int versionPS1 = (emupro::PLUGIN_VERSION << 16) | (revision << 8) | build;
-const unsigned int versionPS2 = (0x02 << 16) | (revision << 8) | build;
+const u32 versionPS1 = (emupro::PLUGIN_VERSION << 16) | (revision << 8) | build;
+const u32 versionPS2 = (0x02 << 16) | (revision << 8) | build;
 
 char* libraryName      = "Pokopom XInput Pad Plugin"; // rewrite your plug-in name
 char* PluginAuthor     = "KrossX"; // rewrite your name
@@ -45,15 +47,16 @@ char* PluginAuthor     = "KrossX"; // rewrite your name
 
 char* CALLBACK PSEgetLibName(void)
 {			
+	isPSemulator = true;
 	return libraryName;
 }
 
-unsigned int CALLBACK PSEgetLibType(void)
+u32 CALLBACK PSEgetLibType(void)
 {
 	return emupro::LT_PAD;
 }
 
-unsigned int CALLBACK PSEgetLibVersion(void)
+u32 CALLBACK PSEgetLibVersion(void)
 {
 	return versionPS1;
 }
@@ -64,13 +67,13 @@ char* CALLBACK PS2EgetLibName(void)
 	return PSEgetLibName(); 
 }
 
-unsigned int CALLBACK PS2EgetLibType(void)
+u32 CALLBACK PS2EgetLibType(void)
 { 
 	isPs2Emulator = true;
 	return 0x02; 
 }
 
-unsigned int CALLBACK PS2EgetLibVersion2(unsigned int type) 
+u32 CALLBACK PS2EgetLibVersion2(u32 type) 
 { 
 	isPs2Emulator = true;
 	if (type == 0x02)  return versionPS2; 
@@ -81,7 +84,7 @@ unsigned int CALLBACK PS2EgetLibVersion2(unsigned int type)
 // Init/shutdown, will be called just once on emu start/close
 ////////////////////////////////////////////////////////////////////////
 
-int CALLBACK PADinit(int flags) // PAD INIT
+s32 CALLBACK PADinit(s32 flags) // PAD INIT
 {				
 	bScrollLock = GetKeyState(VK_SCROLL)&0x1;
 	
@@ -155,12 +158,10 @@ LRESULT WINAPI PADwndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProcW(emuStuff.WndProc, hWnd, msg, wParam, lParam);
 }
 
-extern void XInputPaused(bool pewpew);
-
-int CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
+s32 CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
 {	
 	//printf("Pokopom -> PADopen\n");
-	XInputPaused(false);
+	XInput::Pause(false);
 
 	if(bKeepAwake)
 		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
@@ -174,10 +175,10 @@ int CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
 	return emupro::pad::ERR_SUCCESS;
 }
 
-int CALLBACK PADclose(void) // PAD CLOSE
+s32 CALLBACK PADclose(void) // PAD CLOSE
 {
 	//printf("Pokopom -> PADclose\n");
-	XInputPaused(true);
+	XInput::Pause(true);
 
 	if(bKeepAwake)
 		SetThreadExecutionState(ES_CONTINUOUS);
@@ -192,7 +193,7 @@ int CALLBACK PADclose(void) // PAD CLOSE
 // call config dialog
 ////////////////////////////////////////////////////////////////////////
 
-int CALLBACK PADconfigure(void)
+s32 CALLBACK PADconfigure(void)
 {			
 	INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
@@ -213,7 +214,7 @@ void CALLBACK PADabout(void)
 // test... well, we are ever fine ;)
 ////////////////////////////////////////////////////////////////////////
 
-int CALLBACK PADtest(void)
+s32 CALLBACK PADtest(void)
 {	
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -222,7 +223,7 @@ int CALLBACK PADtest(void)
 // tell the controller's port which can be used
 ////////////////////////////////////////////////////////////////////////
 
-int CALLBACK PADquery(void)
+s32 CALLBACK PADquery(void)
 {	
 	//printf("Pokopom -> PADquery\n");
 	return emupro::pad::USE_PORT1 | emupro::pad::USE_PORT2;
@@ -233,12 +234,12 @@ int CALLBACK PADquery(void)
 // this function should be replaced with PADstartPoll and PADpoll
 ////////////////////////////////////////////////////////////////////////
 
-int PADreadPort(int port, emupro::pad::DataS* ppds)
+s32 PADreadPort(s32 port, emupro::pad::DataS* ppds)
 {		
 	//printf("Pokopom -> PADreadPort [%X]\n", port);
 	
 	controller[port]->command(0, 0x01);
-	unsigned char cType = controller[port]->command(1, 0x42);
+	u8 cType = controller[port]->command(1, 0x42);
 	ppds->controllerType = cType >> 4;
 
 	controller[port]->command(2, 0x00);
@@ -262,12 +263,12 @@ int PADreadPort(int port, emupro::pad::DataS* ppds)
 	return emupro::pad::ERR_SUCCESS;
 }
 
-int CALLBACK PADreadPort1(emupro::pad::DataS* ppds)
+s32 CALLBACK PADreadPort1(emupro::pad::DataS* ppds)
 {	
 	return PADreadPort(0, ppds);
 }
 
-int CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
+s32 CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 {	
 	return PADreadPort(1, ppds);
 }
@@ -276,12 +277,12 @@ int CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 // input and output of pad
 ////////////////////////////////////////////////////////////////////////
 
-unsigned char CALLBACK PADstartPoll(int port)
+u8 CALLBACK PADstartPoll(s32 port)
 {	
 	curPort = port - 1;
 	bufferCount = 0;
 
-	unsigned char data = controller[curPort]->command(bufferCount, 0x01);
+	u8 data = controller[curPort]->command(bufferCount, 0x01);
 
 	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, 0x01, data);
 	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, 0x01, data);
@@ -291,11 +292,11 @@ unsigned char CALLBACK PADstartPoll(int port)
 	return data;
 }
 
-unsigned char CALLBACK PADpoll(unsigned char data)
+u8 CALLBACK PADpoll(u8 data)
 {			
 	bufferCount++;
 	
-	unsigned char doto = controller[curPort]->command(bufferCount, data);
+	u8 doto = controller[curPort]->command(bufferCount, data);
 
 	//if(curPort == 0) printf("[%02d] [%02X|%02X]\n", bufferCount, data, doto);
 	//printf("[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, data, doto);
@@ -308,10 +309,10 @@ unsigned char CALLBACK PADpoll(unsigned char data)
 ////////////////////////////////////////////////////////////////////////
 
 
-unsigned int CALLBACK PADfreeze(int mode, freezeData *data)
+u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 {
 	//printf("Pokopom -> PADfreeze [%X]\n", mode);
-	if(!data) return emupro::ERR_FATAL;
+	if(!data) return (u32)emupro::ERR_FATAL;
 
 	switch(mode)
 	{
@@ -374,7 +375,7 @@ keyEvent* CALLBACK PADkeyEvent()
 	return NULL;
 }
 
-unsigned int CALLBACK PADqueryMtap(unsigned char port) 
+u32 CALLBACK PADqueryMtap(u8 port) 
 {
 	//printf("Pokopom -> PADqueryMtap [%X]\n", port);
 	return 0;
@@ -387,13 +388,13 @@ void CALLBACK PADsetSettingsDir( const char *dir )
     mbstowcs_s(&convertedChars, settingsDirectory, dirsize, dir, _TRUNCATE);  
 }
 
-unsigned int CALLBACK PADsetSlot(unsigned char port, unsigned char slot) 
+u32 CALLBACK PADsetSlot(u8 port, u8 slot) 
 {
 	//printf("Pokopom -> PADsetSlot [%X|%X]\n", port, slot);
 	return 0;
 }
 
-void CALLBACK PADupdate(int port) 
+void CALLBACK PADupdate(s32 port) 
 {	
 	//printf("Pokopom -> PADupdate [%X]\n", port);
 }

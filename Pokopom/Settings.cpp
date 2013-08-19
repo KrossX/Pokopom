@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\Common\TypeDefs.h"
 #include "Settings.h"
 
 _Settings::_Settings()
@@ -36,7 +37,7 @@ void _Settings::SetDefaults()
 	extThreshold = 32767.0; // 40201 real max radius
 	extMult = 1.4142135623730950488016887242097; // sqrt(2)
 
-	for(short i = 0; i < 4; i++)
+	for(s16 i = 0; i < 4; i++)
 	{
 		axisInverted[i] = false;
 		axisRemap[i] = i;

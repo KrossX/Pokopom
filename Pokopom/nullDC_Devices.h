@@ -25,17 +25,16 @@ class nullDC_Device
 	nullDC_Device & operator = (const nullDC_Device & other) {}
 
 protected:	
-	bool isPlugged;
-	unsigned int port;
+	bool gamepadPlugged;
+	u32 port;
 	_Settings &set;	
 
 public:
-	nullDC_Device(unsigned int _port, _Settings &config);
-	bool gamepadPlugged;
+	nullDC_Device(u32 _port, _Settings &config);
 
-public:	
-	virtual unsigned int __fastcall DMA(void* device_instance, unsigned int command, 
-		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len) { return 0; };
+public:
+	virtual u32 __fastcall DMA(void* device_instance, u32 command, 
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len) { return 0; };
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -45,28 +44,28 @@ class DreamcastController : public nullDC_Device
 	DreamcastController & operator = (const DreamcastController & other) {}
 
 protected:
-	void PollOut(unsigned int* buffer_out);
+	void PollOut(u32* buffer_out);
 
 public:
-	DreamcastController(unsigned int _port, _Settings &config);
+	DreamcastController(u32 _port, _Settings &config);
 
 public:
-	unsigned int __fastcall DMA(void* device_instance, unsigned int command, 
-		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len);
+	u32 __fastcall DMA(void* device_instance, u32 command, 
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
 };
 
 ////////////////////////////////////////////////////////////////////////
 
 union RumbleSettings
 {
-	unsigned int RAW;
+	u32 RAW;
 
 	struct
 	{
-		unsigned char VSET0;
-		unsigned char VSET1;
-		unsigned char FM0;
-		unsigned char FM1;
+		u8 VSET0;
+		u8 VSET1;
+		u8 FM0;
+		u8 FM1;
 	};
 		
 	struct 
@@ -85,14 +84,14 @@ union RumbleSettings
 
 union RumbleConfig
 {
-	unsigned int RAW;
+	u32 RAW;
 		
 	struct
 	{
-		unsigned char CTRL;
-		unsigned char POW;
-		unsigned char FREQ; // Frequency
-		unsigned char INQ;  // Inclination
+		u8 CTRL;
+		u8 POW;
+		u8 FREQ; // Frequency
+		u8 INQ;  // Inclination
 	};
 
 	struct 
@@ -117,35 +116,50 @@ class PuruPuruPack : public nullDC_Device
 	RumbleSettings rSettings;
 	RumbleConfig rConfig;
 	
-	unsigned short AST_ms;
-	unsigned char AST;
-	unsigned char FreqM, FreqL, FreqH;
+	u16 AST_ms;
+	u8 AST;
+	u8 FreqM, FreqL, FreqH;
 
 	HANDLE hVibrationThread;
 	void UpdateVibration();
+
+public:
+	struct _thread
+	{
+		HANDLE &hThread;
+		u16 &wait;
+		u8 &port;
+		bool &gamepadPlugged;
+
+		_thread(HANDLE hT, u16 w, u8 p, bool g) :
+			hThread(hT), wait(w), port(p), gamepadPlugged(g)
+		{}
+
+		_thread&operator=(const _thread&other) { return *this; }
+	} thread;
 	
 public:
-	unsigned short Watchdog_ms;
+	u16 Watchdog_ms;
 	void StopVibration();
 
-	PuruPuruPack(unsigned int _port, _Settings &config);
+	PuruPuruPack(u32 _port, _Settings &config);
 	~PuruPuruPack();
 
 public:
-	unsigned int __fastcall DMA(void* device_instance, unsigned int command, 
-		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len);
+	u32 __fastcall DMA(void* device_instance, u32 command, 
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
 };
 
 ////////////////////////////////////////////////////////////////////////
 
 struct Dreamcast_DeviceInfo
 {
-	unsigned int   ID0[4];
-	unsigned char  ID1[2];
-	unsigned char  ID2_Name[30];
-	unsigned char  ID3_Brand[60];
-	unsigned short ID4[2];
-	unsigned char  ID5_Extra[40];
+	u32   ID0[4];
+	u8  ID1[2];
+	u8  ID2_Name[30];
+	u8  ID3_Brand[60];
+	u16 ID4[2];
+	u8  ID5_Extra[40];
 };
 
 enum DMA_COMMAND

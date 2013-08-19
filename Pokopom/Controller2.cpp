@@ -26,9 +26,9 @@ Controller2::Controller2(_Settings &config):
 	memcpy(pollMask, POLL_MASK_FULL, 6);
 }
 
-void Controller2::ReadInputPressure(unsigned char *buffer)
+void Controller2::ReadInputPressure(u8 *buffer)
 {
-	unsigned int mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;	
+	u32 mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;	
 	
 	ReadInput(buffer);		
 
@@ -52,14 +52,14 @@ void Controller2::ReadInputPressure(unsigned char *buffer)
 		pressureButton[0x0A] = (mask & 0x0B) && (buttons & 0x100) ? 0x00 : triggerL;
 		pressureButton[0x0B] = (mask & 0x0C) && (buttons & 0x200) ? 0x00 : triggerR;
 
-		for(int i = 0; i < 0x0C; i++) 					
+		for(s32 i = 0; i < 0x0C; i++) 					
 			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;
 	}	
 	else
 		memset(&buffer[9], 0x00, 12);
 }
 
-void Controller2::Cmd1(const unsigned char data)
+void Controller2::Cmd1(const u8 data)
 {		
 	switch(data)
 	{
@@ -92,7 +92,7 @@ void Controller2::Cmd1(const unsigned char data)
 	}
 }
 
-void Controller2::Cmd4(const unsigned char data)
+void Controller2::Cmd4(const u8 data)
 {			
 	switch(data)
 	{
@@ -114,7 +114,7 @@ void Controller2::Cmd4(const unsigned char data)
 	}
 }
 
-void Controller2::Cmd8(const unsigned char data)
+void Controller2::Cmd8(const u8 data)
 {		
 	switch(data)
 	{

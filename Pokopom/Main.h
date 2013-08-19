@@ -24,19 +24,19 @@
 #include <list>
 
 Controller * controller[2] = {NULL, NULL};
-unsigned int bufferCount = 0, curPort = 0;
+u32 bufferCount = 0, curPort = 0;
 bool isPs2Emulator = false;
 
 struct freezeData 
 {
-	int size;
-	unsigned char *data;
+	s32 size;
+	u8 *data;
 };
 
 struct keyEvent 
 {
-	unsigned int key;
-	unsigned int evt;
+	u32 key;
+	u32 evt;
 };
 
 struct _emuStuff

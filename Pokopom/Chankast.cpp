@@ -2,6 +2,7 @@
 #include "FileIO.h"
 #include "ConfigDialog.h"
 #include "Chankast.h"
+#include "XInput_Backend.h"
 
 extern HINSTANCE hInstance;
 extern _Settings settings[4];
@@ -13,7 +14,7 @@ ChankastPadData chankastData[2];
 // On start?
 ////////////////////////////////////////////////////////////////////////
 
-int InitPads(void* hWnd)
+s32 InitPads(void* hWnd)
 {
 	INI_LoadSettings();
 	INI_SaveSettings();
@@ -22,6 +23,8 @@ int InitPads(void* hWnd)
 	chankastPad[1] = new ChankastController(1, settings[1]);
 
 	memset(chankastData, 0, sizeof(chankastData));
+
+	XInput::Pause(false);
 	
 	return 0;
 }
@@ -30,7 +33,7 @@ int InitPads(void* hWnd)
 // ???
 ////////////////////////////////////////////////////////////////////////
 
-int GetNumControllers()
+s32 GetNumControllers()
 {
 	return 2;
 }
@@ -46,13 +49,15 @@ void EndPads()
 
 	chankastPad[0] = NULL;
 	chankastPad[1] = NULL;
+
+	XInput::Pause(true);
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Config!
 ////////////////////////////////////////////////////////////////////////
 
-int ConfigurePads(void* hWnd)
+s32 ConfigurePads(void* hWnd)
 {
 	INI_LoadSettings();
 	CreateDialogs(hInstance, GetActiveWindow());
@@ -63,13 +68,20 @@ int ConfigurePads(void* hWnd)
 // Poll
 ////////////////////////////////////////////////////////////////////////
 
+void ChankastController::PollData(ChankastPadData &Data)
+{
+	u16 buffer[6];		
+	XInput::DreamcastPoll((u32*)buffer, set, gamepadPlugged);
+	memcpy(&Data, &buffer[2], 8);
+}
+
 void  UpdateInput()
 {
 	chankastPad[0]->PollData(chankastData[0]);
 	chankastPad[1]->PollData(chankastData[1]);
 }
 
-void GetStatusPads(int iNumPad, void* _pContCond)
+void GetStatusPads(s32 iNumPad, void* _pContCond)
 {
 	memcpy(_pContCond,&chankastData[iNumPad],sizeof(ChankastPadData)); 
 }

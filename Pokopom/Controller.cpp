@@ -18,6 +18,7 @@
 #include "Controller.h"
 #include "Codes_IDs.h"
 #include "General.h"
+#include "XInput_Backend.h"
 
 void Controller::Reset()
 {			
@@ -25,7 +26,7 @@ void Controller::Reset()
 	memset(cmdBuffer, 0x00, sizeBuffer);
 
 	dataBuffer[2] = 0x5A;
-	padID = settings.defaultAnalog ? (unsigned char)ID_ANALOG : (unsigned char)ID_DIGITAL;	
+	padID = settings.defaultAnalog ? (u8)ID_ANALOG : (u8)ID_DIGITAL;	
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
@@ -38,16 +39,16 @@ void Controller::Reset()
 	bConfig = bModeLock = false;
 }
 
-Controller::Controller(_Settings &config, unsigned short bsize):
+Controller::Controller(_Settings &config, u16 bsize):
 settings(config), sizeBuffer(bsize)
 {  	
-	cmdBuffer = new unsigned char[sizeBuffer];
-	dataBuffer = new unsigned char[sizeBuffer];
+	cmdBuffer = new u8[sizeBuffer];
+	dataBuffer = new u8[sizeBuffer];
 	
 	Reset();
 }
 
-unsigned char Controller::command(const unsigned int counter, const unsigned char data)
+u8 Controller::command(const u32 counter, const u8 data)
 {							
 	if(!gamepadPlugged) 
 	{				
@@ -79,7 +80,7 @@ unsigned char Controller::command(const unsigned int counter, const unsigned cha
 	return dataBuffer[counter];
 }
 
-void Controller::ReadInput(unsigned char *buffer)
+void Controller::ReadInput(u8 *buffer)
 {	
 	poll(); 
 	
@@ -105,7 +106,7 @@ void Controller::SetVibration()
 {
 	motorMapS = motorMapL = 0xFF;	
 	
-	for(unsigned char i = 3; i<9; i++)
+	for(u8 i = 3; i<9; i++)
 	{
 		if(cmdBuffer[i] == 0x00) motorMapS = i - 3;
 		if(cmdBuffer[i] == 0x01) motorMapL = i - 3;
@@ -151,7 +152,7 @@ void Controller::Cmd0()
 	}
 }
 
-void Controller::Cmd1(const unsigned char data)
+void Controller::Cmd1(const u8 data)
 {						
 	switch(data)
 	{
@@ -203,7 +204,7 @@ void Controller::Cmd1(const unsigned char data)
 	}
 }
 
-void Controller::Cmd4(const unsigned char data)
+void Controller::Cmd4(const u8 data)
 {			
 	switch(data)
 	{
@@ -216,7 +217,7 @@ void Controller::Cmd4(const unsigned char data)
 		break;
 
 	case 0x44: if(bConfig) {// Set mode and lock
-		padID = cmdBuffer[3] == 0x01 ? (unsigned char)ID_ANALOG : (unsigned char)ID_DIGITAL;		
+		padID = cmdBuffer[3] == 0x01 ? (u8)ID_ANALOG : (u8)ID_DIGITAL;		
 		bModeLock = cmdBuffer[4] == 0x03; } // Disgaea sends 0x01 here
 		break;
 
@@ -248,7 +249,7 @@ void Controller::Cmd4(const unsigned char data)
 	}
 }
 
-void Controller::Cmd8(const unsigned char data)
+void Controller::Cmd8(const u8 data)
 {			
 	switch(data)
 	{
@@ -280,6 +281,28 @@ void Controller::Cmd8(const unsigned char data)
 	}
 }
 
+void Controller::Recheck()
+{
+	gamepadPlugged = XInput::Recheck(settings.xinputPort);
+}
+
+void Controller::poll()
+{
+	u16 buffer[5];	
+	XInput::DualshockPoll(buffer, settings, gamepadPlugged);
+
+	buttons = buffer[0];
+	buttonsStick = buffer[1];
+	analogL = buffer[2];
+	analogR = buffer[3];
+	triggerR = buffer[4] & 0xFF;
+	triggerL = (buffer[4]>>8) & 0xFF;
+}
+
+void Controller::vibration(u8 smalldata, u8 bigdata)
+{
+	XInput::DualshockRumble(smalldata, bigdata, settings, gamepadPlugged);
+}
 
 void Controller::SaveState(State &state)
 {

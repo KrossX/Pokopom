@@ -22,14 +22,14 @@
 ControllerGuitar::ControllerGuitar(_Settings &config):
 	Controller2(config) {}
 	
-void ControllerGuitar::ReadInputGuitar(const bool bConfig, unsigned char *buffer)
+void ControllerGuitar::ReadInputGuitar(const bool bConfig, u8 *buffer)
 {
 	if(bConfig) ReadInput(buffer);
 	else ReadInputPressure(buffer);
 
 	buffer[3] &= 0x7F; // Switch off LEFT DPAD for some reason.
 	// 9 - A // A - F // E - 9 // F - E
-	unsigned char bitswap[4] = {0};
+	u8 bitswap[4] = {0};
 
 	bitswap[0] = (buffer[4] & 0x2)? 0: 1 << 2; // 9 - A
 	bitswap[1] = (buffer[4] & 0x4)? 0: 1 << 7; // A - F
@@ -41,7 +41,7 @@ void ControllerGuitar::ReadInputGuitar(const bool bConfig, unsigned char *buffer
 }
 
 
-void ControllerGuitar::Cmd1(unsigned char data)
+void ControllerGuitar::Cmd1(u8 data)
 {									
 	switch(data)
 	{	
@@ -64,7 +64,7 @@ void ControllerGuitar::Cmd1(unsigned char data)
 	}
 }
 
-void ControllerGuitar::Cmd4(unsigned char data)
+void ControllerGuitar::Cmd4(u8 data)
 {	
 	switch(data)
 	{

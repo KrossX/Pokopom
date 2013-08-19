@@ -25,28 +25,25 @@ enum GAMEPAD_AXES
 	GP_AXIS_RY
 };
 
-class _Settings
+struct _Settings
 {
-public:
-	_Settings();
 	void SetDefaults();
 
-public:
 	bool defaultAnalog;
-	int xinputPort;
-	float deadzone, rumble, antiDeadzone;
-	double extThreshold, extMult;
+	u8 xinputPort;
+	f32 deadzone, rumble, antiDeadzone;
+	f64 extThreshold, extMult;
 	
 	bool axisInverted[4];
-	short axisRemap[4];
-	int axisValue[4];
+	s16 axisRemap[4];
+	s32 axisValue[4];
 
-	unsigned short pressureRate;
-	double linearity;
+	u16 pressureRate;
+	f64 linearity;
 
 	bool isGuitar;
 
-private:
+	_Settings();
 	_Settings(const _Settings &);
 	_Settings& operator=(const _Settings &);
 };

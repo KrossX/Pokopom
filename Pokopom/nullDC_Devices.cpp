@@ -1,19 +1,21 @@
 #include "General.h"
 #include "nullDC_Devices.h"
+#include "XInput_Backend.h"
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors
 ////////////////////////////////////////////////////////////////////////
 
-nullDC_Device::nullDC_Device(unsigned int _port, _Settings &config) : port(_port), set(config)
+nullDC_Device::nullDC_Device(u32 _port, _Settings &config) : port(_port), set(config)
 {
 }
 
-DreamcastController::DreamcastController(unsigned int _port, _Settings &config) : nullDC_Device(_port, config)
+DreamcastController::DreamcastController(u32 _port, _Settings &config) : nullDC_Device(_port, config)
 {
 }
 
-PuruPuruPack::PuruPuruPack(unsigned int _port, _Settings &config) : nullDC_Device(_port, config)
+PuruPuruPack::PuruPuruPack(u32 _port, _Settings &config) : nullDC_Device(_port, config),
+	thread(hVibrationThread, Watchdog_ms, set.xinputPort, gamepadPlugged)
 {
 	AST = 0x13; // 5 seconds in 0.25s units
 	AST_ms = AST * 250 + 250; // 5000ms
@@ -26,8 +28,8 @@ PuruPuruPack::PuruPuruPack(unsigned int _port, _Settings &config) : nullDC_Devic
 	hVibrationThread = NULL;
 
 	FreqM = (rSettings.FM1 + rSettings.FM0) >> 1;
-	FreqL = (unsigned char)(FreqM * 2.0f/3.0f);
-	FreqH = (unsigned char)(FreqM * 1.5f);
+	FreqL = (u8)(FreqM * 2.0f/3.0f);
+	FreqH = (u8)(FreqM * 1.5f);
 
 	StopVibration();
 }
@@ -58,8 +60,8 @@ Dreamcast_DeviceInfo ControllerID =
 	"",
 };
 
-unsigned int __fastcall DreamcastController::DMA(void* device_instance, unsigned int command, 
-		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len)
+u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command, 
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
 	{
@@ -80,6 +82,15 @@ unsigned int __fastcall DreamcastController::DMA(void* device_instance, unsigned
 
 }
 
+void DreamcastController::PollOut(u32 *buffer_out)
+{
+	XInput::DreamcastPoll(buffer_out, set, gamepadPlugged);
+}
+
+////////////////////////////////////////////////////////////////////////
+// PuruPuru Pack Rumble
+////////////////////////////////////////////////////////////////////////
+
 Dreamcast_DeviceInfo RumbleID =
 {
 	{0x00010000, 0x00000101, 0, 0}, 
@@ -90,8 +101,8 @@ Dreamcast_DeviceInfo RumbleID =
 	"Version 1.000,1998/11/10,315-6211-AH\0",
 };	
 	
-unsigned int __fastcall PuruPuruPack::DMA(void* device_instance, unsigned int command, 
-		unsigned int* buffer_in, unsigned int buffer_in_len, unsigned int* buffer_out, unsigned int& buffer_out_len)
+u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command, 
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
 	{
@@ -142,4 +153,21 @@ unsigned int __fastcall PuruPuruPack::DMA(void* device_instance, unsigned int co
 		printf("Pokopom Rumble -> Unknown MAPLE command: %X\n", command);
 		return RET_UNKNOWN_COMMAND;
 	}
+}
+
+void PuruPuruPack::StopVibration()
+{
+	XInput::StopRumble(set.xinputPort, gamepadPlugged);
+}
+
+void PuruPuruPack::UpdateVibration()
+{
+	s16 intensity = (s16)(rConfig.Mpow - rConfig.Ppow);
+
+	if(intensity == 0) 
+		StopVibration();
+	else
+		XInput::DreamcastRumble(intensity, rConfig.FREQ > FreqH, rConfig.FREQ < FreqL, 
+			(LPVOID)&thread, set, gamepadPlugged);
+	
 }

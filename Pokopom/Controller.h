@@ -16,61 +16,62 @@
  */
 
 #pragma once
+#include "..\..\Common\TypeDefs.h"
 #include "Settings.h"
 
 class Controller
 {
 public: 	
-	Controller(_Settings &config, unsigned short bsize = 9);		
+	Controller(_Settings &config, u16 bsize = 9);		
 
 public:
 	struct State
 	{
 		char libraryName[25];
-		unsigned short version;
+		u16 version;
 		
-		unsigned short buttons, buttonsStick, analogL, analogR;
-		unsigned char padID;	
+		u16 buttons, buttonsStick, analogL, analogR;
+		u8 padID;	
 		bool bConfig, bModeLock;	
-		unsigned char motorMapS, motorMapL;
-		unsigned char triggerL, triggerR;
+		u8 motorMapS, motorMapL;
+		u8 triggerL, triggerR;
 
-		unsigned char pollMask[6];
-		unsigned short pressureButton[12];
+		u8 pollMask[6];
+		u16 pressureButton[12];
 	};
 
 	virtual void LoadState(State state);
 	virtual void SaveState(State &state);
 
 public:			
-	unsigned char command(const unsigned int counter, const unsigned char data);
+	u8 command(const u32 counter, const u8 data);
 	bool gamepadPlugged;
 
 protected:
 	virtual void Cmd0(); // To use the analog toggle or whatever before command
-	virtual void Cmd1(const unsigned char data); // Requires only main command byte to be known
-	virtual void Cmd4(const unsigned char data); // Requires bytes 3 and 4 to be known
-	virtual void Cmd8(const unsigned char data); // Requires 8 bytes from the command to be known
+	virtual void Cmd1(const u8 data); // Requires only main command byte to be known
+	virtual void Cmd4(const u8 data); // Requires bytes 3 and 4 to be known
+	virtual void Cmd8(const u8 data); // Requires 8 bytes from the command to be known
 
 protected:	
 	void poll();
-	void vibration(unsigned char smalldata, unsigned char bigdata);
-	void ReadInput(unsigned char *buffer);
+	void vibration(u8 smalldata, u8 bigdata);
+	void ReadInput(u8 *buffer);
 	void SetVibration();
 	void Reset();
 	void Recheck();
 
 protected:
 	_Settings &settings;
-	unsigned char *dataBuffer, *cmdBuffer; 
-	const unsigned short sizeBuffer;
+	u8 *dataBuffer, *cmdBuffer; 
+	const u16 sizeBuffer;
 	
 protected:	
-	unsigned short buttons, buttonsStick, analogL, analogR;
-	unsigned char padID;	
+	u16 buttons, buttonsStick, analogL, analogR;
+	u8 padID;	
 	bool bConfig, bModeLock;	
-	unsigned char motorMapS, motorMapL;
-	unsigned char triggerL, triggerR;
+	u8 motorMapS, motorMapL;
+	u8 triggerL, triggerR;
 
 private:
 	Controller(const Controller &);
@@ -83,20 +84,20 @@ public:
 	Controller2(_Settings &config);		
 
 public:
-	unsigned char command(const unsigned int counter, const unsigned char data);
+	u8 command(const u32 counter, const u8 data);
 	
 	void LoadState(State state);
 	void SaveState(State &state);
 
 protected:	
-	void Cmd1(const unsigned char data);
-	void Cmd4(const unsigned char data);
-	void Cmd8(const unsigned char data);
+	void Cmd1(const u8 data);
+	void Cmd4(const u8 data);
+	void Cmd8(const u8 data);
 
 protected:
-	void ReadInputPressure(unsigned char *buffer);
-	unsigned char pollMask[6];
-	unsigned short pressureButton[12];
+	void ReadInputPressure(u8 *buffer);
+	u8 pollMask[6];
+	u16 pressureButton[12];
 
 private:
 	Controller2(const Controller2 &);
@@ -109,9 +110,9 @@ public:
 	ControllerGuitar(_Settings &config);
 
 private:
-	void Cmd1(const unsigned char data);
-	void Cmd4(const unsigned char data);
+	void Cmd1(const u8 data);
+	void Cmd4(const u8 data);
 
 private:
-	void ReadInputGuitar(const bool bConfig, unsigned char *buffer);
+	void ReadInputGuitar(const bool bConfig, u8 *buffer);
 };

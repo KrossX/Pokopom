@@ -7,14 +7,14 @@
 
 struct ChankastInputInterface
 {
-  int Version;
+  s32 Version;
   char *Description;
-  int (__cdecl *Init)(void* hWnd);
-  int (__cdecl *GetNumControllers)();
+  s32 (__cdecl *Init)(void* hWnd);
+  s32 (__cdecl *GetNumControllers)();
   void (__cdecl *End)();
-  int (__cdecl *Configure)(void* hWnd);
+  s32 (__cdecl *Configure)(void* hWnd);
   void (__cdecl *Update)();
-  void (__cdecl *GetStatus)(int iNumPad, void* _pContCond);  
+  void (__cdecl *GetStatus)(s32 iNumPad, void* _pContCond);  
 };
 
 
@@ -45,6 +45,6 @@ class ChankastController : public DreamcastController
 public:
 	void PollData(ChankastPadData &Data);
 	
-	ChankastController(unsigned int _port, _Settings &config) :
+	ChankastController(u32 _port, _Settings &config) :
 		DreamcastController(_port, config) {}
 };

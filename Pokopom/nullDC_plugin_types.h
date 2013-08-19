@@ -411,7 +411,7 @@ namespace nullDC
 	typedef signed int FASTCALL osdTexCreateFP(unsigned int w,unsigned int h,OSDFORMAT fmt,void* data);
 	typedef signed int FASTCALL osdTexBindFP(osdTexture tex);
 	typedef signed int FASTCALL osdTexDestroyFP(osdTexture tex);
-	typedef signed int FASTCALL osdVtxFP(float x,float y,float z,float w,float r,float g,float b,float a,float u,float v);
+	typedef signed int FASTCALL osdVtxFP(f32 x,f32 y,f32 z,f32 w,f32 r,f32 g,f32 b,f32 a,f32 u,f32 v);
 
 	struct pvr_plugin_if
 	{

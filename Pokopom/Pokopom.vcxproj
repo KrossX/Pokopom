@@ -48,6 +48,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,6 +70,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DisableSpecificWarnings>4100;4201</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -88,6 +90,7 @@
     <ClInclude Include="Chankast.h" />
     <ClInclude Include="Codes_IDs.h" />
     <ClInclude Include="ConfigDialog.h" />
+    <ClInclude Include="ConsoleOutput.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
@@ -98,10 +101,14 @@
     <ClInclude Include="PSemuPro_Interface.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="XInput_Backend.h" />
+    <ClInclude Include="Zilmar_Controller_Interface.h" />
+    <ClInclude Include="Zilmar_Devices.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Chankast.cpp" />
     <ClCompile Include="ConfigDialog.cpp" />
+    <ClCompile Include="ConsoleOutput.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Controller2.cpp" />
     <ClCompile Include="ControllerGuitar.cpp" />
@@ -110,7 +117,9 @@
     <ClCompile Include="nulldc.cpp" />
     <ClCompile Include="nullDC_Devices.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="Xinput.cpp" />
+    <ClCompile Include="Zilmar.cpp" />
+    <ClCompile Include="Zilmar_Devices.cpp" />
+    <ClCompile Include="Xinput_Backend.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Background.bmp" />
