@@ -33,12 +33,14 @@ inline double Linearity(double radius, short linearity)
 
 unsigned short ConvertAnalog(int X, int Y, double deadzone, short linearity)
 {							
+	// If input is dead, no need to check or do anything else
+	if((X == 0) && (Y == 0)) return 0x7F7F;
+
 	double const max = 32768.0; // 40201 real max radius
-	
+
 	double radius = sqrt((double)X*X + (double)Y*Y);
 	double rX = X/radius, rY = Y/radius;
 	
-
 	if(deadzone > 0)
 	{	
 		deadzone = max * deadzone; 		
@@ -126,7 +128,7 @@ void Controller::poll()
 		triggerL = state.Gamepad.bLeftTrigger;
 		triggerR = state.Gamepad.bRightTrigger;
 		
-		//printf("Pokopom: %04X %04X\n", analogL, analogR);
+		printf("Pokopom: %4d %4d | %4d %4d\n", (state.Gamepad.sThumbLX)/256 , (state.Gamepad.sThumbLY)/256,  (analogL & 0xFF) - 0x7F, ((analogL>>8) & 0xFF) - 0x7F);
 	}
 	else
 		gamepadPlugged = false;
