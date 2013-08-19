@@ -41,11 +41,9 @@ void UpdateControls(HWND hDialog, s32 port)
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
 	}
-
-	CheckDlgButton(hDialog, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
+	
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(hDialog, IDC_MULTITAP, multitap % 4);
 
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1044:1043, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1043:1044, BST_UNCHECKED);
@@ -58,15 +56,15 @@ void UpdateControls(HWND hDialog, s32 port)
 		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
 		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
 	}
-
-	if(!isPs2Emulator) 
-	{		
-		EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
-	}
-	else if(isPSemulator)
+	else
 	{
-		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
-		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
+		if(!isPs2Emulator) 
+			EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
+		else
+		{
+			EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
+			EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
+		}
 	}
 	
 	s32 position = (s32)(settings[port].rumble * 100);
@@ -212,20 +210,12 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				settings[port].axisInverted[GP_AXIS_RY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RY) == BST_CHECKED? true:false;
 				break;
 
-			case IDC_SCREENSAVER:
-				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
-				break;
-
 			case IDC_GUITAR:
 				settings[port].isGuitar = IsDlgButtonChecked(hwndDlg, IDC_GUITAR) == BST_CHECKED? true:false;
 				break;
 
 			case IDC_ANALOG_GREEN:
 				settings[port].greenAnalog = IsDlgButtonChecked(hwndDlg, IDC_ANALOG_GREEN) == BST_CHECKED? true:false;
-				break;
-
-			case IDC_MULTITAP:
-				multitap = IsDlgButtonChecked(hwndDlg, IDC_MULTITAP) & 0xFF;
 				break;
 			}
 
@@ -261,15 +251,24 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			tci.pszText = L"Controller 2";
 			TabCtrl_InsertItem(hTabControl, 1, &tci); 
+			
+			if(!isPSemulator || (!isPs2Emulator && multitap > 0))
+			{
+				tci.pszText = L"Controller 3";
+				TabCtrl_InsertItem(hTabControl, 2, &tci); 
 
-			tci.pszText = L"Controller 3";
-			TabCtrl_InsertItem(hTabControl, 2, &tci); 
-
-			tci.pszText = L"Controller 4";
-			TabCtrl_InsertItem(hTabControl, 3, &tci);
+				tci.pszText = L"Controller 4";
+				TabCtrl_InsertItem(hTabControl, 3, &tci);
+			}
 
 			hChild = CreateDialog((HINSTANCE)lParam, MAKEINTRESOURCE(IDD_INTAB), hwndDlg, DialogProc2);
 			EnableThemeDialogTexture(hChild, ETDT_ENABLETAB);
+
+			if(!isPSemulator || isPs2Emulator)
+				EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), false);
+
+			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
+			CheckDlgButton(hwndDlg, IDC_MULTITAP, multitap % 4);
 						
 			ShowWindow(hwndDlg, SW_SHOW);
 		} break;    
@@ -280,6 +279,43 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			switch(command)
 			{
+			case IDC_SCREENSAVER:
+				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
+				break;
+
+			case IDC_MULTITAP:
+				{
+					multitap = IsDlgButtonChecked(hwndDlg, IDC_MULTITAP) & 0xFF;
+					HWND hTabControl = GetDlgItem(hwndDlg, IDC_TAB1);
+					u8 tabs = (u8)TabCtrl_GetItemCount(hTabControl);
+
+					if(multitap > 0)
+					{
+						if(tabs < 3)
+						{
+							TCITEM tci; 
+							tci.mask = TCIF_TEXT | TCIF_IMAGE;
+							tci.iImage = -1; 
+
+							tci.pszText = L"Controller 3";
+							TabCtrl_InsertItem(hTabControl, 2, &tci); 
+
+							tci.pszText = L"Controller 4";
+							TabCtrl_InsertItem(hTabControl, 3, &tci);
+						}
+					}
+					else
+					{
+						TabCtrl_SetCurSel(hTabControl, 0);
+
+						TabCtrl_DeleteItem(hTabControl, 3);
+						TabCtrl_DeleteItem(hTabControl, 2);
+					}
+
+					RedrawWindow(hChild, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
+				}
+				break;
+
 			case IDRESET:
 				{
 					s32 port =  TabCtrl_GetCurSel(GetDlgItem(hwndDlg, IDC_TAB1));

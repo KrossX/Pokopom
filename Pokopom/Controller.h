@@ -40,12 +40,13 @@ class PlayStationDevice
 	PlayStationDevice();
 	PlayStationDevice(const PlayStationDevice &);
     PlayStationDevice& operator=(const PlayStationDevice &);
-
+	
 	bool disabled;
 
 protected:
 	_Settings &settings;
 
+	u8 port;
 	u8 *dataBuffer, *cmdBuffer; 
 	const u16 sizeBuffer;
 
@@ -55,6 +56,7 @@ protected:
 public:
 	void Enable() { disabled = false; }
 	void Disable() { disabled = true; }
+	void SetPort(u8 p) { port = p; }
 	
 	virtual void LoadState(PlayStationDeviceState state) = 0;
 	virtual void SaveState(PlayStationDeviceState &state) = 0;

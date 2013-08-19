@@ -142,13 +142,26 @@ void DualShock::SetVibration()
 	}
 }
 
+extern u8 multitap;
+
 void DualShock::Cmd0()
 {	
 	static bool bPressed = false;
+	
+	if(gamepadPlugged && multitap == 0)
+	{
+		bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
 
+		if((padID != ID_DIGITAL && !ledScrollLock) || (padID == ID_DIGITAL && ledScrollLock))
+		{
+			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
+			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
+		}
+	}
+	
 	if(!bModeLock) 
 	{				
-		if(!bPressed && !!(GetAsyncKeyState(0x31 + settings.xinputPort) >> 1))
+		if(!bPressed && !!(GetAsyncKeyState(0x31 + port) >> 1))
 		{			
 			if(padID == ID_DIGITAL)
 			{
@@ -163,24 +176,11 @@ void DualShock::Cmd0()
 
 			bPressed = true;
 		} 
-		else if (bPressed && !(GetAsyncKeyState(0x31 + settings.xinputPort) >> 1)) 
+		else if (bPressed && !(GetAsyncKeyState(0x31 + port) >> 1)) 
 		{
 			bPressed = false; 
 		}
 	}
-	
-	
-	if(gamepadPlugged && !bPressed)
-	{
-		bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
-
-		if((padID != ID_DIGITAL && !ledScrollLock) || (padID == ID_DIGITAL && ledScrollLock))
-		{
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
-		}
-	}
-	
 }
 
 void DualShock::Cmd1(const u8 data)

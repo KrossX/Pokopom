@@ -105,6 +105,9 @@ s32 CALLBACK PADinit(s32 flags) // PAD INIT
 			if(multitap == 1)	controller[0] = new MultiTap(settings);
 			else				controller[0] = new DualShock(settings[0]);
 		}
+
+		if(controller[0]) controller[0]->SetPort(0);
+		else return emupro::ERR_FATAL;
 	}
 
 	if (flags & emupro::pad::USE_PORT2)
@@ -121,6 +124,9 @@ s32 CALLBACK PADinit(s32 flags) // PAD INIT
 
 			if(multitap == 1) controller[1]->Disable();
 		}
+
+		if(controller[1]) controller[1]->SetPort(1);
+		else return emupro::ERR_FATAL;
 	}
 
 

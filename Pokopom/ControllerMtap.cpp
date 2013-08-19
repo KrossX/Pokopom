@@ -9,8 +9,9 @@ MultiTap::MultiTap(_Settings *config) : PlayStationDevice(config[0], 1)
 	for(slot = 0; slot < 4; slot++)
 	{		
 		Device[slot] = new DualShock(config[multitap == 2? (slot+1)%4 : slot]);
+		Device[slot]->SetPort(multitap == 2? (slot+1)%4 : slot);
 	}
-
+	
 	if(multitap == 2) Device[3]->Disable();
 }
 
@@ -23,7 +24,7 @@ u8 MultiTap::command(const u32 _counter, const u8 data)
 {
 	const u8 counter = _counter & 0xFF;
 	//slot = 0;
-	u8 output = 0xFF;	
+	u8 output = 0xFF;
 
 	if(counter < 3) switch(counter)
 	{
