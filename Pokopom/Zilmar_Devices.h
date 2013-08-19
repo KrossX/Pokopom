@@ -50,6 +50,7 @@ class N64controller : public Zilmar_Device
 
 	void Poll();
 	void GetStatus();
+	void RumbleIt(bool on);
 
 public:
 	void __fastcall Read(u8 *cmd);

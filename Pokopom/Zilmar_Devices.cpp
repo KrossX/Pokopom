@@ -47,7 +47,7 @@ N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 p
 	// 0x02 : Plugin uninitialized
 	// 0x04 : Invalid last Pack I/O address
 	// 0x80 : EEPROM busy
-	status.Plugin = 0x00;
+	status.Plugin = 0x01;
 
 	// 0x80 : EEPROM present
 	// 0x00 : No EEPROM
@@ -82,6 +82,36 @@ void Zilmar_Device::Recheck()
 // N64 Controller
 ////////////////////////////////////////////////////////////////////////
 
+
+// DataCRC and basis for READ/WRITE_PACK stuff from Mupen64Plus
+// http://code.google.com/p/mupen64plus/ 
+// -. I was getting mad trying to make it work, and I already had 
+//    the CRC wrong. So yay Mupen and OpenSource-ness! =D
+
+static u8 DataCRC(u8 *Data, s32 iLenght)
+{
+    u8 Remainder = Data[0];
+
+    s32 iByte = 1;
+    u8 bBit = 0;
+
+    while( iByte <= iLenght )
+    {
+        s32 HighBit = ((Remainder & 0x80) != 0);
+        Remainder = Remainder << 1;
+
+        Remainder += ( iByte < iLenght && Data[iByte] & (0x80 >> bBit )) ? 1 : 0;
+
+        Remainder ^= (HighBit) ? 0x85 : 0;
+
+        bBit++;
+        iByte += bBit/8;
+        bBit %= 8;
+    }
+
+    return Remainder;
+}
+
 void __fastcall N64controller::Command(u8 *cmd) // Input ?
 {
 	// cmd[0] - input length in bytes
@@ -91,9 +121,10 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 	if(!gamepadPlugged)
 	{				
 		Recheck();
+
 		if(!gamepadPlugged)
 		{ 
-			//zControl.Present = FALSE;
+			zControl.Present = FALSE;
 			return;
 		}
 		else
@@ -103,15 +134,23 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 	switch(cmd[2]) // in / out, expected length
 	{	
 	case RAW_GET_STATUS: // 1 / 3
+		if(cmd[1] != 3) return;
 		GetStatus();
 		break;
 
 	case RAW_READ_KEYS: // 1 / 4
-		Poll();
+		if(cmd[1] != 4) return;
+		Poll();		
 		break;
 
-	//case RAW_READ_PACK: break;
-	//case RAW_WRITE_PACK: break;
+	case RAW_READ_PACK: break; // 3 / 33 ? // Handled on Read		
+
+	case RAW_WRITE_PACK: // 35 / 1 ?
+		{
+			if (cmd[3] == 0xC0) RumbleIt(cmd[5] != 0);
+            cmd[32+5] = DataCRC(&cmd[5], 32);
+        }
+		break;
 	
 	case RAW_READ_ROM: break; // Handled by the emu?
 	case RAW_WRITE_ROM: break;// Handled by the emu?
@@ -119,8 +158,8 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 	case RAW_RESET: break;
 	
 	default:
-		printf("Pokopom(%d) -> Command\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
-		cmd[1] |= RAW_RET_ERROR;
+		//printf("Pokopom(%d) -> Command\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
+		break;
 	}
 
 }
@@ -136,7 +175,8 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 		Recheck();
 		if(!gamepadPlugged)
 		{ 
-			//zControl.Present = FALSE;	
+			zControl.Present = FALSE;
+			cmd[1] |= RAW_RET_ERROR;
 			return;
 		}
 		else
@@ -146,20 +186,33 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	switch(cmd[2])
 	{	
 	case RAW_GET_STATUS:
+		if(cmd[1] != 3) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
+
 		cmd[3] = status.Mode;
 		cmd[4] = status.EEPROM;
 		cmd[5] = status.Plugin;
 		break;
 
 	case RAW_READ_KEYS:
+		if(cmd[1] != 4) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
+		
 		cmd[3] = poll.RAW8[0];
 		cmd[4] = poll.RAW8[1];
 		cmd[5] = poll.RAW8[2];
 		cmd[6] = poll.RAW8[3];		
 		break;
 
-	//case RAW_READ_PACK: break;
-	//case RAW_WRITE_PACK: break;
+	case RAW_READ_PACK: 
+		{
+            if((cmd[3] >= 0x80) && (cmd[3] < 0x90))
+                memset(&cmd[5], 0x80, 32);
+            else
+                memset(&cmd[5], 0x00, 32);
+
+            cmd[32+5] = DataCRC(&cmd[5], 32);
+		}break;
+
+	case RAW_WRITE_PACK: break; // Handled on Command
 
 	case RAW_READ_ROM: break; // Handled by the emu?
 	case RAW_WRITE_ROM: break;// Handled by the emu?
@@ -171,8 +224,8 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 		break;	
 
 	default:
-		printf("Pokopom(%d) -> Read\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
-		cmd[1] |= RAW_RET_ERROR;
+		//printf("Pokopom(%d) -> Read\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
+		cmd[1] |= RAW_RET_WRONG_SIZE;
 	}
 }
 
@@ -185,4 +238,9 @@ void N64controller::Poll()
 
 void N64controller::GetStatus()
 {
+}
+
+void N64controller::RumbleIt(bool on)
+{
+	XInput::N64rumble(on, set, gamepadPlugged);
 }

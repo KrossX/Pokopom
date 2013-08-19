@@ -509,4 +509,30 @@ namespace XInput
 		outBig[1] = analog;
 	}
 
+	void __fastcall N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
+	{
+		XINPUT_STATE state;
+		DWORD result = XInputGetState(set.xinputPort, &state);		
+
+		if(result == ERROR_SUCCESS)
+		{			
+			static XINPUT_VIBRATION vib;
+
+			if(on)
+			{
+				vib.wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
+				vib.wLeftMotorSpeed = Clamp(0xFFFF * set.rumble);
+			}
+			else
+			{
+				vib.wRightMotorSpeed = 0;
+				vib.wLeftMotorSpeed = 0;
+			}
+
+			XInputSetState(set.xinputPort, &vib);
+		}	
+		else
+			gamepadPlugged = false;
+	}
+
 } // End namespace
