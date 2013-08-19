@@ -19,33 +19,53 @@
 #include "..\..\Common\TypeDefs.h"
 #include "Settings.h"
 
-class Controller
+
+struct PlayStationDeviceState
 {
-public: 	
-	Controller(_Settings &config, u16 bsize = 9);		
+	char libraryName[25];
+	u16 version;
+		
+	u16 buttons, buttonsStick, analogL, analogR;
+	u8 padID;
+	bool bConfig, bModeLock;
+	u8 motorMapS, motorMapL;
+	u8 triggerL, triggerR;
+
+	u8 pollMask[6];
+	u16 pressureButton[12];
+};
+
+class PlayStationDevice
+{
+	PlayStationDevice();
+	PlayStationDevice(const PlayStationDevice &);
+    PlayStationDevice& operator=(const PlayStationDevice &);
+
+protected:
+	_Settings &settings;
+
+	u8 *dataBuffer, *cmdBuffer; 
+	const u16 sizeBuffer;
+
+	bool gamepadPlugged;
+	void Recheck();
 
 public:
-	struct State
-	{
-		char libraryName[25];
-		u16 version;
-		
-		u16 buttons, buttonsStick, analogL, analogR;
-		u8 padID;	
-		bool bConfig, bModeLock;	
-		u8 motorMapS, motorMapL;
-		u8 triggerL, triggerR;
+	virtual void LoadState(PlayStationDeviceState state) = 0;
+	virtual void SaveState(PlayStationDeviceState &state) = 0;
 
-		u8 pollMask[6];
-		u16 pressureButton[12];
-	};
+	virtual u8 command(const u32 counter, const u8 data) = 0;
 
-	virtual void LoadState(State state);
-	virtual void SaveState(State &state);
+	PlayStationDevice(_Settings &config, u16 bufferSize); // 9 PS1, 21 PS2
+	~PlayStationDevice();
+};
 
-public:			
-	u8 command(const u32 counter, const u8 data);
-	bool gamepadPlugged;
+
+class DualShock : public PlayStationDevice
+{
+	DualShock();
+	DualShock(const DualShock &);
+    DualShock& operator=(const DualShock &);
 
 protected:
 	virtual void Cmd0(); // To use the analog toggle or whatever before command
@@ -53,66 +73,60 @@ protected:
 	virtual void Cmd4(const u8 data); // Requires bytes 3 and 4 to be known
 	virtual void Cmd8(const u8 data); // Requires 8 bytes from the command to be known
 
-protected:	
 	void poll();
 	void vibration(u8 smalldata, u8 bigdata);
 	void ReadInput(u8 *buffer);
 	void SetVibration();
 	void Reset();
-	void Recheck();
 
-protected:
-	_Settings &settings;
-	u8 *dataBuffer, *cmdBuffer; 
-	const u16 sizeBuffer;
-	
-protected:	
 	u16 buttons, buttonsStick, analogL, analogR;
 	u8 padID;	
-	bool bConfig, bModeLock;	
+	bool bConfig, bModeLock;
 	u8 motorMapS, motorMapL;
 	u8 triggerL, triggerR;
 
-private:
-	Controller(const Controller &);
-    Controller& operator=(const Controller &);
-};
-
-class Controller2 : public Controller
-{
-public:
-	Controller2(_Settings &config);		
-
 public:
 	u8 command(const u32 counter, const u8 data);
-	
-	void LoadState(State state);
-	void SaveState(State &state);
+
+	void LoadState(PlayStationDeviceState state);
+	void SaveState(PlayStationDeviceState &state);
+
+	DualShock(_Settings &config, u16 bsize = 9);
+};
+
+class DualShock2 : public DualShock
+{
+	DualShock2();
+	DualShock2(const DualShock2 &);
+    DualShock2& operator=(const DualShock2 &);
 
 protected:	
 	void Cmd1(const u8 data);
 	void Cmd4(const u8 data);
 	void Cmd8(const u8 data);
 
-protected:
 	void ReadInputPressure(u8 *buffer);
 	u8 pollMask[6];
 	u16 pressureButton[12];
 
-private:
-	Controller2(const Controller2 &);
-    Controller2& operator=(const Controller2 &);
+public:
+	void LoadState(PlayStationDeviceState state);
+	void SaveState(PlayStationDeviceState &state);
+
+	DualShock2(_Settings &config);	
 };
 
-class ControllerGuitar : public Controller2
+class PS2_Guitar : public DualShock2
 {
-public:
-	ControllerGuitar(_Settings &config);
-
-private:
+	PS2_Guitar();
+	PS2_Guitar(const PS2_Guitar &);
+    PS2_Guitar& operator=(const PS2_Guitar &);
+	
 	void Cmd1(const u8 data);
 	void Cmd4(const u8 data);
 
-private:
 	void ReadInputGuitar(const bool bConfig, u8 *buffer);
+
+public:
+	PS2_Guitar(_Settings &config);
 };

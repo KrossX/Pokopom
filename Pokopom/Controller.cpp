@@ -20,13 +20,43 @@
 #include "General.h"
 #include "XInput_Backend.h"
 
-void Controller::Reset()
+////////////////////////////////////////////////////////////////////////
+// PlayStation Device
+////////////////////////////////////////////////////////////////////////
+
+PlayStationDevice::PlayStationDevice(_Settings &config, u16 bufferSize) :
+	settings(config), sizeBuffer(bufferSize)
+{
+	gamepadPlugged = false;
+	
+	cmdBuffer = new u8[sizeBuffer];
+	dataBuffer = new u8[sizeBuffer];
+}
+
+PlayStationDevice::~PlayStationDevice()
+{
+	delete cmdBuffer;
+	delete dataBuffer;
+
+	cmdBuffer = dataBuffer = NULL;
+}
+
+void PlayStationDevice::Recheck()
+{
+	gamepadPlugged = XInput::Recheck(settings.xinputPort);
+}
+
+////////////////////////////////////////////////////////////////////////
+// DualShock
+////////////////////////////////////////////////////////////////////////
+
+void DualShock::Reset()
 {			
 	memset(dataBuffer, 0xFF, sizeBuffer);
 	memset(cmdBuffer, 0x00, sizeBuffer);
 
 	dataBuffer[2] = 0x5A;
-	padID = settings.defaultAnalog ? (u8)ID_ANALOG : (u8)ID_DIGITAL;	
+	padID = settings.defaultAnalog ? (u8)ID_ANALOG_RED : (u8)ID_DIGITAL;	
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
@@ -39,16 +69,12 @@ void Controller::Reset()
 	bConfig = bModeLock = false;
 }
 
-Controller::Controller(_Settings &config, u16 bsize):
-settings(config), sizeBuffer(bsize)
+DualShock::DualShock(_Settings &config, u16 bsize): PlayStationDevice(config, bsize)
 {  	
-	cmdBuffer = new u8[sizeBuffer];
-	dataBuffer = new u8[sizeBuffer];
-	
 	Reset();
 }
 
-u8 Controller::command(const u32 counter, const u8 data)
+u8 DualShock::command(const u32 counter, const u8 data)
 {							
 	if(!gamepadPlugged) 
 	{				
@@ -66,21 +92,21 @@ u8 Controller::command(const u32 counter, const u8 data)
 
 	switch(counter)
 	{
-	case 0x00: Cmd0(); break;		
+	case 0x00: Cmd0(); break;
 	
 	case 0x01:
-		dataBuffer[1] = bConfig? ID_CONFIG : padID;		
-		if(cmdBuffer[0]==0x01) Cmd1(cmdBuffer[1]);		
+		dataBuffer[1] = bConfig? ID_CONFIG : padID;
+		Cmd1(cmdBuffer[1]);
 		break;
 		
-	case 0x04: if(cmdBuffer[0]==0x01) Cmd4(cmdBuffer[1]); break;	
-	case 0x08: if(cmdBuffer[0]==0x01) Cmd8(cmdBuffer[1]); break;
+	case 0x04:Cmd4(cmdBuffer[1]); break;
+	case 0x08:Cmd8(cmdBuffer[1]); break;
 	}
 
 	return dataBuffer[counter];
 }
 
-void Controller::ReadInput(u8 *buffer)
+void DualShock::ReadInput(u8 *buffer)
 {	
 	poll(); 
 	
@@ -102,9 +128,9 @@ void Controller::ReadInput(u8 *buffer)
 	}
 }
 
-void Controller::SetVibration()
+void DualShock::SetVibration()
 {
-	motorMapS = motorMapL = 0xFF;	
+	motorMapS = motorMapL = 0xFF;
 	
 	for(u8 i = 3; i<9; i++)
 	{
@@ -113,7 +139,7 @@ void Controller::SetVibration()
 	}
 }
 
-void Controller::Cmd0()
+void DualShock::Cmd0()
 {	
 	static bool bPressed = false;
 
@@ -123,10 +149,10 @@ void Controller::Cmd0()
 		{			
 			if(padID == ID_DIGITAL)
 			{
-				padID = ID_ANALOG;
+				padID = ID_ANALOG_RED;
 				//printf("Pokopom -> [%d] Switched to analog mode.\n", Settings.padPort);
 			}
-			else if(padID == ID_ANALOG)
+			else 
 			{
 				padID = ID_DIGITAL;
 				//printf("Pokopom -> [%d] Switched to digital mode.\n", Settings.padPort);
@@ -140,20 +166,20 @@ void Controller::Cmd0()
 		}
 	}
 	
-	if(gamepadPlugged && !bPressed)		
+	if(gamepadPlugged && !bPressed)
 	{
 		bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
 
 		if((padID != ID_DIGITAL && !ledScrollLock) || (padID == ID_DIGITAL && ledScrollLock))
 		{
 			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );	
+			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
 		}
 	}
 }
 
-void Controller::Cmd1(const u8 data)
-{						
+void DualShock::Cmd1(const u8 data)
+{
 	switch(data)
 	{
 	case 0x40: if(bConfig) memcpy(&dataBuffer[3], WTF, 6); // WTF ???!!!
@@ -204,8 +230,8 @@ void Controller::Cmd1(const u8 data)
 	}
 }
 
-void Controller::Cmd4(const u8 data)
-{			
+void DualShock::Cmd4(const u8 data)
+{
 	switch(data)
 	{
 	case 0x40: break;
@@ -217,14 +243,14 @@ void Controller::Cmd4(const u8 data)
 		break;
 
 	case 0x44: if(bConfig) {// Set mode and lock
-		padID = cmdBuffer[3] == 0x01 ? (u8)ID_ANALOG : (u8)ID_DIGITAL;		
+		padID = cmdBuffer[3] == 0x01 ? (u8)ID_ANALOG_RED : (u8)ID_DIGITAL;
 		bModeLock = cmdBuffer[4] == 0x03; } // Disgaea sends 0x01 here
 		break;
 
 	case 0x45: break;
 	
 	// Using DS2 ID code
-	case 0x46: if(bConfig) {// Unknown constant part 1 and 2			
+	case 0x46: if(bConfig) {// Unknown constant part 1 and 2
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[0], 5);
 		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[1], 5);} 
 		break;
@@ -238,7 +264,7 @@ void Controller::Cmd4(const u8 data)
 	case 0x4A: break;
 	case 0x4B: break;
 
-	case 0x4C: if(bConfig) {// Unknown constant part 4 and 5			
+	case 0x4C: if(bConfig) {// Unknown constant part 4 and 5
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[3], 5);
 		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[4], 5);}
 		break;
@@ -249,8 +275,8 @@ void Controller::Cmd4(const u8 data)
 	}
 }
 
-void Controller::Cmd8(const u8 data)
-{			
+void DualShock::Cmd8(const u8 data)
+{
 	switch(data)
 	{
 	case 0x40: break;
@@ -263,8 +289,8 @@ void Controller::Cmd8(const u8 data)
 
 	case 0x43: break;
 	case 0x44: break;
-	case 0x45: break;	
-	case 0x46: break;	
+	case 0x45: break;
+	case 0x46: break;
 	case 0x47: break;
 	case 0x48: break;
 	case 0x49: break;
@@ -281,12 +307,7 @@ void Controller::Cmd8(const u8 data)
 	}
 }
 
-void Controller::Recheck()
-{
-	gamepadPlugged = XInput::Recheck(settings.xinputPort);
-}
-
-void Controller::poll()
+void DualShock::poll()
 {
 	u16 buffer[5];	
 	XInput::DualshockPoll(buffer, settings, gamepadPlugged);
@@ -299,12 +320,12 @@ void Controller::poll()
 	triggerL = (buffer[4]>>8) & 0xFF;
 }
 
-void Controller::vibration(u8 smalldata, u8 bigdata)
+void DualShock::vibration(u8 smalldata, u8 bigdata)
 {
 	XInput::DualshockRumble(smalldata, bigdata, settings, gamepadPlugged);
 }
 
-void Controller::SaveState(State &state)
+void DualShock::SaveState(PlayStationDeviceState &state)
 {
 	state.buttons = buttons;
 	state.buttonsStick = buttonsStick;
@@ -319,7 +340,7 @@ void Controller::SaveState(State &state)
 	state.triggerR = triggerR;
 }
 
-void Controller::LoadState(State state)
+void DualShock::LoadState(PlayStationDeviceState state)
 {
 	buttons = state.buttons;
 	buttonsStick = state.buttonsStick;

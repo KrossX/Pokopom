@@ -56,10 +56,12 @@ const u8 WTF[6] = {0x00, 0x00, 0x02, 0x00, 0x00, 0x5A};
 // Pad modes
 enum ID
 {
-	ID_DIGITAL	= 0x41,
-	ID_ANALOG	= 0x73,
-	ID_ANALOGP	= 0x79,
-	ID_CONFIG	= 0xF3,
+	ID_DIGITAL		= 0x41,
+	ID_ANALOG_GREEN	= 0x53, //Dual stick fight mode on the DualAnalog controller
+	ID_ANALOG_RED	= 0x73,
+	ID_ANALOG_REDP	= 0x79, // Dualshock 2 analog mode + pressure
+	ID_MULTITAP		= 0x80,
+	ID_CONFIG		= 0xF3,
 };
 
 /*

@@ -22,7 +22,7 @@
 HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
 extern _Settings settings[4];
-bool bScrollLock = false; // backup to restore on exit
+
 bool bKeepAwake = false; // Screensaver and stuff
 bool isPSemulator = false;
 
@@ -85,23 +85,21 @@ u32 CALLBACK PS2EgetLibVersion2(u32 type)
 ////////////////////////////////////////////////////////////////////////
 
 s32 CALLBACK PADinit(s32 flags) // PAD INIT
-{				
-	bScrollLock = GetKeyState(VK_SCROLL)&0x1;
-	
+{
 	FileIO::INI_LoadSettings();	
 
 	//printf("Pokopom -> PADinit [%X]\n", flags);
 
 	if (flags & emupro::pad::USE_PORT1)
 	{
-		if(isPs2Emulator) controller[0] = settings[0].isGuitar? new ControllerGuitar(settings[0]) : new Controller2(settings[0]);
-		else controller[0] = new Controller(settings[0]);		
+		if(isPs2Emulator) controller[0] = settings[0].isGuitar? new PS2_Guitar(settings[0]) : new DualShock2(settings[0]);
+		else controller[0] = new DualShock(settings[0]);
 	}
 
 	if (flags & emupro::pad::USE_PORT2)
 	{
-		if(isPs2Emulator) controller[1] = settings[1].isGuitar? new ControllerGuitar(settings[1]) : new Controller2(settings[1]);
-		else controller[1] = new Controller(settings[1]);		
+		if(isPs2Emulator) controller[1] = settings[1].isGuitar? new PS2_Guitar(settings[1]) : new DualShock2(settings[1]);
+		else controller[1] = new DualShock(settings[1]);
 	}
 	
 	return emupro::INIT_ERR_SUCCESS;
@@ -109,18 +107,12 @@ s32 CALLBACK PADinit(s32 flags) // PAD INIT
 
 void CALLBACK PADshutdown(void) // PAD SHUTDOWN
 {
-	if(bScrollLock != (GetKeyState(VK_SCROLL)&0x1)) 
-	{
-		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );		
-	}
-
 	//printf("Pokopom -> PADshutdown\n");
 	
 	delete controller[0];
 	delete controller[1];
 	
-	controller[0] = controller[1] = NULL;	
+	controller[0] = controller[1] = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -152,7 +144,7 @@ LRESULT WINAPI PADwndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		newEvent.evt = 1;
 		newEvent.key = VK_ESCAPE;
 		keyEventList.push_back(newEvent);
-		break;		
+		break;
 	}
 
 	return CallWindowProcW(emuStuff.WndProc, hWnd, msg, wParam, lParam);
@@ -168,7 +160,7 @@ s32 CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
 
 	if(isPs2Emulator)
 	{	
-		emuStuff.hWnd = *(HWND*)ppis;		
+		emuStuff.hWnd = *(HWND*)ppis;
 		emuStuff.WndProc = (WNDPROC)SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)PADwndProc);
 	}
 
@@ -318,7 +310,7 @@ u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 	{
 	case emupro::Savestate::LOAD:
 		{
-			Controller::State *state = (Controller::State *)data->data;
+			PlayStationDeviceState *state = (PlayStationDeviceState *)data->data;
 			
 			if(memcmp(state[0].libraryName, libraryName, 25) == 0 &&
 				state[0].version == ((revision << 8) | build))
@@ -335,7 +327,7 @@ u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 
 	case emupro::Savestate::SAVE:
 		{
-			Controller::State state[2];
+			PlayStationDeviceState state[2];
 
 			memset(state, 0, sizeof(state));
 
@@ -345,13 +337,13 @@ u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
 			state[0].version = state[1].version = (revision << 8) | build;
 
 			controller[0]->SaveState(state[0]);
-			controller[1]->SaveState(state[1]);			
+			controller[1]->SaveState(state[1]);
 			memcpy(data->data, state, sizeof(state));
 		} break;
 
 	case emupro::Savestate::QUERY_SIZE:
 		{
-			data->size = sizeof(Controller::State) * 2;
+			data->size = sizeof(PlayStationDeviceState) * 2;
 		} break;
 	}
 	
@@ -367,7 +359,7 @@ keyEvent* CALLBACK PADkeyEvent()
 
 	if(!keyEventList.empty())
 	{
-		pochy = keyEventList.front();		
+		pochy = keyEventList.front();
 		keyEventList.pop_back();
 		return &pochy;
 	}	
@@ -399,14 +391,43 @@ void CALLBACK PADupdate(s32 port)
 	//printf("Pokopom -> PADupdate [%X]\n", port);
 }
 
-BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
-{	
-	hInstance = hInst;		
-	return TRUE;
+void ScrollLockStuff(bool init)
+{
+	static bool scrollLock = false;
+	static bool scrollLockSaved = false;
+
+
+	if(!scrollLockSaved && init)
+	{
+		scrollLock = GetKeyState(VK_SCROLL)&0x1;
+		scrollLockSaved = true;
+	}
+	else if(scrollLockSaved && !init)
+	{
+		if(scrollLock != (GetKeyState(VK_SCROLL)&0x1)) 
+		{
+			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
+			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );		
+		}
+	}
 }
 
-BOOL APIENTRY EntryPoint (HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
-{
+BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
+{	
 	hInstance = hInst;
+
+	switch(dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+	case DLL_THREAD_ATTACH:
+		ScrollLockStuff(true);
+		break;
+
+	case DLL_PROCESS_DETACH:
+	case DLL_THREAD_DETACH:
+		ScrollLockStuff(false);
+		break;
+	}
+	
 	return TRUE;
 }

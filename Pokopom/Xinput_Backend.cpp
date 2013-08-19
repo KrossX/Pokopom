@@ -37,7 +37,7 @@ namespace XInput
 	bool __fastcall Recheck(u8 port)
 	{
 		XINPUT_STATE state;
-		DWORD result = XInputGetState(port, &state);	
+		DWORD result = XInputGetState(port, &state);
 
 		return (result == ERROR_SUCCESS);
 	}
@@ -119,7 +119,7 @@ namespace XInput
 				X = X < 0 ? 0 : X > 0xFFFF ? 0xFFFF : X;
 				Y = Y < 0 ? 0 : Y > 0xFFFF ? 0xFFFF : Y;
 
-				X >>= 8;	Y >>= 8;		
+				X >>= 8;	Y >>= 8;
 
 				result = (u16)((Y << 8) | X);
 			} break;
@@ -471,7 +471,7 @@ namespace XInput
 		else
 			gamepadPlugged = false;
 
-		if(gamepadPlugged && !pressed[port])		
+		if(gamepadPlugged)
 		{
 			bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
 
@@ -577,10 +577,10 @@ namespace XInput
 	void __fastcall N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
 	{
 		XINPUT_STATE state;
-		DWORD result = XInputGetState(set.xinputPort, &state);		
+		DWORD result = XInputGetState(set.xinputPort, &state);
 
 		if(result == ERROR_SUCCESS)
-		{			
+		{
 			static XINPUT_VIBRATION vib;
 
 			if(on)

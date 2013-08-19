@@ -19,22 +19,21 @@
 #include "Codes_IDs.h"
 #include "General.h"
 
-Controller2::Controller2(_Settings &config):
-	Controller(config, 21)
-{ 				
+DualShock2::DualShock2(_Settings &config) : DualShock(config, 21)
+{
 	memset(pressureButton, 0x00, sizeof(pressureButton));
 	memcpy(pollMask, POLL_MASK_FULL, 6);
 }
 
-void Controller2::ReadInputPressure(u8 *buffer)
+void DualShock2::ReadInputPressure(u8 *buffer)
 {
 	u32 mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;	
 	
-	ReadInput(buffer);		
+	ReadInput(buffer);
 
 	if(mask)
 	{
-		//Right, left, up, down		
+		//Right, left, up, down
 		pressureButton[0x00] = (mask & 0x01) && (buttons & 0x20) ? 0x00 : pressureButton[0x00] + settings.pressureRate;
 		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + settings.pressureRate;
 		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + settings.pressureRate;
@@ -52,14 +51,14 @@ void Controller2::ReadInputPressure(u8 *buffer)
 		pressureButton[0x0A] = (mask & 0x0B) && (buttons & 0x100) ? 0x00 : triggerL;
 		pressureButton[0x0B] = (mask & 0x0C) && (buttons & 0x200) ? 0x00 : triggerR;
 
-		for(s32 i = 0; i < 0x0C; i++) 					
+		for(s32 i = 0; i < 0x0C; i++)
 			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;
 	}	
 	else
 		memset(&buffer[9], 0x00, 12);
 }
 
-void Controller2::Cmd1(const u8 data)
+void DualShock2::Cmd1(const u8 data)
 {		
 	switch(data)
 	{
@@ -73,30 +72,30 @@ void Controller2::Cmd1(const u8 data)
 		else ReadInputPressure(dataBuffer);
 		break;
 
-	case 0x43: // Toggle config mode, poll input and pressures.		
+	case 0x43: // Toggle config mode, poll input and pressures.
 		if(bConfig) memset(&dataBuffer[3], 0x00, 6);
 		else ReadInputPressure(dataBuffer);
 		break;
 
-	case 0x45: if(bConfig) { // Query model, 5th means LED status		
-		memcpy(&dataBuffer[3], DUALSHOCK2_MODEL, 6);			
+	case 0x45: if(bConfig) { // Query model, 5th means LED status
+		memcpy(&dataBuffer[3], DUALSHOCK2_MODEL, 6);
 		dataBuffer[5] = padID == ID_DIGITAL? 0x00 : 0x01; } 
 		break;
 
 	case 0x4F: if(bConfig) { // Enables/disables what do poll analog stuff, including digital.		
-		memset(&dataBuffer[3], 0x00, 5);		
+		memset(&dataBuffer[3], 0x00, 5);
 		dataBuffer[8] = 0x5A;}
 		break;	
 
-	default: Controller::Cmd1(data);
+	default: DualShock::Cmd1(data);
 	}
 }
 
-void Controller2::Cmd4(const u8 data)
-{			
+void DualShock2::Cmd4(const u8 data)
+{
 	switch(data)
 	{
-	case 0x46: if(bConfig) {// Unknown constant part 1 and 2			
+	case 0x46: if(bConfig) {// Unknown constant part 1 and 2
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[0], 5);
 		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[1], 5);} 
 		break;
@@ -105,41 +104,41 @@ void Controller2::Cmd4(const u8 data)
 		memcpy(&dataBuffer[4], DUALSHOCK2_ID[2], 5); } 
 		break;
 
-	case 0x4C: if(bConfig) {// Unknown constant part 4 and 5			
+	case 0x4C: if(bConfig) {// Unknown constant part 4 and 5
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[3], 5);
 		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[4], 5);}
 		break;
 	
-	default: Controller::Cmd4(data);
+	default: DualShock::Cmd4(data);
 	}
 }
 
-void Controller2::Cmd8(const u8 data)
+void DualShock2::Cmd8(const u8 data)
 {		
 	switch(data)
 	{
-	case 0x4F: if(bConfig) {	
-		padID = ID_ANALOGP;		
+	case 0x4F: if(bConfig) {
+		padID = ID_ANALOG_REDP;
 		pollMask[0] = cmdBuffer[3];
 		pollMask[1] = cmdBuffer[4];
 		pollMask[2] = cmdBuffer[5]; }
 		break;
 
-	default: Controller::Cmd8(data);
+	default: DualShock::Cmd8(data);
 	}
 }
 
-void Controller2::SaveState(State &state)
+void DualShock2::SaveState(PlayStationDeviceState &state)
 {
-	Controller::SaveState(state);
+	DualShock::SaveState(state);
 	
 	memcpy(state.pollMask, pollMask, 6);
 	memcpy(state.pressureButton, pressureButton, sizeof(pressureButton));
 }
 
-void Controller2::LoadState(State state)
+void DualShock2::LoadState(PlayStationDeviceState state)
 {
-	Controller::LoadState(state);
+	DualShock::LoadState(state);
 	
 	memcpy(pollMask, state.pollMask, 6);
 	memcpy(pressureButton, state.pressureButton, sizeof(pressureButton));
