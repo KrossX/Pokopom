@@ -22,10 +22,8 @@ _Settings::_Settings()
 	SetDefaults();
 }
 
-
 void _Settings::SetDefaults()
 {
-	b4wayStick = false;
 	SwapXO = false;
 	SwapSticksEnabled = false;
 	greenAnalog = false;
@@ -35,19 +33,11 @@ void _Settings::SetDefaults()
 	sticksLocked = true;
 	xinputPort = 0;
 
-	stickL.deadzone = 0.0;
-	stickL.antiDeadzone = 0.0;
-	stickL.linearity = 0.0;
-	
-	stickR.deadzone = 0.0;
-	stickR.antiDeadzone = 0.0;
-	stickR.linearity = 0.0;
+	stickL.SetDefaults();
+	stickR.SetDefaults();
 
 	rumble = 1.0;
 	pressureRate = 10;
-	
-	extThreshold = 32767.0; // 40201 real max radius
-	extMult = 1.4142135623730950488016887242097; // sqrt(2)
 
 	for(s16 i = 0; i < 4; i++)
 	{
@@ -55,4 +45,18 @@ void _Settings::SetDefaults()
 		axisRemap[i] = i;
 		axisValue[i] = 0;
 	}
+}
+
+void StickSettings::SetDefaults()
+{
+	b4wayDAC = false;
+	DACenabled = true;
+	DACthreshold = 28000;
+
+	extThreshold = 32767.0; // 40201 real max radius
+	extMult = 1.4142135623730950488016887242097; // sqrt(2)
+
+	deadzone = 0.0;
+	antiDeadzone = 0.0;
+	linearity = 0.0;
 }

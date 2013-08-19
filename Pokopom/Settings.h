@@ -25,10 +25,17 @@ enum GAMEPAD_AXES
 	GP_AXIS_RY
 };
 
-struct AxisSettings
+struct StickSettings
 {
+	bool b4wayDAC;
+	bool DACenabled;
+	f64 DACthreshold;
+
+	f64 extThreshold, extMult;
 	f32 deadzone, antiDeadzone;
 	f64 linearity;
+
+	void SetDefaults();
 };
 
 struct _Settings
@@ -41,8 +48,8 @@ struct _Settings
 
 	u8 xinputPort;
 	f32 rumble;
-	f64 extThreshold, extMult;
-	AxisSettings stickL, stickR;
+	
+	StickSettings stickL, stickR;
 
 	bool axisInverted[4];
 	s16 axisRemap[4];
@@ -50,7 +57,7 @@ struct _Settings
 
 	u16 pressureRate;
 
-	bool b4wayStick;
+	bool SwapDCBumpers;
 	bool SwapXO;
 	bool SwapSticksEnabled;
 	bool isGuitar;

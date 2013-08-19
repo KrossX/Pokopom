@@ -348,8 +348,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 
 s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 {
-	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	Debug("Pokopom -> Init [%d]\n", port);
+	Debug("Pokopom -> Init [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 
 	Input::Pause(false);
 	KeepAwake(KEEPAWAKE_INIT);
@@ -359,8 +358,7 @@ s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 
 void FASTCALL Term(void* data, u32 id)
 {
-	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	Debug("Pokopom -> Term [%d]\n", port);
+	Debug("Pokopom -> Term [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 
 	Input::Pause(true);
 	KeepAwake(KEEPAWAKE_CLOSE);
@@ -368,8 +366,7 @@ void FASTCALL Term(void* data, u32 id)
 
 void FASTCALL Destroy(void* data, u32 id)
 {
-	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	Debug("Pokopom -> Destroy [%d]\n", port);
+	Debug("Pokopom -> Destroy [%d]\n", ((nullDC::maple_device_instance*)data)->port >> 6);
 }
 
 //103////////////////////////////////////////////////////////////////////

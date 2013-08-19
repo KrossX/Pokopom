@@ -21,6 +21,7 @@
 
 namespace Input
 {
+
 const u16 ANALOG_TRESHOLD = 12540;
 
 const f64 PI = 3.14159265358979323846;
@@ -34,16 +35,16 @@ void FASTCALL GetRadius(_Stick& stick)
 	stick.radius = sqrt(X*X + Y*Y);
 }
 
-u8 FASTCALL GetAnalogDigital(_Stick& stick, bool b4way)
+static u8 FASTCALL GetAnalogDigital(_Stick& stick, StickSettings &aset)
 {
 	u8 data = 0;
 
-	if(stick.radius > 28000)
+	if(aset.DACenabled && (stick.radius > aset.DACthreshold))
 	{
 		f64 angle = atan2((f64)stick.Y, (f64)stick.X) / PI_2;
 		stick.angle = angle = angle < 0 ? angle + 1 : angle;
 
-		if(b4way)
+		if(aset.b4wayDAC)
 		{
 			u8 angled = (u8)(angle * 8);
 		
@@ -119,7 +120,7 @@ u8 FASTCALL GetAnalogDigital(_Stick& stick, bool b4way)
 	return data;
 }
 
-u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8 mode)
+static u16 FASTCALL ConvertAnalog(_Stick& stick, StickSettings &aset, u8 mode)
 {
 	s32 X = stick.X;
 	s32 Y = stick.Y;
@@ -129,7 +130,7 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8
 	if((X == 0) && (Y == 0)) return result;
 
 	f64 radius = stick.radius;
-	const f64 deadzone = set.extThreshold * aset.deadzone;
+	const f64 deadzone = aset.extThreshold * aset.deadzone;
 
 	// Input should be effectively dead under deadzone, no need to do more
 	if(radius <= deadzone) return result;
@@ -137,19 +138,19 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8
 	f64 rX = X/radius, rY = Y/radius;
 
 	if(aset.linearity != 0)
-		radius = pow(radius / set.extThreshold, aset.linearity) * set.extThreshold;
+		radius = pow(radius / aset.extThreshold, aset.linearity) * aset.extThreshold;
 
 	if(deadzone > 0)
-		radius =  (radius - deadzone) * set.extThreshold / (set.extThreshold - deadzone);
+		radius =  (radius - deadzone) * aset.extThreshold / (aset.extThreshold - deadzone);
 
 	//Antideadzone, inspired by x360ce's setting
 	if(aset.antiDeadzone > 0)
 	{
-		const f64 antiDeadzone = set.extThreshold * aset.antiDeadzone;
-		radius = radius * ((set.extThreshold - antiDeadzone) / set.extThreshold) + antiDeadzone;
+		const f64 antiDeadzone = aset.extThreshold * aset.antiDeadzone;
+		radius = radius * ((aset.extThreshold - antiDeadzone) / aset.extThreshold) + antiDeadzone;
 	}
 
-	if(radius > set.extThreshold) radius *= set.extMult;
+	if(radius > aset.extThreshold) radius *= aset.extMult;
 
 	X = ClampAnalog(rX * radius);
 	Y = ClampAnalog(rY * radius);
@@ -234,8 +235,8 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 
 		if(digital)
 		{
-			u8 stickLD = GetAnalogDigital(pad.stickL);
-			u8 stickRD = GetAnalogDigital(pad.stickR, set.b4wayStick && true);
+			u8 stickLD = GetAnalogDigital(pad.stickL, set.stickL);
+			u8 stickRD = GetAnalogDigital(pad.stickR, set.stickR);
 
 			buttonsStick = buttons | 0x06;
 			buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
@@ -259,8 +260,8 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		}
 		else
 		{
-			analogL = ConvertAnalog(pad.modL, set, set.stickL, 0);
-			analogR = ConvertAnalog(pad.modR, set, set.stickR, 0);
+			analogL = ConvertAnalog(pad.modL, set.stickL, 0);
+			analogR = ConvertAnalog(pad.modR, set.stickR, 0);
 
 			triggerL = pad.analog[X360_TRIGGERL] & 0xFF;
 			triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
@@ -314,21 +315,29 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 		
 		buttons |= pad.buttons[X360_START] << DC_START;
 
-		triggers = (pad.buttons[X360_LB] ? 0xFF : (pad.analog[X360_TRIGGERL]&0xFF))<<8;
-		triggers |= pad.buttons[X360_RB] ? 0xFF : pad.analog[X360_TRIGGERR]&0xFF;
+		if(set.SwapDCBumpers)
+		{
+			triggers = (pad.buttons[X360_RB] ? 0xFF : (pad.analog[X360_TRIGGERL]&0xFF))<<8;
+			triggers |= pad.buttons[X360_LB] ? 0xFF : pad.analog[X360_TRIGGERR]&0xFF;
+		}
+		else
+		{
+			triggers = (pad.buttons[X360_LB] ? 0xFF : (pad.analog[X360_TRIGGERL]&0xFF))<<8;
+			triggers |= pad.buttons[X360_RB] ? 0xFF : pad.analog[X360_TRIGGERR]&0xFF;
+		}
 
 		if(pad.buttons[X360_LS]) analogToggle = false;
 		else if (pad.buttons[X360_RS]) analogToggle = true;
 
 		if(set.SwapSticksEnabled && analogToggle)
 		{
-			analog = ConvertAnalog(pad.modR, set, set.stickR, 0);
+			analog = ConvertAnalog(pad.modR, set.stickR, 0);
 
 			_Stick stickL = pad.modL;
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
 			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
 
-			u8 stickD = GetAnalogDigital(stickL);
+			u8 stickD = GetAnalogDigital(stickL, set.stickL);
 
 			// Inactive left stick to work as dpad
 			buttons |= (stickD & ANALOGD_XP) << DC_RIGHT;
@@ -338,13 +347,13 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 		}
 		else
 		{
-			analog = ConvertAnalog(pad.modL, set, set.stickL, 0);
+			analog = ConvertAnalog(pad.modL, set.stickL, 0);
 
 			_Stick stickR = pad.modR;
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, set.b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickR, set.stickR);
 
 			// Inactive right stick to work as face buttons
 			buttons |= (stickD & ANALOGD_XP) << DC_B;
@@ -417,7 +426,7 @@ void FASTCALL NaomiPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged)
 		analog[i].bits16[3] = (pad[i].analog[X360_STICKRY] + 32768) & 0xFFFF;
 		*/
 
-		u8 stickD = GetAnalogDigital(pad[i].modL);
+		u8 stickD = GetAnalogDigital(pad[i].modL, set.stickL);
 
 		player.bits16[i] |= (stickD & ANALOGD_XP) << NAOMI_DRIGHT;
 		player.bits16[i] |= ((stickD & ANALOGD_XN) >> 1) << NAOMI_DLEFT;
@@ -527,13 +536,13 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 
 		if(set.SwapSticksEnabled && analogToggle)
 		{
-			analog = ConvertAnalog(pad.modR, set, set.stickR, 1);
+			analog = ConvertAnalog(pad.modR, set.stickR, 1);
 
 			_Stick stickL = pad.modL;
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
 			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
 
-			u8 stickD = GetAnalogDigital(stickL, set.b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickL, set.stickL);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
@@ -542,13 +551,13 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		}
 		else
 		{
-			analog = ConvertAnalog(pad.modL, set, set.stickL, 1);
+			analog = ConvertAnalog(pad.modL, set.stickL, 1);
 
 			_Stick stickR = pad.modR;
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, set.b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickR, set.stickR);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);

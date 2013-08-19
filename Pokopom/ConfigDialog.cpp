@@ -87,12 +87,14 @@ void UpdateControls(HWND hDialog, s32 port)
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_LOCKSLIDERS, settings[port].sticksLocked ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(hDialog, IDC_4WAYSTICK, settings[port].b4wayStick ? BST_CHECKED : BST_UNCHECKED);
+	//CheckDlgButton(hDialog, IDC_4WAYSTICK, settings[port].b4wayStick ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_SWAPSTICKS, settings[port].SwapSticksEnabled ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_SWAPXO, settings[port].SwapXO ? BST_CHECKED : BST_UNCHECKED);
 
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_ANALOG : IDC_MODE_DIGITAL, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_DIGITAL : IDC_MODE_ANALOG, BST_UNCHECKED);
+
+	EnableWindow(GetDlgItem(hDialog, IDC_4WAYSTICK), FALSE); // Disabled for now.
 
 	EnableWindow(GetDlgItem(hDialog, IDC_MODE_DIGITAL), isPSemulator);
 	EnableWindow(GetDlgItem(hDialog, IDC_MODE_ANALOG), isPSemulator);
@@ -247,7 +249,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				break;
 
 			case IDC_4WAYSTICK:
-				settings[port].b4wayStick = IsDlgButtonChecked(hwndDlg, IDC_4WAYSTICK) == BST_CHECKED;
+				//settings[port].b4wayStick = IsDlgButtonChecked(hwndDlg, IDC_4WAYSTICK) == BST_CHECKED;
 				break;
 
 			case IDC_SWAPSTICKS:
