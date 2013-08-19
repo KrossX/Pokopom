@@ -137,24 +137,25 @@ bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 
 void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged)
 {
+	const u8 xport = set.xinputPort;
 	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
+	DWORD result = XInputGetState(xport, &state);
 
 	if(result == ERROR_SUCCESS)
 	{
 		//Debug("Vibrate! [%X] [%X]\n", smalldata, bigdata);
 
-		static XINPUT_VIBRATION vib;
-		static DWORD timerS = 0, timerB = 0;
+		static XINPUT_VIBRATION vib[4];
+		static DWORD timerS[4], timerB[4];
 
 		if(smalldata)
 		{
-			vib.wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
-			timerS = GetTickCount();
+			vib[xport].wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
+			timerS[xport] = GetTickCount();
 		}
-		else if (vib.wRightMotorSpeed && GetTickCount() - timerS > 150)
+		else if (vib[xport].wRightMotorSpeed && GetTickCount() - timerS[xport] > 150)
 		{
-			vib.wRightMotorSpeed = 0;
+			vib[xport].wRightMotorSpeed = 0;
 		}
 
 		/*
@@ -179,12 +180,12 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 			else broom *= 0x205;
 			*/
 
-			vib.wLeftMotorSpeed = Clamp(broom * set.rumble);
-			timerB = GetTickCount();
+			vib[xport].wLeftMotorSpeed = Clamp(broom * set.rumble);
+			timerB[xport] = GetTickCount();
 		}
-		else if (vib.wLeftMotorSpeed && GetTickCount() - timerB > 150)
+		else if (vib[xport].wLeftMotorSpeed && GetTickCount() - timerB[xport] > 150)
 		{
-			vib.wLeftMotorSpeed = 0;
+			vib[xport].wLeftMotorSpeed = 0;
 		}
 
 		/*
@@ -196,10 +197,7 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 		vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
 		*/
 
-		//Debug("Vibrate! [%X] [%X]\n", vib.wLeftMotorSpeed, vib.wRightMotorSpeed);
-
-
-		XInputSetState(set.xinputPort, &vib);
+		XInputSetState(xport, &vib[xport]);
 	}
 	else
 		gamepadPlugged = false;
