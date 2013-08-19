@@ -35,4 +35,4 @@ struct _emuStuff
 
 extern _emuStuff emuStuff;
 
-
+u8 SwapPorts();

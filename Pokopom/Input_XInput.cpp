@@ -54,7 +54,17 @@ bool FASTCALL Recheck(u8 port)
 	return (result == ERROR_SUCCESS);
 }
 
-void FASTCALL Pause(bool pewpew) { XInputEnable(!pewpew); }
+void FASTCALL Pause(bool pewpew) 
+{ 
+	if(pewpew) StopRumbleAll();
+	XInputEnable(!pewpew); 
+}
+
+void StopRumbleAll()
+{
+	StopRumble(0); StopRumble(1);
+	StopRumble(2); StopRumble(3);
+}
 
 void FASTCALL StopRumble(u8 port)
 {
@@ -68,8 +78,10 @@ void FASTCALL StopRumble(u8 port)
 
 bool FASTCALL CheckAnalogToggle(u8 port)
 {
-	//return !!(GetAsyncKeyState(0x31 + port) >> 1);
-	return !!(state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
+	const bool key = !!(GetAsyncKeyState(0x31 + port) >> 1);
+	const bool pad = !!(state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
+
+	return pad || key;
 }
 
 void FASTCALL SetAnalogLed(u8 port, bool digital)

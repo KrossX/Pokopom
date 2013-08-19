@@ -270,9 +270,9 @@ DllExport s32 CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 
 DllExport u8 CALLBACK PADstartPoll(s32 port)
 {
-	curPort = (u8)(port - 1);
+	curPort = (u8)(port - 1) ^ SwapPorts();
 	bufferCount = 0;
-
+	
 	u8 data = controller[curPort]->command(bufferCount, curSlot);
 
 	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, curSlot, data);

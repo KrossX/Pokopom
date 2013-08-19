@@ -1,5 +1,6 @@
-#include "General.h"
+//#include "General.h"
 #include "PlayStation.h"
+#include "Input.h"
 #include "Stuff.h"
 
 #ifdef _WIN32
@@ -90,6 +91,25 @@ LRESULT CALLBACK KeyboardProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProcW(emuStuff.WndProc, hWnd, msg, wParam, lParam);
 }
 
+u8 SwapPorts()
+{
+	static u8 swapIt = 0;
+	static bool pressed = false;
+	const bool currPress = !!(GetAsyncKeyState(0x30) >> 1);
+
+	if(!pressed && currPress)
+	{
+		swapIt ^= 1;
+		pressed = true;
+	}
+	else if(pressed && !currPress)
+	{
+		pressed = false;
+	}
+
+	return swapIt;
+}
+
 void KeyboardOpen()
 {
 	if(isPs2Emulator)
@@ -138,6 +158,7 @@ BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
 
 	case DLL_PROCESS_DETACH:
 	case DLL_THREAD_DETACH:
+		Input::StopRumbleAll();
 		ScrollLockStuff(false);
 		break;
 	}

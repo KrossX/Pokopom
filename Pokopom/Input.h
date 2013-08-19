@@ -22,6 +22,7 @@ namespace Input
 	bool FASTCALL Recheck(u8 port);
 	void FASTCALL Pause(bool pewpew);
 	void FASTCALL StopRumble(u8 port);
+	void StopRumbleAll();
 
 	bool FASTCALL CheckAnalogToggle(u8 port);
 	void FASTCALL SetAnalogLed(u8 port, bool digital);
