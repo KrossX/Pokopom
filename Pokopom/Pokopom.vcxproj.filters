@@ -54,12 +54,6 @@
     <ClInclude Include="Zilmar_Controller_Interface.h">
       <Filter>Misc</Filter>
     </ClInclude>
-    <ClInclude Include="SharedStuff.h">
-      <Filter>General\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Input_Backend.h">
-      <Filter>General\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Zilmar_Devices.h">
       <Filter>Nintendo64</Filter>
     </ClInclude>
@@ -87,24 +81,24 @@
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="Stuff.h">
+      <Filter>General\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>General\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Input_Shared.h">
+      <Filter>General\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Settings.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="FileIO.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="ConsoleOutput.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="Xinput_Backend.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="SharedStuff.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="Controller.cpp">
@@ -136,6 +130,27 @@
     </ClCompile>
     <ClCompile Include="Zilmar_Devices.cpp">
       <Filter>Nintendo64</Filter>
+    </ClCompile>
+    <ClCompile Include="Input_XInput.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Stuff_Linux.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Stuff_Shared.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Stuff_Windows.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Input_Linux.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Input_Shared.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO.cpp">
+      <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

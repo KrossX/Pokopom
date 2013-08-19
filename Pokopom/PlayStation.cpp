@@ -17,7 +17,15 @@
 
 #include "PlayStation.h"
 #include "ConfigDialog.h"
-#include "Input_Backend.h"
+#include "Input.h"
+
+_emuStuff emuStuff;
+PlayStationDevice * controller[2] = {NULL, NULL};
+
+char settingsDirectory[1024] = {0}; // for PCSX2
+
+u32 bufferCount = 0, curPort = 0;
+u8 multitap = 0;
 
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build
@@ -36,31 +44,31 @@ char PluginAuthor[]     = "KrossX"; // rewrite your name
 // stuff to make this a true PDK module
 ////////////////////////////////////////////////////////////////////////
 
-DllExport char* CALLBACK PSEgetLibName(void)
+DllExport char* CALLBACK PSEgetLibName()
 {
 	isPSemulator = true;
 	return libraryName;
 }
 
-DllExport u32 CALLBACK PSEgetLibType(void)
+DllExport u32 CALLBACK PSEgetLibType()
 {
 	isPSemulator = true;
 	return emupro::LT_PAD;
 }
 
-DllExport u32 CALLBACK PSEgetLibVersion(void)
+DllExport u32 CALLBACK PSEgetLibVersion()
 {
 	isPSemulator = true;
 	return versionPS1;
 }
 
-DllExport char* CALLBACK PS2EgetLibName(void)
+DllExport char* CALLBACK PS2EgetLibName()
 {
 	isPs2Emulator = true;
 	return PSEgetLibName();
 }
 
-DllExport u32 CALLBACK PS2EgetLibType(void)
+DllExport u32 CALLBACK PS2EgetLibType()
 {
 	isPs2Emulator = true;
 	return 0x02;
@@ -80,7 +88,6 @@ DllExport u32 CALLBACK PS2EgetLibVersion2(u32 type)
 DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 {
 	FileIO::INI_LoadSettings();
-
 	//printf("Pokopom -> PADinit [%X]\n", flags);
 
 	if (flags & emupro::pad::USE_PORT1)
@@ -119,11 +126,10 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 		else return emupro::ERR_FATAL;
 	}
 
-
 	return emupro::INIT_ERR_SUCCESS;
 }
 
-DllExport void CALLBACK PADshutdown(void) // PAD SHUTDOWN
+DllExport void CALLBACK PADshutdown() // PAD SHUTDOWN
 {
 	//printf("Pokopom -> PADshutdown\n");
 
@@ -137,68 +143,24 @@ DllExport void CALLBACK PADshutdown(void) // PAD SHUTDOWN
 // Open/close will be called when a games starts/stops
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef _WIN32
-LRESULT CALLBACK PADwndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	keyEvent newEvent;
-
-	switch(msg)
-	{
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-		newEvent.evt = 1;
-		newEvent.key = wParam;
-		keyEventList.push_back(newEvent);
-		break;
-
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-		newEvent.evt = 2;
-		newEvent.key = wParam;
-		keyEventList.push_back(newEvent);
-		break;
-
-	case WM_DESTROY:
-	case WM_QUIT:
-		newEvent.evt = 1;
-		newEvent.key = VK_ESCAPE;
-		keyEventList.push_back(newEvent);
-		break;
-	}
-
-	return CallWindowProcW(emuStuff.WndProc, hWnd, msg, wParam, lParam);
-}
-#endif
-
-DllExport s32 CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
+DllExport s32 CALLBACK PADopen(void* pDisplay) // PAD OPEN
 {
 	//printf("Pokopom -> PADopen\n");
 	Input::Pause(false);
 
-	if(bKeepAwake)
-		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
-
-#ifdef _WIN32
-	if(isPs2Emulator)
-	{
-		emuStuff.hWnd = *(HWND*)ppis;
-		emuStuff.WndProc = (WNDPROC)SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)PADwndProc);
-	}
-#endif
+	GetDisplay(pDisplay);
+	KeyboardOpen();
+	KeepAwake(KEEPAWAKE_INIT);
 
 	return emupro::pad::ERR_SUCCESS;
 }
 
-DllExport s32 CALLBACK PADclose(void) // PAD CLOSE
+DllExport s32 CALLBACK PADclose() // PAD CLOSE
 {
 	//printf("Pokopom -> PADclose\n");
 	Input::Pause(true);
-
-	if(bKeepAwake)
-		SetThreadExecutionState(ES_CONTINUOUS);
-
-	if(isPs2Emulator)
-		SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)emuStuff.WndProc);
+	KeyboardClose();
+	KeepAwake(KEEPAWAKE_CLOSE);
 
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -207,7 +169,7 @@ DllExport s32 CALLBACK PADclose(void) // PAD CLOSE
 // call config dialog
 ////////////////////////////////////////////////////////////////////////
 
-DllExport s32 CALLBACK PADconfigure(void)
+DllExport s32 CALLBACK PADconfigure()
 {
 	isPSemulator = true;
 
@@ -221,16 +183,16 @@ DllExport s32 CALLBACK PADconfigure(void)
 // show about dialog
 ////////////////////////////////////////////////////////////////////////
 
-DllExport void CALLBACK PADabout(void)
+DllExport void CALLBACK PADabout()
 {
-	MessageBox(NULL, L"Pokopom XInput pad plugin - KrossX © 2012", L"About...", MB_OK);
+	ShowDialog(L"Pokopom XInput pad plugin - KrossX © 2012", L"About...");
 }
 
 ////////////////////////////////////////////////////////////////////////
 // test... well, we are ever fine ;)
 ////////////////////////////////////////////////////////////////////////
 
-DllExport s32 CALLBACK PADtest(void)
+DllExport s32 CALLBACK PADtest()
 {
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -239,7 +201,7 @@ DllExport s32 CALLBACK PADtest(void)
 // tell the controller's port which can be used
 ////////////////////////////////////////////////////////////////////////
 
-DllExport s32 CALLBACK PADquery(void)
+DllExport s32 CALLBACK PADquery()
 {
 	//printf("Pokopom -> PADquery\n");
 	return emupro::pad::USE_PORT1 | emupro::pad::USE_PORT2;
@@ -250,7 +212,7 @@ DllExport s32 CALLBACK PADquery(void)
 // this function should be replaced with PADstartPoll and PADpoll
 ////////////////////////////////////////////////////////////////////////
 
-s32 __fastcall PADreadPort(s32 port, emupro::pad::DataS* ppds)
+s32 FASTCALL PADreadPort(s32 port, emupro::pad::DataS* ppds)
 {
 	//printf("Pokopom -> PADreadPort [%X]\n", port);
 
@@ -274,7 +236,6 @@ s32 __fastcall PADreadPort(s32 port, emupro::pad::DataS* ppds)
 			ppds->leftJoyY = controller[port]->command(8, 0x00);
 		}
 	}
-
 
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -303,7 +264,7 @@ DllExport u8 CALLBACK PADstartPoll(s32 port)
 	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, 0x01, data);
 	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, 0x01, data);
 
-	if(bKeepAwake) mouse_event( MOUSEEVENTF_MOVE, 0, 0, 0, NULL);
+	KeepAwake(KEEPAWAKE_KEEP);
 
 	return data;
 }
@@ -391,17 +352,33 @@ DllExport keyEvent* CALLBACK PADkeyEvent()
 	return NULL;
 }
 
+DllExport s32 PADkeypressed()
+{
+	//printf("Pokopom -> PADkeypressed\n");
+
+	static keyEvent pochy;
+
+	KeyboardCheck();
+
+	if(!keyEventList.empty())
+	{
+		pochy = keyEventList.front();
+		keyEventList.pop_back();
+		return pochy.key;
+	}
+
+	return 0;
+}
+
 DllExport u32 CALLBACK PADqueryMtap(u8 port)
 {
 	//printf("Pokopom -> PADqueryMtap [%X]\n", port);
 	return 0;
 }
 
-DllExport void CALLBACK PADsetSettingsDir( const char *dir )
+DllExport void CALLBACK PADsetSettingsDir(const char *dir)
 {
-	size_t dirsize = strlen(dir) + 1;
-    size_t convertedChars = 0;
-    mbstowcs_s(&convertedChars, settingsDirectory, dirsize, dir, _TRUNCATE);
+	memcpy(settingsDirectory, dir, strlen(dir)+1);
 }
 
 DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)

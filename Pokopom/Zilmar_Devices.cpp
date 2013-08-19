@@ -17,8 +17,10 @@
 
 #include "General.h"
 #include "Zilmar_Devices.h"
-#include "Input_Backend.h"
+#include "Input.h"
 #include "FileIO.h"
+
+#ifdef _WIN32
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors, etc...
@@ -103,7 +105,7 @@ u8 N64mempak::CRC(u8 *data, s32 iLenght)
     return remainder;
 }
 
-void __fastcall N64mempak::ReadBlock(u8 *data, u16 address, bool rumble)
+void FASTCALL N64mempak::ReadBlock(u8 *data, u16 address, bool rumble)
 {
 	u32 *dest = (u32*)data;
 
@@ -130,7 +132,7 @@ void __fastcall N64mempak::ReadBlock(u8 *data, u16 address, bool rumble)
 	data[32] = CRC(data, 32);
 }
 
-void __fastcall N64mempak::WriteBlock(u8 *data, u16 address, bool rumble)
+void FASTCALL N64mempak::WriteBlock(u8 *data, u16 address, bool rumble)
 {
 	u32 *src = (u32*)data;
 
@@ -158,7 +160,7 @@ void N64mempak::Save() { FileIO::SaveMempak(MEMPAK.RAW8, zPort); }
 
 ////////////////////////////////////////////////////////////////////////
 
-void __fastcall N64controller::Command(u8 *cmd) // Input ?
+void FASTCALL N64controller::Command(u8 *cmd) // Input ?
 {
 	// cmd[0] - input length in bytes
 	// cmd[1] - output length in bytes | also return errors here?
@@ -215,7 +217,7 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 
 }
 
-void __fastcall N64controller::Read(u8 *cmd) // Output ?
+void FASTCALL N64controller::Read(u8 *cmd) // Output ?
 {
 	// cmd[0] - input length in bytes
 	// cmd[1] - output length in bytes | also return errors here?
@@ -283,7 +285,7 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	}
 }
 
-extern void __fastcall N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
+extern void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
 
 void N64controller::Poll()
 {
@@ -298,3 +300,5 @@ void N64controller::RumbleIt(bool on)
 {
 	Input::N64rumble(on, set, gamepadPlugged);
 }
+
+#endif //WIN32

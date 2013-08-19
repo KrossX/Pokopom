@@ -69,7 +69,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <DisableSpecificWarnings>4100;4201</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4201;4996</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -94,6 +94,8 @@
     <ClInclude Include="Controller.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="Input_Shared.h" />
     <ClInclude Include="PlayStation.h" />
     <ClInclude Include="nullDC.h" />
     <ClInclude Include="nullDC_Devices.h" />
@@ -101,8 +103,7 @@
     <ClInclude Include="PSemuPro_Interface.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
-    <ClInclude Include="SharedStuff.h" />
-    <ClInclude Include="Input_Backend.h" />
+    <ClInclude Include="Stuff.h" />
     <ClInclude Include="Zilmar_Controller_Interface.h" />
     <ClInclude Include="Zilmar_Devices.h" />
   </ItemGroup>
@@ -115,14 +116,18 @@
     <ClCompile Include="ControllerGuitar.cpp" />
     <ClCompile Include="ControllerMtap.cpp" />
     <ClCompile Include="FileIO.cpp" />
+    <ClCompile Include="Input_Linux.cpp" />
+    <ClCompile Include="Input_Shared.cpp" />
+    <ClCompile Include="Input_XInput.cpp" />
     <ClCompile Include="PlayStation.cpp" />
     <ClCompile Include="nullDC.cpp" />
     <ClCompile Include="nullDC_Devices.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="SharedStuff.cpp" />
+    <ClCompile Include="Stuff_Linux.cpp" />
+    <ClCompile Include="Stuff_Shared.cpp" />
+    <ClCompile Include="Stuff_Windows.cpp" />
     <ClCompile Include="Zilmar.cpp" />
     <ClCompile Include="Zilmar_Devices.cpp" />
-    <ClCompile Include="Xinput_Backend.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Background.bmp" />

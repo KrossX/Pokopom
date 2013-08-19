@@ -1,7 +1,7 @@
 /*  Pokopom - Input Plugin for PSX/PS2 Emulators (now nullDC too)
  *  - 2012  KrossX
- *	
- *	Content of this file is from 
+ *
+ *	Content of this file is from
  *	nullDC http://code.google.com/p/nulldc/
  *
  *  Licenced under GNU GPL v3
@@ -9,6 +9,8 @@
  */
 
 #pragma once
+
+#ifdef _WIN32
 
 namespace nullDC
 {
@@ -21,7 +23,7 @@ namespace nullDC
 	};
 
 	enum HollyInterruptID
-	{		
+	{
 			// asic9a /sh4 external holly normal [internal]
 			holly_RENDER_DONE_vd = holly_nrm | 0,	//bit 0 = End of Render interrupt : Video
 			holly_RENDER_DONE_isp = holly_nrm | 1,	//bit 1 = End of Render interrupt : ISP
@@ -30,11 +32,11 @@ namespace nullDC
 			holly_SCANINT1 = holly_nrm | 3,			//bit 3 = V Blank-in interrupt
 			holly_SCANINT2 = holly_nrm | 4,			//bit 4 = V Blank-out interrupt
 			holly_HBLank = holly_nrm | 5,			//bit 5 = H Blank-in interrupt
-												
+
 			holly_YUV_DMA = holly_nrm | 6,			//bit 6 = End of Transferring interrupt : YUV
 			holly_OPAQUE = holly_nrm | 7,			//bit 7 = End of Transferring interrupt : Opaque List
 			holly_OPAQUEMOD = holly_nrm | 8,		//bit 8 = End of Transferring interrupt : Opaque Modifier Volume List
-		
+
 			holly_TRANS = holly_nrm | 9,			//bit 9 = End of Transferring interrupt : Translucent List
 			holly_TRANSMOD = holly_nrm | 10,		//bit 10 = End of Transferring interrupt : Translucent Modifier Volume List
 			holly_PVR_DMA = holly_nrm | 11,			//bit 11 = End of DMA interrupt : PVR-DMA
@@ -43,12 +45,12 @@ namespace nullDC
 			holly_MAPLE_VBOI = holly_nrm | 13,		//bit 13 = Maple V blank over interrupt
 			holly_GDROM_DMA = holly_nrm | 14,		//bit 14 = End of DMA interrupt : GD-DMA
 			holly_SPU_DMA = holly_nrm | 15,			//bit 15 = End of DMA interrupt : AICA-DMA
-		
+
 			holly_EXT_DMA1 = holly_nrm | 16,		//bit 16 = End of DMA interrupt : Ext-DMA1(External 1)
 			holly_EXT_DMA2 = holly_nrm | 17,		//bit 17 = End of DMA interrupt : Ext-DMA2(External 2)
 			holly_DEV_DMA = holly_nrm | 18,			//bit 18 = End of DMA interrupt : Dev-DMA(Development tool DMA)
-		
-			holly_CH2_DMA = holly_nrm | 19,			//bit 19 = End of DMA interrupt : ch2-DMA 
+
+			holly_CH2_DMA = holly_nrm | 19,			//bit 19 = End of DMA interrupt : ch2-DMA
 			holly_PVR_SortDMA = holly_nrm | 20,		//bit 20 = End of DMA interrupt : Sort-DMA (Transferring for alpha sorting)
 			holly_PUNCHTHRU = holly_nrm | 21,		//bit 21 = End of Transferring interrupt : Punch Through List
 
@@ -61,14 +63,10 @@ namespace nullDC
 			holly_MATR_NOMEM = holly_err | 0x03		//bit 3 = TA : Object List Pointer Overflow
 	};
 
-	#define EXPORT extern "C" __declspec(dllexport)
 
-	#define EXPORT_CALL __stdcall
-	#define FASTCALL __fastcall
-	#define C_CALL __cdecl
 
-	typedef void __fastcall HollyRaiseInterruptFP(HollyInterruptID intr);
-	typedef void __fastcall HollyCancelInterruptFP(HollyInterruptID intr);
+	typedef void FASTCALL HollyRaiseInterruptFP(HollyInterruptID intr);
+	typedef void FASTCALL HollyCancelInterruptFP(HollyInterruptID intr);
 
 	struct vram_block
 	{
@@ -76,11 +74,11 @@ namespace nullDC
 		unsigned int end;
 		unsigned int len;
 		unsigned int type;
- 
+
 		void* userdata;
 	};
 
-	typedef void __fastcall vramLockCBFP (vram_block* block, unsigned int addr);
+	typedef void FASTCALL vramLockCBFP (vram_block* block, unsigned int addr);
 
 	struct VersionNumber
 	{
@@ -100,12 +98,12 @@ namespace nullDC
 	#define DC_PLATFORM_MASK		7
 	#define DC_PLATFORM_NORMAL		0   /* Works, for the most part */
 	#define DC_PLATFORM_DEV_UNIT	1	/* This is missing hardware */
-	#define DC_PLATFORM_NAOMI		2   /* Works, for the most part */ 
+	#define DC_PLATFORM_NAOMI		2   /* Works, for the most part */
 	#define DC_PLATFORM_NAOMI2		3   /* Needs to be done, 2xsh4 + 2xpvr + custom TNL */
 	#define DC_PLATFORM_ATOMISWAVE	4   /* Needs to be done, DC-like hardware with possibly more ram */
 	#define DC_PLATFORM_HIKARU		5   /* Needs to be done, 2xsh4, 2x aica , custom vpu */
 	#define DC_PLATFORM_AURORA		6   /* Needs to be done, Uses newer 300 mhz sh4 + 150 mhz pvr mbx SoC */
- 
+
 
 	#define DC_PLATFORM DC_PLATFORM_NORMAL
 
@@ -113,7 +111,7 @@ namespace nullDC
 	#if (DC_PLATFORM==DC_PLATFORM_NORMAL)
 
 		#define BUILD_DREAMCAST 1
-	
+
 		//DC : 16 mb ram, 8 mb vram, 2 mb aram, 2 mb bios, 128k flash
 		#define RAM_SIZE (16*1024*1024)
 		#define VRAM_SIZE (8*1024*1024)
@@ -126,7 +124,7 @@ namespace nullDC
 		#define NVR_OPTIONAL 0
 
 	#elif  (DC_PLATFORM==DC_PLATFORM_DEV_UNIT)
-	
+
 		#define BUILD_DEV_UNIT 1
 
 		//Devkit : 32 mb ram, 8? mb vram, 2? mb aram, 2? mb bios, ? flash
@@ -141,7 +139,7 @@ namespace nullDC
 		#define NVR_OPTIONAL 0
 
 	#elif  (DC_PLATFORM==DC_PLATFORM_NAOMI)
-	
+
 		#define BUILD_NAOMI 1
 		#define BUILD_NAOMI1 1
 
@@ -157,7 +155,7 @@ namespace nullDC
 		#define NVR_OPTIONAL 1
 
 	#elif  (DC_PLATFORM==DC_PLATFORM_NAOMI2)
-	
+
 		#define BUILD_NAOMI 1
 		#define BUILD_NAOMI2 1
 
@@ -165,7 +163,7 @@ namespace nullDC
 		#define RAM_SIZE (32*1024*1024)
 		#define VRAM_SIZE (16*1024*1024)
 		#define ARAM_SIZE (8*1024*1024)
-		#define BIOS_SIZE (2*1024*1024)	
+		#define BIOS_SIZE (2*1024*1024)
 		#define BBSRAM_SIZE (8*1024)
 
 		#define ROM_PREFIX L"n2_"
@@ -173,7 +171,7 @@ namespace nullDC
 		#define NVR_OPTIONAL 1
 
 	#elif  (DC_PLATFORM==DC_PLATFORM_ATOMISWAVE)
-	
+
 		#define BUILD_ATOMISWAVE 1
 
 		//Atomiswave : 16(?) mb ram, 16 mb vram, 8 mb aram, 64kb bios, 64k flash
@@ -222,7 +220,7 @@ namespace nullDC
 		Plugin_GDRom=2,			//guess it
 		Plugin_AICA=3,			//Sound :p
 		Plugin_Maple=4,			//controler ,mouse , ect
-		Plugin_ExtDevice=5,		//BBA , Lan adapter , other 
+		Plugin_ExtDevice=5,		//BBA , Lan adapter , other
 		Plugin_ARM=6,			//Sound Cpu
 	};
 
@@ -248,9 +246,9 @@ namespace nullDC
 		//gui -> *
 		NDE_GUI_RESIZED=0,			//gui was resized, p points to a NDC_WINDOW_RECT with the new size.This event is not guaratneed to have any thread anfinity.The plugin
 									//must handle sync. betwen threads to ensure proper operation.Borderless fullscreen use this, not NDC_GUI_REQESTFULLSCREEN
-	
+
 		NDE_GUI_REQESTFULLSCREEN,	//if (l) -> goto fullscreen, else goto window.This event can be safely ingored
-	
+
 		NDE_GUI_WINDOWCHANGE,		//if (l) old window handle is still valid, else it has been replaced with a new one.This event is sent with l!=0 before destructing the window, and then with l==0
 									//after creating a new one.It is not sent for the initial or final window creation/destruction.
 
@@ -389,7 +387,7 @@ namespace nullDC
 	struct pvr_init_params
 	{
 		HollyRaiseInterruptFP*	RaiseInterrupt;
-		unsigned char*					vram; 
+		unsigned char*					vram;
 		vramlock_LockFP*		 vram_lock_32;
 		vramlock_LockFP*		 vram_lock_64;
 		vramlock_Unlock_blockFP* vram_unlock;
@@ -425,8 +423,8 @@ namespace nullDC
 		ReadMemFP*		ReadReg;
 		WriteMemFP*		WriteReg;
 		vramLockCBFP*	LockedBlockWrite;
-	
-		struct 
+
+		struct
 		{
 			osdVtxFP*				Vtx;
 			osdTexCreateFP*			TexCreate;
@@ -444,7 +442,7 @@ namespace nullDC
 		CdRom_XA=0x20,
 		CdRom_Extra=0x30,
 		CdRom_CDI=0x40,
-		GdRom=0x80,		
+		GdRom=0x80,
 		NoDisk=0x1,
 		Open=0x2,
 		Busy=0x3
@@ -634,7 +632,7 @@ namespace nullDC
 		MapleDestroyInstanceFP* Destroy;
 		MapleInitInstanceFP*	Init;
 		MapleTermInstanceFP*	Term;
-	
+
 		maple_device_definition devices[32];	//Last one must be of type MDT_EndOfList , unless all 32 are used
 	};
 
@@ -676,7 +674,7 @@ namespace nullDC
 		unsigned int InterfaceVersion;
 
 		common_info common;
-		union 
+		union
 		{
 			pvr_plugin_if			pvr;
 			gdr_plugin_if			gdr;
@@ -689,3 +687,5 @@ namespace nullDC
 		};
 	};
 } // Namespace nullDC
+
+#endif // WIN32

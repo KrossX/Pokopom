@@ -12,7 +12,9 @@
 #include "nullDC_Devices.h"
 #include "FileIO.h"
 #include "ConfigDialog.h"
-#include "Input_Backend.h"
+#include "Input.h"
+
+#ifdef _WIN32
 
 nullDC_Device * ndcDevice[4] = {NULL, NULL, NULL, NULL};
 nullDC_Device * ndcSubDevice[4] = {NULL, NULL, NULL, NULL};
@@ -201,3 +203,5 @@ void EXPORT_CALL ConfigMenuCallback(u32 id, void* w, void* p)
 	FileIO::INI_LoadSettings();
 	CreateConfigDialog();
 }
+
+#endif // WIN32

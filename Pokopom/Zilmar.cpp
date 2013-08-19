@@ -13,7 +13,9 @@ http://www.emutalk.net/cgi-bin/ikonboard/ikonboard.cgi?s=3bd272222f66ffff;act=SF
 #include "FileIO.h"
 #include "ConfigDialog.h"
 //#include "ConsoleOutput.h"
-#include "Input_Backend.h"
+#include "Input.h"
+
+#ifdef _WIN32
 
 Zilmar::CONTROL_INFO * zilmarInfo = NULL;
 Zilmar_Device * zController[4] = {NULL, NULL, NULL, NULL};
@@ -233,3 +235,5 @@ input: wParam and lParam of the WM_KEYDOWN message.
 DllExport void CALL WM_KeyUp(WPARAM wParam, LPARAM lParam)
 {
 }
+
+#endif //WIN32

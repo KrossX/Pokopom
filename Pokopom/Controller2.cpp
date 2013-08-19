@@ -15,9 +15,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Controller.h"
-#include "Codes_IDs.h"
 #include "General.h"
+#include "Codes_IDs.h"
+#include "Controller.h"
 
 DualShock2::DualShock2(_Settings &config) : DualShock(config, 21)
 {
@@ -27,8 +27,8 @@ DualShock2::DualShock2(_Settings &config) : DualShock(config, 21)
 
 void DualShock2::ReadInputPressure(u8 *buffer)
 {
-	u32 mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;	
-	
+	u32 mask = ((pollMask[2] << 16) | (pollMask[1] << 8) | (pollMask[0])) >> 6;
+
 	ReadInput(buffer);
 
 	if(mask)
@@ -38,7 +38,7 @@ void DualShock2::ReadInputPressure(u8 *buffer)
 		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + settings.pressureRate;
 		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + settings.pressureRate;
 		pressureButton[0x03] = (mask & 0x04) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + settings.pressureRate;
-	
+
 		//triangle, circle, cross, square
 		pressureButton[0x04] = (mask & 0x05) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + settings.pressureRate;
 		pressureButton[0x05] = (mask & 0x06) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + settings.pressureRate;
@@ -53,13 +53,13 @@ void DualShock2::ReadInputPressure(u8 *buffer)
 
 		for(s32 i = 0; i < 0x0C; i++)
 			pressureButton[i] = buffer[i+9] = pressureButton[i] > 0xFF ? 0xFF : pressureButton[i] & 0xFF;
-	}	
+	}
 	else
 		memset(&buffer[9], 0x00, 12);
 }
 
 void DualShock2::Cmd1(const u8 data)
-{		
+{
 	switch(data)
 	{
 	case 0x41: if(bConfig) {
@@ -79,13 +79,13 @@ void DualShock2::Cmd1(const u8 data)
 
 	case 0x45: if(bConfig) { // Query model, 5th means LED status
 		memcpy(&dataBuffer[3], DUALSHOCK2_MODEL, 6);
-		dataBuffer[5] = padID == ID_DIGITAL? 0x00 : 0x01; } 
+		dataBuffer[5] = padID == ID_DIGITAL? 0x00 : 0x01; }
 		break;
 
-	case 0x4F: if(bConfig) { // Enables/disables what do poll analog stuff, including digital.		
+	case 0x4F: if(bConfig) { // Enables/disables what do poll analog stuff, including digital.
 		memset(&dataBuffer[3], 0x00, 5);
 		dataBuffer[8] = 0x5A;}
-		break;	
+		break;
 
 	default: DualShock::Cmd1(data);
 	}
@@ -97,24 +97,24 @@ void DualShock2::Cmd4(const u8 data)
 	{
 	case 0x46: if(bConfig) {// Unknown constant part 1 and 2
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[0], 5);
-		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[1], 5);} 
+		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[1], 5);}
 		break;
-	
+
 	case 0x47: if(bConfig) {//Unknown constant part 3
-		memcpy(&dataBuffer[4], DUALSHOCK2_ID[2], 5); } 
+		memcpy(&dataBuffer[4], DUALSHOCK2_ID[2], 5); }
 		break;
 
 	case 0x4C: if(bConfig) {// Unknown constant part 4 and 5
 		if(cmdBuffer[3] == 0x00) memcpy(&dataBuffer[4], DUALSHOCK2_ID[3], 5);
 		else memcpy(&dataBuffer[4], DUALSHOCK2_ID[4], 5);}
 		break;
-	
+
 	default: DualShock::Cmd4(data);
 	}
 }
 
 void DualShock2::Cmd8(const u8 data)
-{		
+{
 	switch(data)
 	{
 	case 0x4F: if(bConfig) {
@@ -131,7 +131,7 @@ void DualShock2::Cmd8(const u8 data)
 void DualShock2::SaveState(PlayStationDeviceState &state)
 {
 	DualShock::SaveState(state);
-	
+
 	memcpy(state.pollMask, pollMask, 6);
 	memcpy(state.pressureButton, pressureButton, sizeof(pressureButton));
 }
@@ -139,7 +139,7 @@ void DualShock2::SaveState(PlayStationDeviceState &state)
 void DualShock2::LoadState(PlayStationDeviceState state)
 {
 	DualShock::LoadState(state);
-	
+
 	memcpy(pollMask, state.pollMask, 6);
 	memcpy(pressureButton, state.pressureButton, sizeof(pressureButton));
 }

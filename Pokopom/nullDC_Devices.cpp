@@ -1,6 +1,8 @@
 #include "General.h"
 #include "nullDC_Devices.h"
-#include "Input_Backend.h"
+#include "Input.h"
+
+#ifdef _WIN32
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors
@@ -60,7 +62,7 @@ Dreamcast_DeviceInfo ControllerID =
 	"",
 };
 
-u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command,
+u32 FASTCALL DreamcastController::DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
@@ -101,7 +103,7 @@ Dreamcast_DeviceInfo RumbleID =
 	"Version 1.000,1998/11/10,315-6211-AH\0",
 };
 
-u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command,
+u32 FASTCALL PuruPuruPack::DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
@@ -171,3 +173,5 @@ void PuruPuruPack::UpdateVibration()
 			(LPVOID)&thread, set, gamepadPlugged);
 
 }
+
+#endif // WIN32

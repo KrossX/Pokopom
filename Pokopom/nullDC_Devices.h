@@ -16,7 +16,8 @@
  */
 
 #pragma once
-#include "Settings.h"
+
+#ifdef _WIN32
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -24,16 +25,16 @@ class nullDC_Device
 {
 	nullDC_Device & operator = (const nullDC_Device & other) {}
 
-protected:	
+protected:
 	bool gamepadPlugged;
 	u32 port;
-	_Settings &set;	
+	_Settings &set;
 
 public:
 	nullDC_Device(u32 _port, _Settings &config);
 
 public:
-	virtual u32 __fastcall DMA(void* device_instance, u32 command, 
+	virtual u32 FASTCALL DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len) { return 0; };
 };
 
@@ -50,7 +51,7 @@ public:
 	DreamcastController(u32 _port, _Settings &config);
 
 public:
-	u32 __fastcall DMA(void* device_instance, u32 command, 
+	u32 FASTCALL DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
 };
 
@@ -67,13 +68,13 @@ union RumbleSettings
 		u8 FM0;
 		u8 FM1;
 	};
-		
-	struct 
+
+	struct
 	{
 		unsigned VD : 2;
 		unsigned VP : 2;
 		unsigned VN : 4;
-		
+
 		unsigned VA  : 4;
 		unsigned OWF : 1;
 		unsigned PD  : 1;
@@ -85,7 +86,7 @@ union RumbleSettings
 union RumbleConfig
 {
 	u32 RAW;
-		
+
 	struct
 	{
 		u8 CTRL;
@@ -94,7 +95,7 @@ union RumbleConfig
 		u8 INQ;  // Inclination
 	};
 
-	struct 
+	struct
 	{
 		unsigned CNT : 1; // Continuous mode
 		unsigned Res : 3; // ...
@@ -103,7 +104,7 @@ union RumbleConfig
 		unsigned Mpow : 3; // Backward intensity
 		unsigned EXH  : 1; // Divergency
 		unsigned Ppow : 3; // Forward intensity
-		unsigned INH  : 1; // Convergency		
+		unsigned INH  : 1; // Convergency
 	};
 };
 
@@ -115,7 +116,7 @@ class PuruPuruPack : public nullDC_Device
 
 	RumbleSettings rSettings;
 	RumbleConfig rConfig;
-	
+
 	u16 AST_ms;
 	u8 AST;
 	u8 FreqM, FreqL, FreqH;
@@ -137,7 +138,7 @@ public:
 
 		_thread&operator=(const _thread&other) { return *this; }
 	} thread;
-	
+
 public:
 	u16 Watchdog_ms;
 	void StopVibration();
@@ -146,7 +147,7 @@ public:
 	~PuruPuruPack();
 
 public:
-	u32 __fastcall DMA(void* device_instance, u32 command, 
+	u32 FASTCALL DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
 };
 
@@ -182,4 +183,6 @@ enum DMA_RETURN
 	RET_TRAMSMIT_AGAIN = 0xFC,
 	RET_UNKNOWN_COMMAND,
 };
+
+#endif // WIN32
 

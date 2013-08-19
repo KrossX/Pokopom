@@ -21,31 +21,18 @@
 #include "PSemuPro_Interface.h"
 #include "FileIO.h"
 
-#include <list>
-
 struct freezeData
 {
 	s32 size;
 	u8 *data;
 };
 
-struct keyEvent
-{
-	u32 key;
-	u32 evt;
-};
-
 struct _emuStuff
 {
 	HWND hWnd;
 	WNDPROC WndProc;
-} emuStuff;
+};
 
-std::list <keyEvent> keyEventList;
+extern _emuStuff emuStuff;
 
-PlayStationDevice * controller[2] = {NULL, NULL};
 
-wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
-
-u32 bufferCount = 0, curPort = 0;
-u8 multitap = 0;

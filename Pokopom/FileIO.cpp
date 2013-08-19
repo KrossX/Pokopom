@@ -15,114 +15,158 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Not using general.h here for _wtoi
-#include <Windows.h>
-#include <stdio.h>
-#include <fstream>
+#include "General.h"
+#include "FileIO.h"
 
-#include "..\..\Common\TypeDefs.h"
-#include "Settings.h"
+#include <fstream>
+#include <stdlib.h>
 
 extern HINSTANCE hInstance;
-extern _Settings settings[4];
-extern wchar_t  settingsDirectory[1024];
-extern bool bKeepAwake; 
-extern s32 INIversion;
+extern char settingsDirectory[1024];
 extern u8 multitap;
+
+#define PATH_LENGTH 1024
+#define LINE_LENGTH 512
 
 namespace FileIO
 {
-	bool SaveEntry(wchar_t * section, s32 sectionNumber, wchar_t * key, s32 value, wchar_t * filename)
-	{	
-		wchar_t controller[512] = {0};
-
-		if(sectionNumber < 0)
-			swprintf(controller, 512, L"%s", section);
-		else
-			swprintf(controller, 512, L"%s%d", section, sectionNumber);
-
-		wchar_t valuestring[512] = {0};
-		swprintf(valuestring, 512, L"%d", value);
-
-		return WritePrivateProfileString(controller,  key, valuestring, filename) ? true : false;
-	}
-
-	s32 ReadEntry(wchar_t * section, s32 sectionNumber, wchar_t * key, wchar_t * filename)
-	{	
-		wchar_t controller[512] = {0};
-
-		if(sectionNumber < 0)
-			swprintf(controller, 512, L"%s", section);
-		else
-			swprintf(controller, 512, L"%s%d", section, sectionNumber);
-	
-		s32 returnInteger = -1;
-		wchar_t returnvalue[512] = {0};
-		s32 nSize = GetPrivateProfileString(controller, key, L"-1", returnvalue, 512, filename);
-
-		 if(nSize < 256) returnInteger = _wtoi(returnvalue);	 
-
-		return returnInteger;
-	}
-
-	void INI_SaveSettings()
+	void GetFilename(char *filename)
 	{
-		wchar_t filename[1024] = {0};
-		bool ready = false;
-	
+
 		if(settingsDirectory[0])
-		{
-			swprintf(filename, 1024, L"%spadPokopom.ini", settingsDirectory);
-			ready = true;
-		}
+			sprintf(filename, "%spadPokopom.ini", settingsDirectory);
+
+#ifdef _WIN32
 		else
-		{		
-			s32 length = GetModuleFileName(hInstance, filename, 1024);
+		{
+			s32 length = GetModuleFileNameA(hInstance, filename, 1024);
 
 			if(length)
 			{
 				filename[length -  3] = L'i';
 				filename[length -  2] = L'n';
-				filename[length -  1] = L'f';		
-				
-				ready = true;
+				filename[length -  1] = L'i';
 			}
-		}		
+			else
+				sprintf(filename, "padPokopom.ini");
+		}
+#elif defined __linux__
+		else */
+			sprintf(filename, "padPokopom.ini");
+#endif
+
+	}
+
+	bool SaveEntry(const char *sec, s32 sectionNumber, const char *key, s32 value, FILE *iniFile)
+	{
+		char newsec[LINE_LENGTH+1] = {0};
+		char line[LINE_LENGTH+1] = {0};
+
+		if(sectionNumber >= 0)
+			sprintf(newsec, "[%s%d]", sec, sectionNumber);
+		else
+			sprintf(newsec, "[%s]", sec);
+
+		static char section[LINE_LENGTH+1] = {0};
+
+		if(strcmp(newsec, section) != 0)
+		{
+			memcpy(section, newsec, LINE_LENGTH);
+			sprintf(line, "%s\n", newsec);
+			fputs(line, iniFile);
+		}
+
+		sprintf(line, "%s=%d\n", key, value);
+		fputs(line, iniFile);
+
+		return true;
+	}
+
+	s32 ReadEntry(const char *sec, s32 sectionNumber, const char *key, FILE *iniFile)
+	{
+		char section[LINE_LENGTH+1] = {0};
+		char line[LINE_LENGTH+1] = {0};
+
+		s32 value = -1, length;
+		bool sectionFound = false;
+
+		fseek(iniFile, 0, SEEK_SET);
+
+		if(sectionNumber >= 0)
+			sprintf(section, "[%s%d]", sec, sectionNumber);
+		else
+			sprintf(section, "[%s]", sec);
+
+		while(fgets(line, LINE_LENGTH, iniFile) != NULL)
+		{
+			if(memcmp(line, section, strlen(section)) == 0)
+			{
+				sectionFound = true;
+			}
+			else if(sectionFound)
+			{
+				length = strlen(key);
+
+				if(memcmp(line, key, length) == 0)
+				{
+					if(line[length] == '=')
+					{
+						value = atoi(&line[strlen(key)+1]);
+						return value;
+					}
+				}
+			}
+		}
+
+		return value;
+	}
+
+	void INI_SaveSettings()
+	{
+		char filename[PATH_LENGTH] = {0};
+		FILE* iniFile = NULL;
+		bool ready = false;
+
+		GetFilename(filename);
+
+		iniFile = fopen(filename, "w");
+		ready = iniFile == NULL? false : true;
 
 		if(ready)
-		{		
-			SaveEntry(L"General", -1, L"KeepAwake", bKeepAwake?1:0, filename);
-			SaveEntry(L"General", -1, L"INIversion", INIversion, filename);
-			SaveEntry(L"General", -1, L"Multitap", multitap, filename);
-		
+		{
+			SaveEntry("General", -1, "KeepAwake", bKeepAwake?1:0, iniFile);
+			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
+			SaveEntry("General", -1, "Multitap", multitap, iniFile);
+
 			for(s32 port = 0; port < 4; port++)
 			{
 				s32 AxisInverted =	((settings[port].axisInverted[GP_AXIS_LX]?1:0) << 12) | ((settings[port].axisInverted[GP_AXIS_LY]?1:0) << 8) |
 												((settings[port].axisInverted[GP_AXIS_RX]?1:0) << 4) | (settings[port].axisInverted[GP_AXIS_RY]?1:0);
-			
+
 				s32 AxisRemap =	(settings[port].axisRemap[GP_AXIS_LX] << 12) | (settings[port].axisRemap[GP_AXIS_LY] << 8) |
 											(settings[port].axisRemap[GP_AXIS_RX] << 4) | (settings[port].axisRemap[GP_AXIS_RY]);
-			
-				SaveEntry(L"Controller", port, L"AxisInverted", AxisInverted, filename);						
-				SaveEntry(L"Controller", port, L"AxisRemap", AxisRemap, filename);
 
-				SaveEntry(L"Controller", port, L"Pressure", settings[port].pressureRate, filename);
-				SaveEntry(L"Controller", port, L"Linearity", (s32)(settings[port].linearity * 10)+40, filename);
+				SaveEntry("Controller", port, "AxisInverted", AxisInverted, iniFile);
+				SaveEntry("Controller", port, "AxisRemap", AxisRemap, iniFile);
 
-				SaveEntry(L"Controller", port, L"AntiDeadzone", (s32)(settings[port].antiDeadzone * 100), filename);
-				SaveEntry(L"Controller", port, L"Deadzone", (s32)(settings[port].deadzone * 100), filename);
-				SaveEntry(L"Controller", port, L"Rumble", (s32)(settings[port].rumble * 100), filename);
+				SaveEntry("Controller", port, "Pressure", settings[port].pressureRate, iniFile);
+				SaveEntry("Controller", port, "Linearity", (s32)(settings[port].linearity * 10)+40, iniFile);
 
-				SaveEntry(L"Controller", port, L"ExtentionThreshold", (s32)(settings[port].extThreshold), filename);
+				SaveEntry("Controller", port, "AntiDeadzone", (s32)(settings[port].antiDeadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Deadzone", (s32)(settings[port].deadzone * 100), iniFile);
+				SaveEntry("Controller", port, "Rumble", (s32)(settings[port].rumble * 100), iniFile);
 
-				SaveEntry(L"Controller", port, L"XInputPort", settings[port].xinputPort, filename);
-				SaveEntry(L"Controller", port, L"DefautMode", settings[port].defaultAnalog ? 1 : 0, filename);
-				SaveEntry(L"Controller", port, L"GuitarController", settings[port].isGuitar ? 1 : 0, filename);
-				SaveEntry(L"Controller", port, L"GreenAnalog", settings[port].greenAnalog ? 1 : 0, filename);
-						
-			}		
+				SaveEntry("Controller", port, "ExtentionThreshold", (s32)(settings[port].extThreshold), iniFile);
+
+				SaveEntry("Controller", port, "XInputPort", settings[port].xinputPort, iniFile);
+				SaveEntry("Controller", port, "DefautMode", settings[port].defaultAnalog ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "GuitarController", settings[port].isGuitar ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "GreenAnalog", settings[port].greenAnalog ? 1 : 0, iniFile);
+
+			}
+
+			fclose(iniFile);
 		}
-	
 	}
 
 	void INI_LoadSettings()
@@ -131,51 +175,42 @@ namespace FileIO
 		settings[1].xinputPort = 1;
 		settings[2].xinputPort = 2;
 		settings[3].xinputPort = 3;
-	
-		wchar_t filename[1024] = {0};
-		bool ready = false;
-	
-		if(settingsDirectory[0])
-		{
-			swprintf(filename, 1024, L"%spadPokopom.ini", settingsDirectory);
-			ready = true;
-		}
-		else
-		{		
-			s32 length = GetModuleFileName(hInstance, filename, 1024);
 
-			if(length)
-			{
-				filename[length -  3] = L'i';
-				filename[length -  2] = L'n';
-				filename[length -  1] = L'f';		
-				
-				ready = true;
-			}
-		}	
+		char filename[PATH_LENGTH] = {0};
+		FILE* iniFile = NULL;
+		bool ready = false;
+
+		GetFilename(filename);
+
+		iniFile = fopen(filename, "r");
+		ready = iniFile == NULL? false : true;
 
 		if(ready)
 		{
-			if( ReadEntry(L"General", -1, L"INIversion", filename) != INIversion ) return;
-			
-			bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
-			multitap = ReadEntry(L"General", -1, L"Multitap", filename) & 0xFF;
+			if(ReadEntry("General", -1, "INIversion", iniFile) != INIversion)
+			{
+				fclose(iniFile);
+				return;
+			}
+
+			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1 ? true : false;
+			multitap = ReadEntry("General", -1, "Multitap", iniFile) & 0xFF;
 			multitap = multitap > 2 ? 0 : multitap;
-		
+
 			for(s32 port = 0; port < 4; port++)
 			{
 				s32 result;
-						
-				result = ReadEntry(L"Controller", port, L"AxisInverted", filename);
+
+				result = ReadEntry("Controller", port, "AxisInverted", iniFile);
 				if(result != -1)
 				{
 					settings[port].axisInverted[GP_AXIS_RY] = (result & 0xF) ? true : false;
 					settings[port].axisInverted[GP_AXIS_RX] = ((result >> 4) & 0xF ) ? true : false;
 					settings[port].axisInverted[GP_AXIS_LY] =  ((result >> 8) & 0xF ) ? true : false;
 					settings[port].axisInverted[GP_AXIS_LX] = ((result >> 12) & 0xF ) ? true : false;
-				}			
+				}
 
-				result = ReadEntry(L"Controller", port, L"AxisRemap", filename);
+				result = ReadEntry("Controller", port, "AxisRemap", iniFile);
 				if(result != -1)
 				{
 					settings[port].axisRemap[GP_AXIS_RY] = result & 0xF;
@@ -184,80 +219,82 @@ namespace FileIO
 					settings[port].axisRemap[GP_AXIS_LX] = (result >> 12) & 0xF;
 				}
 
-				result = ReadEntry(L"Controller", port, L"ExtentionThreshold",  filename);
+				result = ReadEntry("Controller", port, "ExtentionThreshold",  iniFile);
 				if(result != -1)
 				{
 					settings[port].extThreshold = result;
 					settings[port].extMult = 46339.535798279205464084934426179 / result;
 				}
 
-				result = ReadEntry(L"Controller", port, L"Pressure",  filename);
+				result = ReadEntry("Controller", port, "Pressure",  iniFile);
 				if(result != -1) settings[port].pressureRate = result & 0xFF;
 
-				result = ReadEntry(L"Controller", port, L"Linearity",  filename);
+				result = ReadEntry("Controller", port, "Linearity",  iniFile);
 				if(result != -1) settings[port].linearity = (result-40) / 10.0;
 
-				result = ReadEntry(L"Controller", port, L"AntiDeadzone",  filename);
+				result = ReadEntry("Controller", port, "AntiDeadzone",  iniFile);
 				if(result != -1) settings[port].antiDeadzone = result / 100.0f;
 
-				result = ReadEntry(L"Controller", port, L"Deadzone",  filename);
+				result = ReadEntry("Controller", port, "Deadzone",  iniFile);
 				if(result != -1) settings[port].deadzone = result / 100.0f;
 
-				result = ReadEntry(L"Controller", port, L"Rumble", filename);
+				result = ReadEntry("Controller", port, "Rumble", iniFile);
 				if(result != -1) settings[port].rumble = result / 100.0f;
 
-				result = ReadEntry(L"Controller", port, L"XInputPort", filename);
+				result = ReadEntry("Controller", port, "XInputPort", iniFile);
 				if(result != -1) settings[port].xinputPort = result & 0xF;
 
-				result = ReadEntry(L"Controller", port, L"DefautMode", filename);
+				result = ReadEntry("Controller", port, "DefautMode", iniFile);
 				if(result != -1) settings[port].defaultAnalog = result == 1? true : false;
 
-				result = ReadEntry(L"Controller", port, L"GreenAnalog", filename);
+				result = ReadEntry("Controller", port, "GreenAnalog", iniFile);
 				if(result != -1) settings[port].greenAnalog = result == 1? true : false;
-			
-				result = ReadEntry(L"Controller", port, L"GuitarController", filename);
+
+				result = ReadEntry("Controller", port, "GuitarController", iniFile);
 				if(result != -1) settings[port].isGuitar = result == 1? true : false;
-			
+
 			}
+
+			fclose(iniFile);
 		}
 	}
 
-	bool _fastcall LoadMempak(u8 *data, u8 port)
+	bool FASTCALL LoadMempak(u8 *data, u8 port)
 	{
-		wchar_t filename[256];
-		
-		swprintf_s(filename, L"MemPaks\\Pokopom%d.mempak", port+1);
-		
+		char filename[256];
+
+		sprintf(filename, "MemPaks\\Pokopom%d.mempak", port+1);
+
 		std::fstream file;
 		file.open(filename, std::ios::binary | std::ios::in);
 
 		if(!file.is_open()) return false;
-		
+
 		file.seekg(EOF, std::ios_base::end);
 		s64 size = file.tellg();
-		
+
 		if(size != 32767) { file.close(); return false; }
 
 		file.seekg(0);
 		file.read((char*)data, 0x8000);
 		file.close();
-		
+
 		return true;
 	}
 
-	void _fastcall SaveMempak(u8* data, u8 port)
+	void FASTCALL SaveMempak(u8* data, u8 port)
 	{
-		CreateDirectory(L"MemPaks", NULL);
-		
-		wchar_t filename[1024] = {0};
-		swprintf_s(filename, L"MemPaks\\Pokopom%d.mempak", port+1);
-		
+		CreateDirectoryA("MemPaks", NULL);
+
+		char filename[1024] = {0};
+		sprintf(filename, "MemPaks\\Pokopom%d.mempak", port+1);
+
 		std::fstream file;
 		file.open(filename, std::ios::binary | std::ios::out);
 
 		if(!file.is_open()) return;
-		
-		file.write((s8*)data, 0x8000);
+
+		file.write((char*)data, 0x8000);
 		file.close();
 	}
 

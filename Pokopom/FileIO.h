@@ -22,6 +22,6 @@ namespace FileIO
 	void INI_LoadSettings();
 	void INI_SaveSettings();
 
-	bool _fastcall LoadMempak(u8 *data, u8 port);
-	void _fastcall SaveMempak(u8* data, u8 port);
+	bool FASTCALL LoadMempak(u8 *data, u8 port);
+	void FASTCALL SaveMempak(u8 *data, u8 port);
 }

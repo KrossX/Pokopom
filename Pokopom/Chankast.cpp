@@ -2,7 +2,9 @@
 #include "FileIO.h"
 #include "ConfigDialog.h"
 #include "Chankast.h"
-#include "Input_Backend.h"
+#include "Input.h"
+
+#ifdef _WIN32
 
 ChankastController * chankastPad[2] = {NULL, NULL};
 ChankastPadData chankastData[2];
@@ -103,3 +105,5 @@ DllExport ChankastInputInterface *GetInputInterface()
 {
   return &ChankastInterface;
 }
+
+#endif // Win32

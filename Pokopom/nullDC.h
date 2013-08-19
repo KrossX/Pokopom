@@ -11,6 +11,8 @@
 #include "General.h"
 #include "nullDC_plugin_types.h"
 
+#ifdef _WIN32
+
 s32 FASTCALL Load(nullDC::emu_info* emu);
 void FASTCALL Unload();
 
@@ -26,3 +28,5 @@ u32 FASTCALL RumbleDMA(void* device_instance, u32 command, u32* buffer_in, u32 b
 void EXPORT_CALL ConfigMenuCallback(u32 id, void* w, void* p);
 
 INT_PTR CALLBACK OpenConfig( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+#endif // WIN32

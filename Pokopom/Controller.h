@@ -16,15 +16,12 @@
  */
 
 #pragma once
-#include "..\..\Common\TypeDefs.h"
-#include "Settings.h"
-
 
 struct PlayStationDeviceState
 {
 	char libraryName[25];
 	u16 version;
-		
+
 	u16 buttons, buttonsStick, analogL, analogR;
 	u8 padID;
 	bool bConfig, bModeLock;
@@ -40,14 +37,14 @@ class PlayStationDevice
 	PlayStationDevice();
 	PlayStationDevice(const PlayStationDevice &);
     PlayStationDevice& operator=(const PlayStationDevice &);
-	
+
 	bool disabled;
 
 protected:
 	_Settings &settings;
 
 	u8 port;
-	u8 *dataBuffer, *cmdBuffer; 
+	u8 *dataBuffer, *cmdBuffer;
 	const u16 sizeBuffer;
 
 	bool gamepadPlugged;
@@ -57,7 +54,7 @@ public:
 	void Enable() { disabled = false; }
 	void Disable() { disabled = true; }
 	void SetPort(u8 p) { port = p; }
-	
+
 	virtual void LoadState(PlayStationDeviceState state) = 0;
 	virtual void SaveState(PlayStationDeviceState &state) = 0;
 
@@ -87,7 +84,7 @@ protected:
 	void Reset();
 
 	u16 buttons, buttonsStick, analogL, analogR;
-	u8 padID;	
+	u8 padID;
 	bool bConfig, bModeLock;
 	u8 motorMapS, motorMapL;
 	u8 triggerL, triggerR;
@@ -107,7 +104,7 @@ class DualShock2 : public DualShock
 	DualShock2(const DualShock2 &);
     DualShock2& operator=(const DualShock2 &);
 
-protected:	
+protected:
 	void Cmd1(const u8 data);
 	void Cmd4(const u8 data);
 	void Cmd8(const u8 data);
@@ -120,7 +117,7 @@ public:
 	void LoadState(PlayStationDeviceState state);
 	void SaveState(PlayStationDeviceState &state);
 
-	DualShock2(_Settings &config);	
+	DualShock2(_Settings &config);
 };
 
 class PS2_Guitar : public DualShock2
@@ -128,7 +125,7 @@ class PS2_Guitar : public DualShock2
 	PS2_Guitar();
 	PS2_Guitar(const PS2_Guitar &);
     PS2_Guitar& operator=(const PS2_Guitar &);
-	
+
 	void Cmd1(const u8 data);
 	void Cmd4(const u8 data);
 
@@ -144,7 +141,7 @@ class MultiTap : public PlayStationDevice
 	MultiTap(const MultiTap &);
     MultiTap& operator=(const MultiTap &);
 
-	PlayStationDevice * Device[4];	
+	PlayStationDevice * Device[4];
 	u8 slot;
 
 public:

@@ -18,15 +18,11 @@
 #pragma once
 
 #ifdef _WIN32
-	#ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
-	#endif
-
-	#ifndef VC_EXTRALEAN
-	#define VC_EXTRALEAN
-	#endif
-
 	#include <Windows.h>
+
+	#define EXPORT_CALL __stdcall
+	#define FASTCALL __fastcall
+	#define CALL _cdecl
 
 	#ifdef __cplusplus
 	#define DllExport extern "C" __declspec(dllexport)
@@ -34,8 +30,13 @@
 	#define DllExport __declspec(dllexport)
 	#endif
 #elif defined __linux__
+	#define EXPORT_CALL __stdcall
 	#define CALLBACK
 	#define HWND void*
+	#define WNDPROC void*
+
+	#include <string.h>
+	#include <X11/Xlib.h>
 
 	#ifdef __cplusplus
 	#define DllExport extern "C"
@@ -45,10 +46,9 @@
 #endif
 
 #include <stdio.h>
+#include <list>
 
 #include "..\..\Common\TypeDefs.h"
+#include "Stuff.h"
+#include "Settings.h"
 
-extern bool isPs2Emulator;
-extern bool isPSemulator;
-extern bool bKeepAwake;
-extern s32 INIversion;

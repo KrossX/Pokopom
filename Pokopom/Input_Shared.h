@@ -17,19 +17,12 @@
 
 #pragma once
 
+#include <math.h>
+
 namespace Input
 {
-	bool __fastcall Recheck(u8 port);
-	void __fastcall Pause(bool pewpew);
-	void __fastcall StopRumble(u8 port, bool &gamepadPlugged);
+	inline WORD Clamp(f64 input) { return input > 0xFFFF ? 0xFFFF : (WORD)input; }
+	inline s32 ClampAnalog(f64 input) {	return (s32)(input < -32768? -32768 : input > 32767 ? 32767 : input); }
 
-	void __fastcall DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged);
-	void __fastcall DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged);
-
-	void __fastcall DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
-	void __fastcall DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thread, _Settings &set, bool &gamepadPlugged);
-
-	void __fastcall N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged);
-	void __fastcall N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
-	void __fastcall N64rumble(bool on, _Settings &set, bool &gamepadPlugged);
+	u16 FASTCALL ConvertAnalog(s32 X, s32 Y, _Settings &set, u8 mode);
 }

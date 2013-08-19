@@ -22,7 +22,6 @@
 #include <Uxtheme.h>
 #include <CommCtrl.h>
 
-#include "Settings.h"
 #include "FileIO.h"
 
 #include "resource.h"
@@ -363,3 +362,11 @@ void CreateConfigDialog()
 	}
 }
 #endif // WIN32
+
+#ifdef __linux__
+
+void CreateConfigDialog()
+{
+}
+
+#endif

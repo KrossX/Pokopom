@@ -1,6 +1,8 @@
 #pragma once
 #include "nullDC_Devices.h"
 
+#ifdef _WIN32
+
 ////////////////////////////////////////////////////////////////////////
 // Interface stuff
 ////////////////////////////////////////////////////////////////////////
@@ -48,3 +50,5 @@ public:
 	ChankastController(u32 _port, _Settings &config) :
 		DreamcastController(_port, config) {}
 };
+
+#endif // Win32

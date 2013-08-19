@@ -15,8 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\..\Common\TypeDefs.h"
-#include "Settings.h"
+#include "General.h"
 
 _Settings::_Settings()
 {
@@ -34,7 +33,7 @@ void _Settings::SetDefaults()
 	rumble = 1.0;
 	pressureRate = 10;
 	linearity = 0.0;
-	
+
 	extThreshold = 32767.0; // 40201 real max radius
 	extMult = 1.4142135623730950488016887242097; // sqrt(2)
 

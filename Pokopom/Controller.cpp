@@ -15,10 +15,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Controller.h"
-#include "Codes_IDs.h"
 #include "General.h"
-#include "Input_Backend.h"
+#include "Codes_IDs.h"
+#include "Controller.h"
+#include "Input.h"
 
 ////////////////////////////////////////////////////////////////////////
 // PlayStation Device
@@ -57,7 +57,7 @@ void DualShock::Reset()
 	memset(cmdBuffer, 0x00, sizeBuffer);
 
 	dataBuffer[2] = 0x5A;
-	padID = settings.defaultAnalog ? (settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED) : (u8)ID_DIGITAL;
+	padID = settings.defaultAnalog? (settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED) : (u8)ID_DIGITAL;
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
@@ -143,42 +143,35 @@ void DualShock::SetVibration()
 }
 
 extern u8 multitap;
+bool bPressed[4] = {false};
 
 void DualShock::Cmd0()
 {
-	static bool bPressed = false;
-
 	if(gamepadPlugged && multitap == 0)
-	{
-		bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
+		Input::SetAnalogLed(port, padID == ID_DIGITAL);
 
-		if((padID != ID_DIGITAL && !ledScrollLock) || (padID == ID_DIGITAL && ledScrollLock))
-		{
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
-		}
-	}
-
-	if(!bModeLock)
+	if(!bModeLock && gamepadPlugged)
 	{
-		if(!bPressed && !!(GetAsyncKeyState(0x31 + port) >> 1))
+		bool analogPressed = Input::CheckAnalogToggle(port);
+
+		if(!bPressed[port] && analogPressed)
 		{
 			if(padID == ID_DIGITAL)
 			{
 				padID = settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED;
-				//printf("Pokopom -> [%d] Switched to analog mode.\n", Settings.padPort);
+				//printf("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
 			}
 			else
 			{
 				padID = (u8)ID_DIGITAL;
-				//printf("Pokopom -> [%d] Switched to digital mode.\n", Settings.padPort);
+				//printf("Pokopom -> [%d] Switched to digital mode (%X).\n", port, padID);
 			}
 
-			bPressed = true;
+			bPressed[port] = true;
 		}
-		else if (bPressed && !(GetAsyncKeyState(0x31 + port) >> 1))
+		else if (bPressed[port] && !analogPressed)
 		{
-			bPressed = false;
+			bPressed[port] = false;
 		}
 	}
 }

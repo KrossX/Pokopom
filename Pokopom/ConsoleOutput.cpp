@@ -4,9 +4,11 @@
 // Quite the useful thing.
 //
 
-
 #include "General.h"
 #include "ConsoleOutput.h"
+
+#ifdef _WIN32
+
 #include <io.h>
 #include <fcntl.h>
 
@@ -25,3 +27,13 @@ void GimmeConsole()
 		*stdout = *hf_out;
 	}
 }
+
+#endif //WIN32
+
+#ifdef __linux__
+
+void GimmeConsole()
+{
+}
+
+#endif //Linux
