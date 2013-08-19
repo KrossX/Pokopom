@@ -21,13 +21,40 @@
 
 namespace Input
 {
+const u16 ANALOG_TRESHOLD = 12540;
 
-u16 FASTCALL ConvertAnalog(s32 X, s32 Y, _Settings &set, u8 mode)
+void FASTCALL GetRadius(_Stick& stick)
 {
+	f64 X = stick.X;
+	f64 Y = stick.Y;
+	stick.radius = sqrt(X*X + Y*Y);
+}
+
+u8 FASTCALL GetAnalogDigital(_Stick& stick)
+{
+	u8 data = 0;
+
+	if(stick.radius > 28000)
+	{
+		if(stick.X > ANALOG_TRESHOLD) data |= ANALOGD_XP;
+		else if(stick.X < -ANALOG_TRESHOLD) data |= ANALOGD_XN;
+
+		if(stick.Y > ANALOG_TRESHOLD) data |= ANALOGD_YP;
+		else if(stick.Y < -ANALOG_TRESHOLD) data |= ANALOGD_YN;
+	}
+
+	return data;
+}
+
+u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
+{
+	s32 X = stick.X;
+	s32 Y = stick.Y;
+	
 	// If input is dead, no need to check or do anything else
 	if((X == 0) && (Y == 0)) return mode == 0 ? 0x7F7F : 0;
 
-	f64 radius = sqrt((f64)X*X + (f64)Y*Y);
+	f64 radius = stick.radius;
 	const f64 deadzone = set.extThreshold * set.deadzone;
 
 	// Input should be effectively dead under deadzone, no need to do more
@@ -88,6 +115,256 @@ u16 FASTCALL ConvertAnalog(s32 X, s32 Y, _Settings &set, u8 mode)
 	}
 
 	return  result;
+}
+
+////////////////////////////////////////////////////////////////////////
+// DualShock
+////////////////////////////////////////////////////////////////////////
+
+
+void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
+{
+	_Pad pad;
+
+	u16 buttons, buttonsStick, analogL, analogR;
+	u8 triggerL, triggerR;
+
+	buttons = buttonsStick = 0xFFFF;
+	analogL = analogR = 0x7F7F;
+	triggerL = triggerR = 0;
+
+	if(InputGetState(pad, set))
+	{
+		buttons = 0;
+		buttons |= (~pad.buttons[X360_BACK]  & 0x1) << DS_SELECT;
+		buttons |= (~pad.buttons[X360_LS]    & 0x1) << DS_L3;
+		buttons |= (~pad.buttons[X360_RS]    & 0x1) << DS_R3;
+		buttons |= (~pad.buttons[X360_START] & 0x1) << DS_START;
+		buttons |= (~pad.buttons[X360_DUP]   & 0x1) << DS_UP;
+		buttons |= (~pad.buttons[X360_DRIGHT]& 0x1) << DS_RIGHT;
+		buttons |= (~pad.buttons[X360_DDOWN] & 0x1) << DS_DOWN;
+		buttons |= (~pad.buttons[X360_DLEFT] & 0x1) << DS_LEFT;
+
+		buttons |= (pad.analog[X360_TRIGGERL] > 10 ? 0:1) << DS_L2;
+		buttons |= (pad.analog[X360_TRIGGERR] > 10 ? 0:1) << DS_R2;
+
+		buttons |= (~pad.buttons[X360_LB] & 0x1) << DS_L1;
+		buttons |= (~pad.buttons[X360_RB] & 0x1) << DS_R1;
+
+		buttons |= (~pad.buttons[X360_Y] & 0x1) << DS_TRIANGLE;
+		buttons |= (~pad.buttons[X360_B] & 0x1) << DS_CIRCLE;
+		buttons |= (~pad.buttons[X360_A] & 0x1) << DS_CROSS;
+		buttons |= (~pad.buttons[X360_X] & 0x1) << DS_SQUARE;
+
+		u8 stickLD = GetAnalogDigital(pad.stickL);
+		u8 stickRD = GetAnalogDigital(pad.stickR);
+		
+		buttonsStick = buttons | 0x06;
+		buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
+		buttonsStick &= ~(((stickLD & ANALOGD_XN) >> 1) << DS_LEFT);
+		buttonsStick &= ~(((stickLD & ANALOGD_YP) >> 2) << DS_UP);
+		buttonsStick &= ~(((stickLD & ANALOGD_YN) >> 3) << DS_DOWN);
+		
+		buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CIRCLE);
+		buttonsStick &= ~(((stickRD & ANALOGD_XN) >> 1) << DS_SQUARE);
+		buttonsStick &= ~(((stickRD & ANALOGD_YP) >> 2) << DS_TRIANGLE);
+		buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CROSS);
+
+		analogL = ConvertAnalog(pad.modL, set, 0);
+		analogR = ConvertAnalog(pad.modR, set, 0);
+
+		triggerL = pad.analog[X360_TRIGGERL] & 0xFF;
+		triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
+
+		//printf("Pokopom: %04X %04X\n", analogL, analogR);
+	}
+	else
+		gamepadPlugged = false;
+
+	bufferOut[0] = buttons;
+	bufferOut[1] = buttonsStick;
+	bufferOut[2] = analogL;
+	bufferOut[3] = analogR;
+	bufferOut[4] = (triggerL << 8) | triggerR;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Dreamcast
+////////////////////////////////////////////////////////////////////////
+
+void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged)
+{
+	_Pad pad;
+
+	u16* buffer = (u16*) buffer_out;
+
+	// Some magic number...
+	buffer[0] = 0x0000;
+	buffer[1] = 0x0100;
+
+	u16 buttons = 0xFFFF;
+	u16 analog = 0x8080;
+	u16 triggers = 0x0000;
+
+	static bool analogToggle = false;
+
+	if(InputGetState(pad, set))
+	{
+		buttons = 0;
+
+		buttons |= pad.buttons[X360_A] << DC_A;
+		buttons |= pad.buttons[X360_B] << DC_B;
+		buttons |= pad.buttons[X360_X] << DC_X;
+		buttons |= pad.buttons[X360_Y] << DC_Y;
+		
+		buttons |= pad.buttons[X360_DUP]   << DC_UP;
+		buttons |= pad.buttons[X360_DDOWN] << DC_DOWN;
+		buttons |= pad.buttons[X360_DLEFT] << DC_LEFT;
+		buttons |= pad.buttons[X360_DRIGHT]<< DC_RIGHT;
+		
+		buttons |= pad.buttons[X360_START] << DC_START;
+
+		triggers = (pad.buttons[X360_LB] ? 0xFF : (pad.analog[X360_TRIGGERL]&0xFF))<<8;
+		triggers |= pad.buttons[X360_RB] ? 0xFF : pad.analog[X360_TRIGGERR]&0xFF;
+
+		if(pad.buttons[X360_LS]) analogToggle = false;
+		else if (pad.buttons[X360_RS]) analogToggle = true;
+
+		if(analogToggle)
+		{
+			analog = ConvertAnalog(pad.modR, set, 0);
+
+			_Stick stickL = pad.modL;
+			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
+			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
+
+			u8 stickD = GetAnalogDigital(stickL);
+
+			// Inactive left stick to work as dpad
+			buttons &= ~((stickD & ANALOGD_XP) << DC_RIGHT);
+			buttons &= ~(((stickD & ANALOGD_XN) >> 1) << DC_LEFT);
+			buttons &= ~(((stickD & ANALOGD_YP) >> 2) << DC_UP);
+			buttons &= ~(((stickD & ANALOGD_YN) >> 3) << DC_DOWN);
+		}
+		else
+		{
+			analog = ConvertAnalog(pad.modL, set, 0);
+
+			_Stick stickR = pad.modR;
+			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
+			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
+			
+			u8 stickD = GetAnalogDigital(stickR);
+
+			// Inactive right stick to work as face buttons
+			buttons &= ~((stickD & ANALOGD_XP) << DC_B);
+			buttons &= ~(((stickD & ANALOGD_YP) >> 2) << DC_Y);
+			buttons &= ~(((stickD & ANALOGD_XN) >> 1) << DC_X);
+			buttons &= ~(((stickD & ANALOGD_YN) >> 3) << DC_A);
+		}
+
+	}
+	else
+		gamepadPlugged = false;
+
+	// Buttons
+	buffer[2] = buttons | 0xF901;
+
+	// Triggers
+	buffer[3] = triggers;
+
+	// Left Stick
+	buffer[4] = analog;
+
+	// Right Stick... not present.
+	buffer[5] = 0x8080;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Zilmar
+////////////////////////////////////////////////////////////////////////
+
+void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged)
+{
+	_Pad pad;
+
+	u16 buttons = 0;
+	u16 analog = 0x0000;
+
+	static bool analogToggle = false;
+
+	if(InputGetState(pad, set))
+	{
+		buttons = 0;
+
+		buttons |= pad.buttons[X360_DRIGHT]<< N64_RIGHT;
+		buttons |= pad.buttons[X360_DLEFT] << N64_LEFT;
+		buttons |= pad.buttons[X360_DDOWN] << N64_DOWN;
+		buttons |= pad.buttons[X360_DUP]   << N64_UP;
+		buttons |= pad.buttons[X360_START] << N64_START;
+
+		buttons |= (pad.analog[X360_TRIGGERL] > 10? 1:0) << N64_TRIGGERZ;
+
+		if(pad.analog[X360_TRIGGERR] > 100)
+		{
+			buttons |= pad.buttons[X360_X] << N64_CLEFT;
+			buttons |= pad.buttons[X360_Y] << N64_CUP;
+			buttons |= pad.buttons[X360_A] << N64_CDOWN;
+			buttons |= pad.buttons[X360_B] << N64_CRIGHT;
+		}
+		else
+		{
+			buttons |= pad.buttons[X360_A] << N64_A;
+			buttons |= pad.buttons[X360_X] << N64_B;
+
+			buttons |= pad.buttons[X360_B] << N64_CDOWN;
+			buttons |= pad.buttons[X360_Y] << N64_CLEFT;
+		}
+
+		buttons |= pad.buttons[X360_RB] << N64_TRIGGERR;
+		buttons |= pad.buttons[X360_LB] << N64_TRIGGERL;
+
+		if(pad.buttons[X360_LS]) analogToggle = false;
+		else if (pad.buttons[X360_RS]) analogToggle = true;
+
+		if(analogToggle)
+		{
+			analog = ConvertAnalog(pad.modR, set, 1);
+
+			_Stick stickL = pad.modL;
+			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
+			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
+
+			u8 stickD = GetAnalogDigital(stickL);
+
+			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
+			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
+			buttons |= (((stickD & ANALOGD_YP) >> 2) << N64_CUP);
+			buttons |= (((stickD & ANALOGD_YN) >> 3) << N64_CDOWN);
+		}
+		else
+		{
+			analog = ConvertAnalog(pad.modL, set, 1);
+
+			_Stick stickR = pad.modR;
+			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
+			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
+			
+			u8 stickD = GetAnalogDigital(stickR);
+
+			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
+			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
+			buttons |= (((stickD & ANALOGD_YP) >> 2) << N64_CUP);
+			buttons |= (((stickD & ANALOGD_YN) >> 3) << N64_CDOWN);
+		}
+	}
+	else
+		gamepadPlugged = false;
+
+	u16 * outBig = (u16*)outBuffer;
+
+	outBig[0] = buttons;
+	outBig[1] = analog;
 }
 
 } // End namespace Input

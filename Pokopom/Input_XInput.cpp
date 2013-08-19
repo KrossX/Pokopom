@@ -82,83 +82,64 @@ void FASTCALL SetAnalogLed(u8 port, bool digital)
 	}
 }
 
-////////////////////////////////////////////////////////////////////////
-// DualShock
-////////////////////////////////////////////////////////////////////////
-
-void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
+bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 {
 	XINPUT_STATE state;
 	DWORD result = XInputGetState(set.xinputPort, &state);
 
-	u16 buttons, buttonsStick, analogL, analogR;
-	u8 triggerL, triggerR;
-
-	buttons = buttonsStick = 0xFFFF;
-	analogL = analogR = 0x7F7F;
-	triggerL = triggerR = 0;
-
 	if(result == ERROR_SUCCESS)
 	{
-		buttons = 0;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK ? 0:1) << 0x0; // Select
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB ? 0:1) << 0x1; // L3
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB ? 0:1) << 0x2; // R3
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 0:1) << 0x3; // Start
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 0:1) << 0x4; // Up
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 0:1) << 0x5; // Right
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1) << 0x6; // Down
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1) << 0x7; // Left
+		pad.buttons[X360_DUP] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
+		pad.buttons[X360_DDOWN] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) >> 1;
+		pad.buttons[X360_DLEFT] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) >> 2;
+		pad.buttons[X360_DRIGHT] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) >> 3;
 
-		buttons |= (state.Gamepad.bLeftTrigger > 10 ? 0:1) << 0x8; // L2
-		buttons |= (state.Gamepad.bRightTrigger > 10 ? 0:1) << 0x9; // R2
+		pad.buttons[X360_START] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) >> 4;
+		pad.buttons[X360_BACK] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) >> 5;
 
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 0:1) << 0xA; // L1
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 0:1) << 0xB; // R1
+		pad.buttons[X360_LS] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) >> 6;
+		pad.buttons[X360_RS] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) >> 7;
+		pad.buttons[X360_LB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) >> 8;
+		pad.buttons[X360_RB] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) >> 9;
 
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1) << 0xC; // Triangle
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1) << 0xD; // Circle
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 0:1) << 0xE; // Cross
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 0:1) << 0xF; // Square
+		pad.buttons[X360_A] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) >> 12;
+		pad.buttons[X360_B] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) >> 13;
+		pad.buttons[X360_X] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) >> 14;
+		pad.buttons[X360_Y] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) >> 15;
 
-		buttonsStick = buttons | 0x06;
-		const s32 threshold = 16384;
+		pad.analog[X360_STICKLX] = state.Gamepad.sThumbLX;
+		pad.analog[X360_STICKLY] = state.Gamepad.sThumbLY;
+		pad.analog[X360_STICKRX] = state.Gamepad.sThumbRX;
+		pad.analog[X360_STICKRY] = state.Gamepad.sThumbRY;
 
-		set.axisValue[GP_AXIS_LY] = state.Gamepad.sThumbLY * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
-		set.axisValue[GP_AXIS_LX] = state.Gamepad.sThumbLX * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
-		set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
-		set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
+		pad.analog[X360_TRIGGERL] = state.Gamepad.bLeftTrigger;
+		pad.analog[X360_TRIGGERR] = state.Gamepad.bRightTrigger;
 
-		if(state.Gamepad.sThumbLY > threshold) buttonsStick &= ~(1 << 0x4);
-		if(state.Gamepad.sThumbLX > threshold) buttonsStick &= ~(1 << 0x5);
-		if(state.Gamepad.sThumbLY < -threshold) buttonsStick &= ~(1 << 0x6);
-		if(state.Gamepad.sThumbLX < -threshold) buttonsStick &= ~(1 << 0x7);
+		pad.stickL.X = pad.analog[X360_STICKLX];
+		pad.stickL.Y = pad.analog[X360_STICKLY];
+		pad.stickR.X = pad.analog[X360_STICKRX];
+		pad.stickR.Y = pad.analog[X360_STICKRY];
 
-		if(state.Gamepad.sThumbRY > threshold) buttonsStick &= ~(1 << 0xC);
-		if(state.Gamepad.sThumbRX > threshold) buttonsStick &= ~(1 << 0xD);
-		if(state.Gamepad.sThumbRY < -threshold) buttonsStick &= ~(1 << 0xE);
-		if(state.Gamepad.sThumbRX < -threshold) buttonsStick &= ~(1 << 0xF);
+		set.axisValue[GP_AXIS_LY] = pad.analog[X360_STICKLY] * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
+		set.axisValue[GP_AXIS_LX] = pad.analog[X360_STICKLX] * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
+		set.axisValue[GP_AXIS_RY] = pad.analog[X360_STICKRY] * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
+		set.axisValue[GP_AXIS_RX] = pad.analog[X360_STICKRX] * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
 
-		analogL = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_LX]],
-								set.axisValue[set.axisRemap[GP_AXIS_LY]], set, 0);
+		pad.modL.X = set.axisValue[set.axisRemap[GP_AXIS_LX]];
+		pad.modL.Y = set.axisValue[set.axisRemap[GP_AXIS_LY]];
+		pad.modR.X = set.axisValue[set.axisRemap[GP_AXIS_RX]];
+		pad.modR.Y = set.axisValue[set.axisRemap[GP_AXIS_RY]];
 
-		analogR = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_RX]],
-								set.axisValue[set.axisRemap[GP_AXIS_RY]], set, 0);
-
-		triggerL = state.Gamepad.bLeftTrigger;
-		triggerR = state.Gamepad.bRightTrigger;
-
-		//printf("Pokopom: %04X %04X\n", analogL, analogR);
+		GetRadius(pad.stickL); GetRadius(pad.stickR);
+		GetRadius(pad.modL); GetRadius(pad.modR);
 	}
-	else
-		gamepadPlugged = false;
+	
+	return result == ERROR_SUCCESS;
+};
 
-	bufferOut[0] = buttons;
-	bufferOut[1] = buttonsStick;
-	bufferOut[2] = analogL;
-	bufferOut[3] = analogR;
-	bufferOut[4] = (triggerL << 8) | triggerR;
-}
+////////////////////////////////////////////////////////////////////////
+// DualShock
+////////////////////////////////////////////////////////////////////////
 
 void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged)
 {
@@ -234,100 +215,6 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 // Dreamcast
 ////////////////////////////////////////////////////////////////////////
 
-void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged)
-{
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
-
-	u16* buffer = (u16*) buffer_out;
-
-	// Some magic number...
-	buffer[0] = 0x0000;
-	buffer[1] = 0x0100;
-
-	u16 buttons = 0xFFFF;
-	u16 analog = 0x8080;
-	u16 triggers = 0x0000;
-
-	static bool analogToggle = false;
-
-	if(result == ERROR_SUCCESS)
-	{
-		buttons = 0;
-
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1)	<< 0x1; // B
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 0:1)	<< 0x2; // A
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 0:1)		<< 0x3; // Start
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 0:1)		<< 0x4; // Up
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1)	<< 0x5; // Down
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1)	<< 0x6; // Left
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 0:1)	<< 0x7; // Right
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1)	<< 0x9; // Y
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 0:1)	<< 0xA; // X
-
-		triggers = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 0xFF : (state.Gamepad.bLeftTrigger&0xFF))<<8;
-		triggers |= state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 0xFF : state.Gamepad.bRightTrigger&0xFF;
-
-		if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
-		else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
-
-		set.axisValue[GP_AXIS_LY] = state.Gamepad.sThumbLY * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
-		set.axisValue[GP_AXIS_LX] = state.Gamepad.sThumbLX * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
-		set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
-		set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
-
-		const s32 threshold = 16384;
-
-		if(analogToggle)
-		{
-			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_RX]],
-								   set.axisValue[set.axisRemap[GP_AXIS_RY]], set, 0);
-
-			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
-			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
-			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
-			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
-
-			// Inactive left stick to work as dpad
-			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] > threshold) buttons &= ~(1 << 0x4);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] > threshold) buttons &= ~(1 << 0x7);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] < -threshold) buttons &= ~(1 << 0x5);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] < -threshold) buttons &= ~(1 << 0x6);
-		}
-		else
-		{
-			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_LX]],
-								   set.axisValue[set.axisRemap[GP_AXIS_LY]], set, 0);
-
-			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
-			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
-			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
-			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
-
-			// Inactive right stick to work as face buttons
-			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] > threshold) buttons &= ~(1 << 0x9);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] > threshold) buttons &= ~(1 << 0x1);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] < -threshold) buttons &= ~(1 << 0x2);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] < -threshold) buttons &= ~(1 << 0xA);
-		}
-
-	}
-	else
-		gamepadPlugged = false;
-
-	// Buttons
-	buffer[2] = buttons | 0xF901;
-
-	// Triggers
-	buffer[3] = triggers;
-
-	// Left Stick
-	buffer[4] = analog;
-
-	// Right Stick... not present.
-	buffer[5] = 0x8080;
-}
-
 void FASTCALL VibrationWatchdog(LPVOID param)
 {
 	PuruPuruPack::_thread *pochy = (PuruPuruPack::_thread*)param;
@@ -371,24 +258,6 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thre
 // Zilmar
 ////////////////////////////////////////////////////////////////////////
 
-enum
-{
-	N64_RIGHT = 0,
-	N64_LEFT,
-	N64_DOWN,
-	N64_UP,
-	N64_START,
-	N64_TRIGGERZ,
-	N64_B,
-	N64_A,
-	N64_CRIGHT,
-	N64_CLEFT,
-	N64_CDOWN,
-	N64_CUP,
-	N64_TRIGGERR,
-	N64_TRIGGERL
-};
-
 void FASTCALL N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged)
 {
 	XINPUT_STATE state;
@@ -423,97 +292,7 @@ void FASTCALL N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged)
 	}
 }
 
-void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged)
-{
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(set.xinputPort, &state);
 
-	u16 buttons = 0;
-	u16 analog = 0x0000;
-
-	static bool analogToggle = false;
-
-	if(result == ERROR_SUCCESS)
-	{
-		buttons = 0;
-
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 1:0) << N64_RIGHT;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 1:0)  << N64_LEFT;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 1:0)  << N64_DOWN;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 1:0)	  << N64_UP;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 1:0)	  << N64_START;
-
-		buttons |= (state.Gamepad.bLeftTrigger > 10? 1:0)	<< N64_TRIGGERZ;
-
-		if(state.Gamepad.bRightTrigger > 100)
-		{
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_CLEFT;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_CUP;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0) << N64_CDOWN;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_CRIGHT;
-		}
-		else
-		{
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 1:0) << N64_A;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_B;
-
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 1:0) << N64_CDOWN;
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_CLEFT;
-		}
-
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 1:0) << N64_TRIGGERR;
-		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 1:0)  << N64_TRIGGERL;
-
-		if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
-		else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
-
-		set.axisValue[GP_AXIS_LY] = state.Gamepad.sThumbLY * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
-		set.axisValue[GP_AXIS_LX] = state.Gamepad.sThumbLX * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
-		set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
-		set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
-
-		const s32 threshold = 24500;
-
-		if(analogToggle)
-		{
-			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_RX]],
-								   set.axisValue[set.axisRemap[GP_AXIS_RY]], set, 1);
-
-			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
-			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
-			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
-			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
-
-			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] >  threshold) buttons |= (1 << N64_CRIGHT);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LX]] < -threshold) buttons |= (1 << N64_CLEFT);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] < -threshold) buttons |= (1 << N64_CDOWN);
-			if(set.axisValue[set.axisRemap[GP_AXIS_LY]] >  threshold) buttons |= (1 << N64_CUP);
-		}
-		else
-		{
-			analog = ConvertAnalog(set.axisValue[set.axisRemap[GP_AXIS_LX]],
-								   set.axisValue[set.axisRemap[GP_AXIS_LY]], set, 1);
-
-			set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
-			set.axisValue[GP_AXIS_LX] *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
-			set.axisValue[GP_AXIS_RY] *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
-			set.axisValue[GP_AXIS_RX] *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
-
-			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] >  threshold) buttons |= (1 << N64_CRIGHT);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RX]] < -threshold) buttons |= (1 << N64_CLEFT);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] < -threshold) buttons |= (1 << N64_CDOWN);
-			if(set.axisValue[set.axisRemap[GP_AXIS_RY]] >  threshold) buttons |= (1 << N64_CUP);
-		}
-
-	}
-	else
-		gamepadPlugged = false;
-
-	u16 * outBig = (u16*)outBuffer;
-
-	outBig[0] = buttons;
-	outBig[1] = analog;
-}
 
 void FASTCALL N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
 {

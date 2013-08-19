@@ -135,19 +135,11 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 		}
 
 		if(controller[pad])
-		{
 			controller[pad]->SetPort((u8)pad);
-			controller[pad]->Disable();
-		}
 		else 
 			return emupro::ERR_FATAL;
 	}
 
-	if (flags & emupro::pad::USE_PORT1)
-		controller[0]->Enable();
-	if (flags & emupro::pad::USE_PORT2)
-		controller[1]->Enable();
-	
 	return emupro::INIT_ERR_SUCCESS;
 }
 
