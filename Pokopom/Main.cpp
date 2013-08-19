@@ -27,8 +27,8 @@ bool bScrollLock; // backup to restore on exit
 // PPDK developer must change libraryName field and can change revision and build
 ////////////////////////////////////////////////////////////////////////
 
-const unsigned int revision = 1;
-const unsigned int build    = 12;
+const unsigned int revision = 2;
+const unsigned int build    = 6;
 
 const unsigned int versionPS1 = (emupro::PLUGIN_VERSION << 16) | (revision << 8) | build;
 const unsigned int versionPS2 = (0x02 << 16) | (revision << 8) | build;
