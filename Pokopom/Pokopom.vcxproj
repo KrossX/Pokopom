@@ -94,14 +94,15 @@
     <ClInclude Include="Controller.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
-    <ClInclude Include="Main.h" />
-    <ClInclude Include="nulldc.h" />
+    <ClInclude Include="PlayStation.h" />
+    <ClInclude Include="nullDC.h" />
     <ClInclude Include="nullDC_Devices.h" />
-    <ClInclude Include="nulldc_plugin_types.h" />
+    <ClInclude Include="nullDC_plugin_types.h" />
     <ClInclude Include="PSemuPro_Interface.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
-    <ClInclude Include="XInput_Backend.h" />
+    <ClInclude Include="SharedStuff.h" />
+    <ClInclude Include="Input_Backend.h" />
     <ClInclude Include="Zilmar_Controller_Interface.h" />
     <ClInclude Include="Zilmar_Devices.h" />
   </ItemGroup>
@@ -114,10 +115,11 @@
     <ClCompile Include="ControllerGuitar.cpp" />
     <ClCompile Include="ControllerMtap.cpp" />
     <ClCompile Include="FileIO.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="nulldc.cpp" />
+    <ClCompile Include="PlayStation.cpp" />
+    <ClCompile Include="nullDC.cpp" />
     <ClCompile Include="nullDC_Devices.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SharedStuff.cpp" />
     <ClCompile Include="Zilmar.cpp" />
     <ClCompile Include="Zilmar_Devices.cpp" />
     <ClCompile Include="Xinput_Backend.cpp" />

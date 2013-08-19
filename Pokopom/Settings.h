@@ -34,7 +34,7 @@ struct _Settings
 	u8 xinputPort;
 	f32 deadzone, rumble, antiDeadzone;
 	f64 extThreshold, extMult;
-	
+
 	bool axisInverted[4];
 	s16 axisRemap[4];
 	s32 axisValue[4];
@@ -48,3 +48,5 @@ struct _Settings
 	_Settings(const _Settings &);
 	_Settings& operator=(const _Settings &);
 };
+
+extern _Settings settings[4];

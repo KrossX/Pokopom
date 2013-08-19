@@ -2,10 +2,7 @@
 #include "FileIO.h"
 #include "ConfigDialog.h"
 #include "Chankast.h"
-#include "XInput_Backend.h"
-
-extern HINSTANCE hInstance;
-extern _Settings settings[4];
+#include "Input_Backend.h"
 
 ChankastController * chankastPad[2] = {NULL, NULL};
 ChankastPadData chankastData[2];
@@ -24,8 +21,8 @@ s32 InitPads(void* hWnd)
 
 	memset(chankastData, 0, sizeof(chankastData));
 
-	XInput::Pause(false);
-	
+	Input::Pause(false);
+
 	return 0;
 }
 
@@ -50,7 +47,7 @@ void EndPads()
 	chankastPad[0] = NULL;
 	chankastPad[1] = NULL;
 
-	XInput::Pause(true);
+	Input::Pause(true);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -60,7 +57,7 @@ void EndPads()
 s32 ConfigurePads(void* hWnd)
 {
 	FileIO::INI_LoadSettings();
-	CreateDialogs(hInstance, GetActiveWindow());
+	CreateConfigDialog();
 	return 0;
 }
 
@@ -70,8 +67,8 @@ s32 ConfigurePads(void* hWnd)
 
 void ChankastController::PollData(ChankastPadData &Data)
 {
-	u16 buffer[6];		
-	XInput::DreamcastPoll((u32*)buffer, set, gamepadPlugged);
+	u16 buffer[6];
+	Input::DreamcastPoll((u32*)buffer, set, gamepadPlugged);
 	memcpy(&Data, &buffer[2], 8);
 }
 
@@ -83,7 +80,7 @@ void  UpdateInput()
 
 void GetStatusPads(s32 iNumPad, void* _pContCond)
 {
-	memcpy(_pContCond,&chankastData[iNumPad],sizeof(ChankastPadData)); 
+	memcpy(_pContCond,&chankastData[iNumPad],sizeof(ChankastPadData));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -102,7 +99,7 @@ static ChankastInputInterface ChankastInterface =
 	GetStatusPads,
 };
 
-extern "C" ChankastInputInterface __declspec(dllexport) *GetInputInterface()
+DllExport ChankastInputInterface *GetInputInterface()
 {
   return &ChankastInterface;
 }

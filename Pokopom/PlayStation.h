@@ -23,19 +23,13 @@
 
 #include <list>
 
-PlayStationDevice * controller[2] = {NULL, NULL};
-u32 bufferCount = 0, curPort = 0;
-
-bool isPs2Emulator = false;
-bool isPSemulator = false;
-
-struct freezeData 
+struct freezeData
 {
 	s32 size;
 	u8 *data;
 };
 
-struct keyEvent 
+struct keyEvent
 {
 	u32 key;
 	u32 evt;
@@ -48,3 +42,10 @@ struct _emuStuff
 } emuStuff;
 
 std::list <keyEvent> keyEventList;
+
+PlayStationDevice * controller[2] = {NULL, NULL};
+
+wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
+
+u32 bufferCount = 0, curPort = 0;
+u8 multitap = 0;

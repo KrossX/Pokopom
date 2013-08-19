@@ -88,7 +88,7 @@ namespace emupro
 	{
 		//	Test return values
 
-		// sucess, everything configured, and went OK.
+		// success, everything configured, and went OK.
 		const s32 ERR_SUCCESS = 0;
 
 		// ERRORS
@@ -101,16 +101,16 @@ namespace emupro
 		// WARNINGS
 		const s32 WARN = 40;
 		// if this driver emulates lame mode ie. can read only 2048 tracks and sector header is emulated
-		// this might happen to CDROMS that do not support RAW mode reading - surelly it will kill many games
+		// this might happen to CDROMS that do not support RAW mode reading - surely it will kill many games
 		const s32 WARN_LAMECD = WARN + 0;
 	}
 
 	/*         SPU PlugIn          */
 	namespace spu
 	{
-		// some info retricted (now!)
+		// some info restricted (now!)
 
-		// sucess, everything configured, and went OK.
+		// success, everything configured, and went OK.
 		const s32 ERR_SUCCESS = 0;
 
 		// ERRORS
@@ -126,7 +126,7 @@ namespace emupro
 		// WARNINGS
 		// this warning might be returned as undefined warning but allowing driver to continue
 		const s32 WARN = 60;
-	}	
+	}
 
 	/*         PAD PlugIn          */
 	namespace pad
@@ -159,7 +159,7 @@ namespace emupro
 		const s32 TYPE_ANALOGPAD = 7;
 
 
-		// sucess, everything configured, and went OK.
+		// success, everything configured, and went OK.
 		const s32 ERR_SUCCESS = 0;
 		// general plugin failure (undefined error)
 		const s32 ERR_FAILURE = -1;
@@ -181,12 +181,12 @@ namespace emupro
 
 		typedef struct
 		{
-			// controler type - fill it withe predefined values above
+			// controller type - fill it withe predefined values above
 			u8 controllerType;
-	
+
 			// status of buttons - every controller fills this field
 			u16 buttonStatus;
-	
+
 			// for analog pad fill those next 4 bytes
 			// values are analog in range 0-255 where 128 is center position
 			u8 rightJoyX, rightJoyY, leftJoyX, leftJoyY;

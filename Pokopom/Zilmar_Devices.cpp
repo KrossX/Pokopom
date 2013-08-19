@@ -17,7 +17,7 @@
 
 #include "General.h"
 #include "Zilmar_Devices.h"
-#include "XInput_Backend.h"
+#include "Input_Backend.h"
 #include "FileIO.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -30,15 +30,15 @@ Zilmar_Device::Zilmar_Device(_Settings &settings, Zilmar::CONTROL &control, u8 p
 	gamepadPlugged = false;
 };
 
-N64mempak::N64mempak(u8 port) : zPort(port) 
-{ 
+N64mempak::N64mempak(u8 port) : zPort(port)
+{
 	if(!Load())
 		memset(MEMPAK.RAW8, 0xFF, 0x8000);
 };
 
 N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 port) :
 	Zilmar_Device(settings, control, port), mempak(port)
-{	
+{
 	// 0x00 : No plugin
 	// 0x01 : Plugin ... plugged
 	// 0x02 : Plugin uninitialized
@@ -65,7 +65,7 @@ N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 p
 
 void Zilmar_Device::Recheck()
 {
-	gamepadPlugged = XInput::Recheck(set.xinputPort);
+	gamepadPlugged = Input::Recheck(set.xinputPort);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -74,8 +74,8 @@ void Zilmar_Device::Recheck()
 
 
 // DataCRC and basis for READ/WRITE_PACK stuff from Mupen64Plus
-// http://code.google.com/p/mupen64plus/ 
-// -. I was getting mad trying to make it work, and I already had 
+// http://code.google.com/p/mupen64plus/
+// -. I was getting mad trying to make it work, and I already had
 //    the CRC wrong. So yay Mupen and OpenSource-ness! =D
 
 
@@ -106,16 +106,16 @@ u8 N64mempak::CRC(u8 *data, s32 iLenght)
 void __fastcall N64mempak::ReadBlock(u8 *data, u16 address, bool rumble)
 {
 	u32 *dest = (u32*)data;
-	
+
 	if(rumble)
 	{
 		dest[0] = dest[1] = dest[2] = dest[3] = //
 		dest[4] = dest[5] = dest[6] = dest[7] = address < 0x400 ? 0 : 0x80808080;
 	}
 	else if(address < 0x400)
-	{	
+	{
 		u32 *src = (u32*)MEMPAK.BLOCK[address];
-					
+
 		dest[0] = src[0];	dest[1] = src[1];
 		dest[2] = src[2];	dest[3] = src[3];
 		dest[4] = src[4];	dest[5] = src[5];
@@ -141,8 +141,8 @@ void __fastcall N64mempak::WriteBlock(u8 *data, u16 address, bool rumble)
 	else if(address < 0x400)
 	{
 		u32 *dest = (u32*)MEMPAK.BLOCK[address];
-		
-		dest[0] = src[0];	dest[1] = src[1]; 
+
+		dest[0] = src[0];	dest[1] = src[1];
 		dest[2] = src[2];	dest[3] = src[3];
 		dest[4] = src[4];	dest[5] = src[5];
 		dest[6] = src[6];	dest[7] = src[7];
@@ -165,11 +165,11 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 	// cmd[2] - actual command
 
 	if(!gamepadPlugged)
-	{				
+	{
 		Recheck();
 
 		if(!gamepadPlugged)
-		{ 
+		{
 			zControl.Present = FALSE;
 			return;
 		}
@@ -178,7 +178,7 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 	}
 
 	switch(cmd[2]) // in / out, expected length
-	{	
+	{
 	case RAW_GET_STATUS: // 1 / 3
 		if(cmd[1] != 3) return;
 		GetStatus();
@@ -202,12 +202,12 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 			mempak.WriteBlock(&cmd[5], blockAddress, bRumble);
         }
 		break;
-	
+
 	case RAW_READ_ROM: break; // Handled by the emu?
 	case RAW_WRITE_ROM: break;// Handled by the emu?
-	
+
 	case RAW_RESET: break;
-	
+
 	default:
 		//printf("Pokopom(%d) -> Command\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
 		break;
@@ -221,21 +221,21 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	// cmd[1] - output length in bytes | also return errors here?
 	// cmd[2] - actual command
 
-	if(!gamepadPlugged)	
-	{				
+	if(!gamepadPlugged)
+	{
 		Recheck();
 		if(!gamepadPlugged)
-		{ 
+		{
 			zControl.Present = FALSE;
 			cmd[1] |= RAW_RET_ERROR;
 			return;
 		}
 		else
 			zControl.Present = TRUE;
-	}	
+	}
 
 	switch(cmd[2])
-	{	
+	{
 	case RAW_GET_STATUS:
 		if(cmd[1] != 3) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
 		cmd[3] = status.Mode;
@@ -246,7 +246,7 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	case RAW_READ_KEYS:
 		if(cmd[1] != 4) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
 
-		XInput::N64rumbleSwitch(set.xinputPort, bRumble, gamepadPlugged);
+		Input::N64rumbleSwitch(set.xinputPort, bRumble, gamepadPlugged);
 
 		if(!bPolled) Poll();	// Let's do a Poll here if there wasn't a command() before.
 		bPolled = false;		// For PJ64 that doesn't seem to use command() much.
@@ -254,11 +254,11 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 		cmd[3] = poll.RAW8[0];
 		cmd[4] = poll.RAW8[1];
 		cmd[5] = poll.RAW8[2];
-		cmd[6] = poll.RAW8[3];		
+		cmd[6] = poll.RAW8[3];
 		break;
 
 	case RAW_READ_PACK:
-		{            
+		{
 			u16 blockAddress = (cmd[3] << 3) | (cmd[4] >> 5);
 			//u16 crcAddress = cmd[4] & 0x1F; // Wut for?
 
@@ -266,7 +266,7 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 			mempak.ReadBlock(&cmd[5], blockAddress, bRumble);
 		}break;
 
-	case RAW_WRITE_PACK: break; // Handled on Command	
+	case RAW_WRITE_PACK: break; // Handled on Command
 
 	case RAW_READ_ROM: break; // Handled by the emu?
 	case RAW_WRITE_ROM: break;// Handled by the emu?
@@ -275,7 +275,7 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 		cmd[3] = status.Mode;
 		cmd[4] = status.EEPROM;
 		cmd[5] = status.Plugin;
-		break;	
+		break;
 
 	default:
 		//printf("Pokopom(%d) -> Read\t%2d %2d %02X\n", zPort, cmd[0], cmd[1], cmd[2]);
@@ -287,7 +287,7 @@ extern void __fastcall N64controllerPoll(u8 *outBuffer, _Settings &set, bool &ga
 
 void N64controller::Poll()
 {
-	XInput::N64controllerPoll(poll.RAW8, set, gamepadPlugged);
+	Input::N64controllerPoll(poll.RAW8, set, gamepadPlugged);
 }
 
 void N64controller::GetStatus()
@@ -296,5 +296,5 @@ void N64controller::GetStatus()
 
 void N64controller::RumbleIt(bool on)
 {
-	XInput::N64rumble(on, set, gamepadPlugged);
+	Input::N64rumble(on, set, gamepadPlugged);
 }

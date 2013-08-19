@@ -24,11 +24,11 @@
 #include <XInput.h>
 #pragma comment(lib, "Xinput.lib")
 
-#include "XInput_Backend.h"
+#include "Input_Backend.h"
 
 #include <math.h>
 
-namespace XInput
+namespace Input
 {
 	////////////////////////////////////////////////////////////////////////
 	// General
@@ -41,7 +41,7 @@ namespace XInput
 
 		return (result == ERROR_SUCCESS);
 	}
-		
+
 	void __fastcall Pause(bool pewpew) { XInputEnable(!pewpew); }
 
 	void __fastcall StopRumble(u8 port, bool &gamepadPlugged)
@@ -69,15 +69,15 @@ namespace XInput
 	{
 		return input > 0xFFFF ? 0xFFFF : (WORD)input;
 	}
-	
+
 	inline s32 ClampAnalog(f64 input)
 	{
 		return (s32)(input < -32768? -32768 : input > 32767 ? 32767 : input);
 	}
-	
+
 	template<u8 mode>
 	u16 __fastcall ConvertAnalog(s32 X, s32 Y, _Settings &set)
-	{							
+	{
 		// If input is dead, no need to check or do anything else
 		if((X == 0) && (Y == 0)) return mode == 0 ? 0x7F7F : 0;
 
@@ -89,7 +89,7 @@ namespace XInput
 
 		f64 rX = X/radius, rY = Y/radius;
 
-		if(set.linearity != 0) 
+		if(set.linearity != 0)
 			radius = pow(radius / set.extThreshold, set.linearity) * set.extThreshold;
 
 		if(deadzone > 0)
@@ -112,7 +112,7 @@ namespace XInput
 			{
 				X = ClampAnalog(rX * radius);
 				Y = ClampAnalog(rY * radius);
-				
+
 				Y = 32767 - Y;
 				X = X + 32767;
 
@@ -125,20 +125,20 @@ namespace XInput
 			} break;
 
 		case 1: // N64
-			{	
+			{
 				//radius modifier should go here...
 
 				X = ClampAnalog(rX * radius);
 				Y = ClampAnalog(rY * radius);
-				
+
 				s8 res[2];
 				res[0] = (s8)(X>>8);
 				res[1] = (s8)(Y>>8);
-				
+
 				result = *(u16*)&res;
 			} break;
 		}
-	
+
 		return  result;
 	}
 
@@ -147,19 +147,19 @@ namespace XInput
 	////////////////////////////////////////////////////////////////////////
 
 	void __fastcall DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
-	{	
+	{
 		XINPUT_STATE state;
-		DWORD result = XInputGetState(set.xinputPort, &state);	
-	
+		DWORD result = XInputGetState(set.xinputPort, &state);
+
 		u16 buttons, buttonsStick, analogL, analogR;
 		u8 triggerL, triggerR;
-		
+
 		buttons = buttonsStick = 0xFFFF;
 		analogL = analogR = 0x7F7F;
 		triggerL = triggerR = 0;
 
-		if(result == ERROR_SUCCESS) 
-		{	
+		if(result == ERROR_SUCCESS)
+		{
 			buttons = 0;
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK ? 0:1) << 0x0; // Select
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB ? 0:1) << 0x1; // L3
@@ -167,7 +167,7 @@ namespace XInput
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 0:1) << 0x3; // Start
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 0:1) << 0x4; // Up
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 0:1) << 0x5; // Right
-			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1) << 0x6; // Down		
+			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1) << 0x6; // Down
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1) << 0x7; // Left
 
 			buttons |= (state.Gamepad.bLeftTrigger > 10 ? 0:1) << 0x8; // L2
@@ -175,7 +175,7 @@ namespace XInput
 
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 0:1) << 0xA; // L1
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 0:1) << 0xB; // R1
-	
+
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1) << 0xC; // Triangle
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1) << 0xD; // Circle
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 0:1) << 0xE; // Cross
@@ -187,8 +187,8 @@ namespace XInput
 			set.axisValue[GP_AXIS_LY] = state.Gamepad.sThumbLY * (set.axisInverted[GP_AXIS_LY] ? -1 : 1);
 			set.axisValue[GP_AXIS_LX] = state.Gamepad.sThumbLX * (set.axisInverted[GP_AXIS_LX] ? -1 : 1);
 			set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
-			set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);		
-				
+			set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
+
 			if(state.Gamepad.sThumbLY > threshold) buttonsStick &= ~(1 << 0x4);
 			if(state.Gamepad.sThumbLX > threshold) buttonsStick &= ~(1 << 0x5);
 			if(state.Gamepad.sThumbLY < -threshold) buttonsStick &= ~(1 << 0x6);
@@ -199,15 +199,15 @@ namespace XInput
 			if(state.Gamepad.sThumbRY < -threshold) buttonsStick &= ~(1 << 0xE);
 			if(state.Gamepad.sThumbRX < -threshold) buttonsStick &= ~(1 << 0xF);
 
-			analogL = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_LX]], 
+			analogL = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_LX]],
 									set.axisValue[set.axisRemap[GP_AXIS_LY]], set);
 
-			analogR = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_RX]], 
+			analogR = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_RX]],
 									set.axisValue[set.axisRemap[GP_AXIS_RY]], set);
-		
+
 			triggerL = state.Gamepad.bLeftTrigger;
 			triggerR = state.Gamepad.bRightTrigger;
-		
+
 			//printf("Pokopom: %04X %04X\n", analogL, analogR);
 		}
 		else
@@ -217,42 +217,42 @@ namespace XInput
 		bufferOut[1] = buttonsStick;
 		bufferOut[2] = analogL;
 		bufferOut[3] = analogR;
-		bufferOut[4] = (triggerL << 8) | triggerR;				
+		bufferOut[4] = (triggerL << 8) | triggerR;
 	}
 
 	void __fastcall DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &gamepadPlugged)
-	{	
+	{
 		XINPUT_STATE state;
-		DWORD result = XInputGetState(set.xinputPort, &state);		
+		DWORD result = XInputGetState(set.xinputPort, &state);
 
 		if(result == ERROR_SUCCESS)
-		{			
+		{
 			//printf("Vibrate! [%X] [%X]\n", smalldata, bigdata);
-		
+
 			static XINPUT_VIBRATION vib;
-			static DWORD timerS = 0, timerB = 0;		
-		
+			static DWORD timerS = 0, timerB = 0;
+
 			if(smalldata)
-			{			
+			{
 				vib.wRightMotorSpeed = Clamp(0xFFFF * set.rumble);
-				timerS = GetTickCount();			
+				timerS = GetTickCount();
 			}
 			else if (vib.wRightMotorSpeed && GetTickCount() - timerS > 150)
-			{						
-				vib.wRightMotorSpeed = 0; 
+			{
+				vib.wRightMotorSpeed = 0;
 			}
 
 			/*
-			3.637978807091713*^-11 + 
-	  156.82454281087692 * x + -1.258165252213538 *  x^2 + 
+			3.637978807091713*^-11 +
+	  156.82454281087692 * x + -1.258165252213538 *  x^2 +
 	  0.006474549734772402 * x^3;
 	  */
 
 			if(bigdata)
-			{			
+			{
 				f64 broom = 0.006474549734772402 * pow(bigdata, 3.0) -
-					1.258165252213538 *  pow(bigdata, 2.0) + 
-					156.82454281087692 * bigdata + 
+					1.258165252213538 *  pow(bigdata, 2.0) +
+					156.82454281087692 * bigdata +
 					3.637978807091713e-11;
 
 
@@ -263,29 +263,29 @@ namespace XInput
 				else if(bigdata <= 0x53) broom = 0x13C7 + bigdata * 0x24;
 				else broom *= 0x205;
 				*/
-			
+
 				vib.wLeftMotorSpeed = Clamp(broom * set.rumble);
-				timerB = GetTickCount();					
+				timerB = GetTickCount();
 			}
 			else if (vib.wLeftMotorSpeed && GetTickCount() - timerB > 150)
-			{						
-				vib.wLeftMotorSpeed = 0; 
+			{
+				vib.wLeftMotorSpeed = 0;
 			}
 
 			/*
-		
+
 			vib.wRightMotorSpeed = smalldata == 0? 0 : 0xFFFF;
-			vib.wLeftMotorSpeed = bigdata * 0x101;	
+			vib.wLeftMotorSpeed = bigdata * 0x101;
 
 			vib.wRightMotorSpeed = Clamp(vib.wRightMotorSpeed * settings.rumble);
 			vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
 			*/
 
 			//printf("Vibrate! [%X] [%X]\n", vib.wLeftMotorSpeed, vib.wRightMotorSpeed);
-		
+
 
 			XInputSetState(set.xinputPort, &vib);
-		}	
+		}
 		else
 			gamepadPlugged = false;
 	}
@@ -311,8 +311,8 @@ namespace XInput
 
 		static bool analogToggle = false;
 
-		if(result == ERROR_SUCCESS) 
-		{	
+		if(result == ERROR_SUCCESS)
+		{
 			buttons = 0;
 
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1)	<< 0x1; // B
@@ -356,7 +356,7 @@ namespace XInput
 			}
 			else
 			{
-				analog = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_LX]], 
+				analog = ConvertAnalog<0>(set.axisValue[set.axisRemap[GP_AXIS_LX]],
 									   set.axisValue[set.axisRemap[GP_AXIS_LY]], set);
 
 				set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
@@ -372,22 +372,22 @@ namespace XInput
 			}
 
 		}
-		else 
+		else
 			gamepadPlugged = false;
 
 		// Buttons
 		buffer[2] = buttons | 0xF901;
-	
+
 		// Triggers
 		buffer[3] = triggers;
-	
+
 		// Left Stick
 		buffer[4] = analog;
-	
+
 		// Right Stick... not present.
 		buffer[5] = 0x8080;
 	}
-		
+
 	void __fastcall VibrationWatchdog(LPVOID param)
 	{
 		PuruPuruPack::_thread *pochy = (PuruPuruPack::_thread*)param;
@@ -395,7 +395,7 @@ namespace XInput
 		StopRumble(pochy->port, pochy->gamepadPlugged);
 	}
 
-	void __fastcall DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thread, 
+	void __fastcall DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thread,
 		_Settings &set, bool &gamepadPlugged)
 	{
 		XINPUT_STATE state;
@@ -409,21 +409,21 @@ namespace XInput
 
 		PuruPuruPack::_thread *th = (PuruPuruPack::_thread*)thread;
 		XINPUT_VIBRATION vib;
-			
+
 		u16 uIntensity = intensity < 0 ? -intensity : intensity;
-		
+
 		vib.wLeftMotorSpeed = freqH ? 0 : (WORD)((uIntensity * 9362) * set.rumble);
 		vib.wRightMotorSpeed = freqL ? 0 : (WORD)((uIntensity * 8192 + 8190) * set.rumble);
 
-		if(th->hThread) 
+		if(th->hThread)
 		{
 			TerminateThread(th->hThread, 0);
 			CloseHandle(th->hThread);
 			th->hThread = NULL;
 		}
-				
+
 		th->hThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, thread, 0, NULL);
-		
+
 		XInputSetState(set.xinputPort, &vib);
 	}
 
@@ -442,8 +442,8 @@ namespace XInput
 		N64_B,
 		N64_A,
 		N64_CRIGHT,
-		N64_CLEFT,		
-		N64_CDOWN,		
+		N64_CLEFT,
+		N64_CDOWN,
 		N64_CUP,
 		N64_TRIGGERR,
 		N64_TRIGGERL
@@ -478,7 +478,7 @@ namespace XInput
 			if((!rumble && !ledScrollLock) || (rumble && ledScrollLock))
 			{
 				keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-				keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );	
+				keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
 			}
 		}
 	}
@@ -493,8 +493,8 @@ namespace XInput
 
 		static bool analogToggle = false;
 
-		if(result == ERROR_SUCCESS) 
-		{	
+		if(result == ERROR_SUCCESS)
+		{
 			buttons = 0;
 
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 1:0) << N64_RIGHT;
@@ -504,7 +504,7 @@ namespace XInput
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 1:0)	  << N64_START;
 
 			buttons |= (state.Gamepad.bRightTrigger > 10? 1:0)	<< N64_TRIGGERZ;
-			
+
 			if(state.Gamepad.bLeftTrigger > 100)
 			{
 				buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_CLEFT;
@@ -522,7 +522,7 @@ namespace XInput
 
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ? 1:0) << N64_TRIGGERR;
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER ? 1:0)  << N64_TRIGGERL;
-		
+
 			if(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) analogToggle = false;
 			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) analogToggle = true;
 
@@ -535,7 +535,7 @@ namespace XInput
 
 			if(analogToggle)
 			{
-				analog = ConvertAnalog<1>(set.axisValue[set.axisRemap[GP_AXIS_RX]], 
+				analog = ConvertAnalog<1>(set.axisValue[set.axisRemap[GP_AXIS_RX]],
 									   set.axisValue[set.axisRemap[GP_AXIS_RY]], set);
 
 				set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
@@ -550,7 +550,7 @@ namespace XInput
 			}
 			else
 			{
-				analog = ConvertAnalog<1>(set.axisValue[set.axisRemap[GP_AXIS_LX]], 
+				analog = ConvertAnalog<1>(set.axisValue[set.axisRemap[GP_AXIS_LX]],
 									   set.axisValue[set.axisRemap[GP_AXIS_LY]], set);
 
 				set.axisValue[GP_AXIS_LY] *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
@@ -565,11 +565,11 @@ namespace XInput
 			}
 
 		}
-		else 
+		else
 			gamepadPlugged = false;
 
 		u16 * outBig = (u16*)outBuffer;
-	
+
 		outBig[0] = buttons;
 		outBig[1] = analog;
 	}
@@ -595,7 +595,7 @@ namespace XInput
 			}
 
 			XInputSetState(set.xinputPort, &vib);
-		}	
+		}
 		else
 			gamepadPlugged = false;
 	}

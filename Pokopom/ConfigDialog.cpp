@@ -16,7 +16,9 @@
  */
 
 #include "General.h"
+#include "ConfigDialog.h"
 
+#ifdef _WIN32
 #include <Uxtheme.h>
 #include <CommCtrl.h>
 
@@ -24,24 +26,20 @@
 #include "FileIO.h"
 
 #include "resource.h"
-#include "ConfigDialog.h"
 
-_Settings settings[4];
 HWND hChild, hParent = NULL;
-extern bool bKeepAwake;
-extern bool isPs2Emulator;
-extern bool isPSemulator;
 extern u8 multitap;
+extern HINSTANCE hInstance;
 
 void UpdateControls(HWND hDialog, s32 port)
-{		
+{
 	for(s32 i = 0; i<4; i++)
 	{
 		SendMessage(GetDlgItem(hDialog, i + 1027), CB_SETCURSEL, settings[port].axisRemap[i], 0);
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
-		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
+		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);
 	}
-	
+
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
 
@@ -58,7 +56,7 @@ void UpdateControls(HWND hDialog, s32 port)
 	}
 	else
 	{
-		if(!isPs2Emulator) 
+		if(!isPs2Emulator)
 			EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
 		else
 		{
@@ -66,13 +64,13 @@ void UpdateControls(HWND hDialog, s32 port)
 			EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
 		}
 	}
-	
+
 	s32 position = (s32)(settings[port].rumble * 100);
-	wchar_t text[8] = {0};					
-	
+	wchar_t text[8] = {0};
+
 	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_RUMBLE), TBM_SETPOS, TRUE, (LONG)position);
 	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_RUMBLE, text);	
+	SetDlgItemText(hDialog, IDC_TEXT_RUMBLE, text);
 
 	position = (s32)(settings[port].deadzone * 100);
 
@@ -97,15 +95,15 @@ void UpdateControls(HWND hDialog, s32 port)
 
 
 INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{	
+{
 	static s32 port;
-	
+
 	switch(uMsg)
 	{
-	case WM_INITDIALOG: 
-		{			
+	case WM_INITDIALOG:
+		{
 			port = TabCtrl_GetCurSel(GetDlgItem(GetParent(hwndDlg), IDC_TAB1));
-			
+
 			for(s32 control = 1027; control < 1033; control++)
 			{
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis LX");
@@ -114,57 +112,57 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RY");
 			}
 
-			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));		
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 90));
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY), TBM_SETRANGE, TRUE, MAKELONG(-30, 30));
-			
-			UpdateControls(hwndDlg, port);
-			
-			ShowWindow(hwndDlg, SW_SHOW);
-		} break;  
 
-	case WM_HSCROLL:	
+			UpdateControls(hwndDlg, port);
+
+			ShowWindow(hwndDlg, SW_SHOW);
+		} break;
+
+	case WM_HSCROLL:
 		{
-			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE)) 
+			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE))
 			{
 				wchar_t text[8] = {0};
 
 				s32 rumble = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE),TBM_GETPOS,0,0);
 				settings[port].rumble =  rumble / 100.0f;
-				
+
 				swprintf(text, 5, L"%d%%", rumble);
 				SetDlgItemText(hwndDlg, IDC_TEXT_RUMBLE, text);
 			}
-			else  if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE)) 
-			{	
+			else  if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE))
+			{
 				wchar_t text[8] = {0};
 
 				s32 deadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE),TBM_GETPOS,0,0);
 				settings[port].deadzone =  deadzone / 100.0f;
-				
+
 				swprintf(text, 5, L"%d%%", deadzone);
 				SetDlgItemText(hwndDlg, IDC_TEXT_DEADZONE, text);
 			}
-			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE)) 
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE))
 			{
 				wchar_t text[8] = {0};
 
 				s32 antiDeadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE),TBM_GETPOS,0,0);
 				settings[port].antiDeadzone =  antiDeadzone / 100.0f;
-				
+
 				swprintf(text, 5, L"%d%%", antiDeadzone);
 				SetDlgItemText(hwndDlg, IDC_TEXT_ANTIDEADZONE, text);
 			}
-			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY)) 
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY))
 			{
 				wchar_t text[8] = {0};
 
 				s32 linearity = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY),TBM_GETPOS,0,0);
-				
+
 				linearity = linearity < 0? linearity -10 : linearity > 0? linearity +10: linearity;
 				settings[port].linearity =  linearity / 10.0f;
-				
+
 				swprintf(text, 6, L"%1.2f", settings[port].linearity);
 				SetDlgItemText(hwndDlg, IDC_TEXT_LINEARITY, text);
 			}
@@ -180,7 +178,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_XINPUT2: settings[port].xinputPort = 1; break;
 			case IDC_XINPUT3: settings[port].xinputPort = 2; break;
 			case IDC_XINPUT4: settings[port].xinputPort = 3; break;
-			
+
 			case IDC_MODE_DIGITAL: settings[port].defaultAnalog = false; break;
 			case IDC_MODE_ANALOG: settings[port].defaultAnalog = true; break;
 
@@ -221,9 +219,9 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 		} break;
 
-	case WM_USER: if(wParam == 0xDEADBEEF) 
+	case WM_USER: if(wParam == 0xDEADBEEF)
 		{
-			port = lParam;	
+			port = lParam;
 			UpdateControls(hChild, port);
 		}
 		break;
@@ -238,24 +236,24 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 {
 	switch(uMsg)
 	{
-	case WM_INITDIALOG: 
+	case WM_INITDIALOG:
 		{
 			HWND hTabControl = GetDlgItem(hwndDlg, IDC_TAB1);
-			
-			TCITEM tci; 
+
+			TCITEM tci;
 			tci.mask = TCIF_TEXT | TCIF_IMAGE;
-			tci.iImage = -1; 
+			tci.iImage = -1;
 
 			tci.pszText = L"Controller 1";
-			TabCtrl_InsertItem(hTabControl, 0, &tci); 
+			TabCtrl_InsertItem(hTabControl, 0, &tci);
 
 			tci.pszText = L"Controller 2";
-			TabCtrl_InsertItem(hTabControl, 1, &tci); 
-			
+			TabCtrl_InsertItem(hTabControl, 1, &tci);
+
 			if(!isPSemulator || (!isPs2Emulator && multitap > 0))
 			{
 				tci.pszText = L"Controller 3";
-				TabCtrl_InsertItem(hTabControl, 2, &tci); 
+				TabCtrl_InsertItem(hTabControl, 2, &tci);
 
 				tci.pszText = L"Controller 4";
 				TabCtrl_InsertItem(hTabControl, 3, &tci);
@@ -269,9 +267,9 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_MULTITAP, multitap % 4);
-						
+
 			ShowWindow(hwndDlg, SW_SHOW);
-		} break;    
+		} break;
 
 	case WM_COMMAND:
 		{
@@ -293,12 +291,12 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 					{
 						if(tabs < 3)
 						{
-							TCITEM tci; 
+							TCITEM tci;
 							tci.mask = TCIF_TEXT | TCIF_IMAGE;
-							tci.iImage = -1; 
+							tci.iImage = -1;
 
 							tci.pszText = L"Controller 3";
-							TabCtrl_InsertItem(hTabControl, 2, &tci); 
+							TabCtrl_InsertItem(hTabControl, 2, &tci);
 
 							tci.pszText = L"Controller 4";
 							TabCtrl_InsertItem(hTabControl, 3, &tci);
@@ -323,8 +321,8 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 					SendMessage(hChild, WM_USER, 0xDEADBEEF, port);
 				}
 				break;
-			
-			case ID_OK: 
+
+			case ID_OK:
 					FileIO::INI_SaveSettings(); // SAVE SETTINGS
 			case ID_CANCEL:
 					EndDialog(hwndDlg, command); // .. and QUIT
@@ -341,18 +339,17 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 				SendMessage(hChild, WM_USER, 0xDEADBEEF, port);
 			}
 			break;
-		
+
 	default: return FALSE;
 	}
 
 	return TRUE;
 }
 
-
-void CreateDialogs (HINSTANCE hInstance, HWND _hParent)
+void CreateConfigDialog()
 {
-	hParent = _hParent;
-	
+	hParent = GetActiveWindow();
+
 	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_CONFIG), hParent, DialogProc, (LPARAM)hInstance);
 	MSG message;
 
@@ -363,5 +360,6 @@ void CreateDialogs (HINSTANCE hInstance, HWND _hParent)
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
-	} 
+	}
 }
+#endif // WIN32

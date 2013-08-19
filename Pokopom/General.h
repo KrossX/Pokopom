@@ -17,15 +17,38 @@
 
 #pragma once
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#ifdef _WIN32
+	#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#endif
+
+	#ifndef VC_EXTRALEAN
+	#define VC_EXTRALEAN
+	#endif
+
+	#include <Windows.h>
+
+	#ifdef __cplusplus
+	#define DllExport extern "C" __declspec(dllexport)
+	#else
+	#define DllExport __declspec(dllexport)
+	#endif
+#elif defined __linux__
+	#define CALLBACK
+	#define HWND void*
+
+	#ifdef __cplusplus
+	#define DllExport extern "C"
+	#else
+	#define DllExport
+	#endif
 #endif
 
-#ifndef VC_EXTRALEAN
-#define VC_EXTRALEAN
-#endif
-
-#include <Windows.h>
 #include <stdio.h>
 
 #include "..\..\Common\TypeDefs.h"
+
+extern bool isPs2Emulator;
+extern bool isPSemulator;
+extern bool bKeepAwake;
+extern s32 INIversion;

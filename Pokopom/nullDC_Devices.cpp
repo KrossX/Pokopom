@@ -1,6 +1,6 @@
 #include "General.h"
 #include "nullDC_Devices.h"
-#include "XInput_Backend.h"
+#include "Input_Backend.h"
 
 ////////////////////////////////////////////////////////////////////////
 // General and constructors
@@ -60,7 +60,7 @@ Dreamcast_DeviceInfo ControllerID =
 	"",
 };
 
-u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command, 
+u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
@@ -74,7 +74,7 @@ u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command,
 		PollOut(buffer_out);
 		buffer_out_len += 12;
 		return RET_DATA_TRANSFER;
-	
+
 	default:
 		printf("Pokopom Controller -> Unknown MAPLE command: %X\n", command);
 		return RET_UNKNOWN_COMMAND;
@@ -84,7 +84,7 @@ u32 __fastcall DreamcastController::DMA(void* device_instance, u32 command,
 
 void DreamcastController::PollOut(u32 *buffer_out)
 {
-	XInput::DreamcastPoll(buffer_out, set, gamepadPlugged);
+	Input::DreamcastPoll(buffer_out, set, gamepadPlugged);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -93,15 +93,15 @@ void DreamcastController::PollOut(u32 *buffer_out)
 
 Dreamcast_DeviceInfo RumbleID =
 {
-	{0x00010000, 0x00000101, 0, 0}, 
+	{0x00010000, 0x00000101, 0, 0},
 	{0xFF, 0},
 	"Puru Puru Pack\0",
 	"Produced By or Under License From SEGA ENTERPRISES,LTD.\0",
 	{0x00C8, 0x0640},
 	"Version 1.000,1998/11/10,315-6211-AH\0",
-};	
-	
-u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command, 
+};
+
+u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command,
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
 	switch(command)
@@ -112,7 +112,7 @@ u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command,
 		return RET_STATUS;
 
 	case GET_STATUS_EX:
-		memcpy(buffer_out, &RumbleID, 152);		
+		memcpy(buffer_out, &RumbleID, 152);
 		buffer_out_len += 152;
 		return RET_STATUS_EX;
 
@@ -148,7 +148,7 @@ u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command,
 
 		UpdateVibration();
 		return RET_DEVICE_REPLY;
-	
+
 	default:
 		printf("Pokopom Rumble -> Unknown MAPLE command: %X\n", command);
 		return RET_UNKNOWN_COMMAND;
@@ -157,17 +157,17 @@ u32 __fastcall PuruPuruPack::DMA(void* device_instance, u32 command,
 
 void PuruPuruPack::StopVibration()
 {
-	XInput::StopRumble(set.xinputPort, gamepadPlugged);
+	Input::StopRumble(set.xinputPort, gamepadPlugged);
 }
 
 void PuruPuruPack::UpdateVibration()
 {
 	s16 intensity = (s16)(rConfig.Mpow - rConfig.Ppow);
 
-	if(intensity == 0) 
+	if(intensity == 0)
 		StopVibration();
 	else
-		XInput::DreamcastRumble(intensity, rConfig.FREQ > FreqH, rConfig.FREQ < FreqL, 
+		Input::DreamcastRumble(intensity, rConfig.FREQ > FreqH, rConfig.FREQ < FreqL,
 			(LPVOID)&thread, set, gamepadPlugged);
-	
+
 }
