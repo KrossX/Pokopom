@@ -26,10 +26,11 @@
 #include "resource.h"
 #include "ConfigDialog.h"
 
-_Settings settings[2];
+_Settings settings[4];
 HWND hChild, hParent = NULL;
 extern bool bKeepAwake;
 extern bool isPs2Emulator;
+extern bool is_nullDC;
 
 void UpdateControls(HWND hDialog, int port)
 {		
@@ -39,9 +40,6 @@ void UpdateControls(HWND hDialog, int port)
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
 	}
-
-	SendMessage(GetDlgItem(hDialog, IDC_LINEARITY), CB_SETCURSEL, settings[port].linearity + 3, 0);
-	
 	CheckDlgButton(hDialog, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 
@@ -50,18 +48,38 @@ void UpdateControls(HWND hDialog, int port)
 
 	if(!isPs2Emulator) EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
 
-	int position = (int)(settings[port].deadzone * 100);
+	if(is_nullDC)
+	{
+		EnableWindow(GetDlgItem(hDialog, 1043), false);
+		EnableWindow(GetDlgItem(hDialog, 1044), false);
+	}
+
+	int position = (int)(settings[port].rumble * 100);
 	wchar_t text[8] = {0};					
 	
-	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_DEADZONE), TBM_SETPOS, TRUE, (LONG)position);
-	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_DEADZONE_P, text);
-
-	position = (int)(settings[port].rumble * 100);
-						
 	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_RUMBLE), TBM_SETPOS, TRUE, (LONG)position);
 	swprintf(text, 5, L"%d%%", position);
-	SetDlgItemText(hDialog, IDC_TEXT_RUMBLE_P, text);
+	SetDlgItemText(hDialog, IDC_TEXT_RUMBLE, text);	
+
+	position = (int)(settings[port].deadzone * 100);
+
+	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_DEADZONE), TBM_SETPOS, TRUE, (LONG)position);
+	swprintf(text, 5, L"%d%%", position);
+	SetDlgItemText(hDialog, IDC_TEXT_DEADZONE, text);
+
+	position = (int)(settings[port].antiDeadzone * 100);
+
+	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_ANTIDEADZONE), TBM_SETPOS, TRUE, (LONG)position);
+	swprintf(text, 5, L"%d%%", position);
+	SetDlgItemText(hDialog, IDC_TEXT_ANTIDEADZONE, text);
+
+	position = (int)(settings[port].linearity * 10);
+
+	swprintf(text, 6, L"%1.2f", position/10.0f);
+	SetDlgItemText(hDialog, IDC_TEXT_LINEARITY, text);
+
+	position = position > 0? position - 10 : position < 0 ? position +10 : position;
+	SendMessage(GetDlgItem(hDialog, IDC_SLIDER_LINEARITY), TBM_SETPOS, TRUE, (LONG)position);
 }
 
 
@@ -72,7 +90,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 	switch(uMsg)
 	{
 	case WM_INITDIALOG: 
-		{
+		{			
 			port = TabCtrl_GetCurSel(GetDlgItem(GetParent(hwndDlg), IDC_TAB1));
 			
 			for(int control = 1027; control < 1033; control++)
@@ -83,16 +101,10 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RY");
 			}
 
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-4");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-3");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"-2");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"0");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"2");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"3");
-			SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_ADDSTRING, 0, (LPARAM)L"4");
-			
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));		
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
-			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 90));
+			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY), TBM_SETRANGE, TRUE, MAKELONG(-30, 30));
 			
 			UpdateControls(hwndDlg, port);
 			
@@ -101,17 +113,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 	case WM_HSCROLL:	
 		{
-			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE)) 
-			{	
-				wchar_t text[8] = {0};
-
-				int deadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE),TBM_GETPOS,0,0);
-				settings[port].deadzone =  deadzone / 100.0f;
-				
-				swprintf(text, 5, L"%d%%", deadzone);
-				SetDlgItemText(hwndDlg, IDC_TEXT_DEADZONE_P, text);
-			}
-			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE)) 
+			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE)) 
 			{
 				wchar_t text[8] = {0};
 
@@ -119,8 +121,40 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				settings[port].rumble =  rumble / 100.0f;
 				
 				swprintf(text, 5, L"%d%%", rumble);
-				SetDlgItemText(hwndDlg, IDC_TEXT_RUMBLE_P, text);
-			}	
+				SetDlgItemText(hwndDlg, IDC_TEXT_RUMBLE, text);
+			}
+			else  if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE)) 
+			{	
+				wchar_t text[8] = {0};
+
+				int deadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE),TBM_GETPOS,0,0);
+				settings[port].deadzone =  deadzone / 100.0f;
+				
+				swprintf(text, 5, L"%d%%", deadzone);
+				SetDlgItemText(hwndDlg, IDC_TEXT_DEADZONE, text);
+			}
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE)) 
+			{
+				wchar_t text[8] = {0};
+
+				int antiDeadzone = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE),TBM_GETPOS,0,0);
+				settings[port].antiDeadzone =  antiDeadzone / 100.0f;
+				
+				swprintf(text, 5, L"%d%%", antiDeadzone);
+				SetDlgItemText(hwndDlg, IDC_TEXT_ANTIDEADZONE, text);
+			}
+			else if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY)) 
+			{
+				wchar_t text[8] = {0};
+
+				int linearity = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY),TBM_GETPOS,0,0);
+				
+				linearity = linearity < 0? linearity -10 : linearity > 0? linearity +10: linearity;
+				settings[port].linearity =  linearity / 10.0f;
+				
+				swprintf(text, 6, L"%1.2f", settings[port].linearity);
+				SetDlgItemText(hwndDlg, IDC_TEXT_LINEARITY, text);
+			}
 		} break;
 
 	case WM_COMMAND:
@@ -148,10 +182,6 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				break;
 			case IDC_COMBO_RY: if(HIWORD(wParam) == CBN_SELCHANGE)
 				settings[port].axisRemap[GP_AXIS_RY] = (short)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
-				break;
-
-			case IDC_LINEARITY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].linearity = (short)SendMessage(GetDlgItem(hwndDlg, IDC_LINEARITY), CB_GETCURSEL, 0, 0) - 3;
 				break;
 
 			case IDC_INVERT_LX:
@@ -205,6 +235,15 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			tci.pszText = L"Controller 2";
 			TabCtrl_InsertItem(hTabControl, 1, &tci); 
 
+			if(is_nullDC)
+			{
+				tci.pszText = L"Controller 3";
+				TabCtrl_InsertItem(hTabControl, 2, &tci); 
+
+				tci.pszText = L"Controller 4";
+				TabCtrl_InsertItem(hTabControl, 3, &tci);
+			}
+
 			hChild = CreateDialog((HINSTANCE)lParam, MAKEINTRESOURCE(IDD_INTAB), hwndDlg, DialogProc2);
 			EnableThemeDialogTexture(hChild, ETDT_ENABLETAB);
 						
@@ -217,6 +256,14 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			switch(command)
 			{
+			case IDRESET:
+				{
+					int port =  TabCtrl_GetCurSel(GetDlgItem(hwndDlg, IDC_TAB1));
+					settings[port].SetDefaults();
+					SendMessage(hChild, WM_USER, 0xDEADBEEF, port);
+				}
+				break;
+			
 			case ID_OK: 
 					INI_SaveSettings(); // SAVE SETTINGS
 			case ID_CANCEL:

@@ -19,6 +19,11 @@
 
 _Settings::_Settings()
 {
+	SetDefaults();
+}
+
+void _Settings::SetDefaults()
+{
 	defaultAnalog = false;
 	isGuitar = false;
 	xinputPort = 0;
@@ -26,7 +31,7 @@ _Settings::_Settings()
 	antiDeadzone = 0.0;
 	rumble = 1.0;
 	pressureRate = 10;
-	linearity = 0;
+	linearity = 0.0;
 	
 	extThreshold = 32767.0; // 40201 real max radius
 	extMult = 1.4142135623730950488016887242097; // sqrt(2)

@@ -45,6 +45,15 @@
     <ClInclude Include="ConfigDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nulldc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nulldc_plugin_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nullDC_Devices.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -69,6 +78,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nulldc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nullDC_Devices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

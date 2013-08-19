@@ -17,17 +17,12 @@
 
 #include "Controller.h"
 #include "General.h"
+#include "nullDC_Devices.h"
 
 #include <XInput.h>
 #pragma comment(lib, "Xinput.lib")
 
 #include <math.h>
-
-inline double Linearity(double radius, short linearity)
-{
-	const double exp = linearity > 0 ? linearity +1 : 1.0/(-linearity+1);
-	return pow(radius / 32768.0, exp) * 32768.0;
-}
 
 inline int ClampAnalog(double input)
 {
@@ -47,12 +42,11 @@ unsigned short ConvertAnalog(int X, int Y, _Settings &set)
 
 	double rX = X/radius, rY = Y/radius;
 
-	if(set.linearity != 0) radius = Linearity(radius, set.linearity);
+	if(set.linearity != 0) 
+		radius = pow(radius / set.extThreshold, set.linearity) * set.extThreshold;
 
 	if(deadzone > 0)
-	{	
 		radius =  (radius - deadzone) * set.extThreshold / (set.extThreshold - deadzone);
-	}
 
 	//Antideadzone, inspired by x360ce's setting
 	if(set.antiDeadzone > 0)
@@ -229,3 +223,53 @@ void Controller::vibration(unsigned char smalldata, unsigned char bigdata)
 
 void XInputPaused(bool pewpew)
 {	XInputEnable(!pewpew); }
+
+////////////////////////////////////////////////////////////////////////
+// nullDC stuff below...
+////////////////////////////////////////////////////////////////////////
+
+void DreamcastController::PollOut(unsigned int* buffer_out)
+{
+	XINPUT_STATE state;
+	DWORD result = XInputGetState(port, &state);
+
+	unsigned short* buffer = (unsigned short*) buffer_out;
+
+	// Some magic number...
+	buffer[0] = 0x0100;
+	buffer[1] = 0x0000;
+
+	unsigned short buttons = 0xFFFF;
+	unsigned short analog = 0x8080;
+	unsigned short triggers = 0x0000;
+
+	if(result == ERROR_SUCCESS) 
+	{	
+		unsigned short buttons = 0;
+
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1)	<< 0x1; // B
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 0:1)	<< 0x2; // A
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 0:1)		<< 0x3; // Start
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 0:1)		<< 0x4; // Up
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN ? 0:1)	<< 0x5; // Down
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT ? 0:1)	<< 0x6; // Left
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT ? 0:1)	<< 0x7; // Right
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 0:1)	<< 0x9; // X
+		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 0:1)	<< 0xA; // Y
+
+		triggers = ((state.Gamepad.bLeftTrigger&0xFF)<<8) | (state.Gamepad.bRightTrigger&0xFF);
+		analog = ConvertAnalog(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY, set);
+	}
+
+	// Buttons
+	buffer[2] = buttons | 0xF901;
+	
+	// Triggers
+	buffer[3] = triggers;
+	
+	// Left Stick
+	buffer[4] = analog;
+	
+	// Right Stick... not present.
+	buffer[5] = 0x8080;
+}

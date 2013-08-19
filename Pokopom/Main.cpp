@@ -20,9 +20,11 @@
 
 HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
-extern _Settings settings[2];
+extern _Settings settings[4];
 bool bScrollLock = false; // backup to restore on exit
 bool bKeepAwake = false; // Screensaver and stuff
+
+int INIversion = 2; // INI version
 
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build

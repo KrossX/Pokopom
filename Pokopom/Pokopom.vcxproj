@@ -68,6 +68,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <DisableSpecificWarnings>4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,6 +91,9 @@
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="nulldc.h" />
+    <ClInclude Include="nullDC_Devices.h" />
+    <ClInclude Include="nulldc_plugin_types.h" />
     <ClInclude Include="PSemuPro_Interface.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
@@ -101,6 +105,8 @@
     <ClCompile Include="ControllerGuitar.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="nulldc.cpp" />
+    <ClCompile Include="nullDC_Devices.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Xinput.cpp" />
   </ItemGroup>

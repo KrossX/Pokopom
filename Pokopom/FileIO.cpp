@@ -21,9 +21,10 @@
 #include "Settings.h"
 
 extern HINSTANCE hInstance;
-extern _Settings settings[2];
+extern _Settings settings[4];
 extern wchar_t  settingsDirectory[1024];
 extern bool bKeepAwake; 
+extern int INIversion;
 
 bool SaveEntry(wchar_t * section, int sectionNumber, wchar_t * key, int value, wchar_t * filename)
 {	
@@ -85,8 +86,9 @@ void INI_SaveSettings()
 	if(ready)
 	{		
 		SaveEntry(L"General", -1, L"KeepAwake", bKeepAwake?1:0, filename);
+		SaveEntry(L"General", -1, L"INIversion", INIversion, filename);
 		
-		for(int port = 0; port < 2; port++)
+		for(int port = 0; port < 4; port++)
 		{
 			int AxisInverted =	((settings[port].axisInverted[GP_AXIS_LX]?1:0) << 12) | ((settings[port].axisInverted[GP_AXIS_LY]?1:0) << 8) |
 											((settings[port].axisInverted[GP_AXIS_RX]?1:0) << 4) | (settings[port].axisInverted[GP_AXIS_RY]?1:0);
@@ -98,7 +100,7 @@ void INI_SaveSettings()
 			SaveEntry(L"Controller", port, L"AxisRemap", AxisRemap, filename);
 
 			SaveEntry(L"Controller", port, L"Pressure", settings[port].pressureRate, filename);
-			SaveEntry(L"Controller", port, L"Linearity", settings[port].linearity +3, filename);
+			SaveEntry(L"Controller", port, L"Linearity", (int)(settings[port].linearity * 10)+40, filename);
 
 			SaveEntry(L"Controller", port, L"AntiDeadzone", (int)(settings[port].antiDeadzone * 100), filename);
 			SaveEntry(L"Controller", port, L"Deadzone", (int)(settings[port].deadzone * 100), filename);
@@ -119,6 +121,8 @@ void INI_LoadSettings()
 {
 	settings[0].xinputPort = 0;
 	settings[1].xinputPort = 1;
+	settings[2].xinputPort = 2;
+	settings[3].xinputPort = 3;
 	
 	wchar_t filename[1024] = {0};
 	bool ready = false;
@@ -145,12 +149,13 @@ void INI_LoadSettings()
 	if(ready)
 	{
 		bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
+		if( ReadEntry(L"General", -1, L"INIversion", filename) != INIversion ) return;
 		
-		for(int port = 0; port < 2; port++)
+		for(int port = 0; port < 4; port++)
 		{
 			int result;
 						
-			result = ReadEntry(L"Controller", port, L"AxisInverted", filename);						
+			result = ReadEntry(L"Controller", port, L"AxisInverted", filename);
 			if(result != -1)
 			{
 				settings[port].axisInverted[GP_AXIS_RY] = (result & 0xF) ? true : false;
@@ -179,7 +184,7 @@ void INI_LoadSettings()
 			if(result != -1) settings[port].pressureRate = result & 0xFF;
 
 			result = ReadEntry(L"Controller", port, L"Linearity",  filename);
-			if(result != -1) settings[port].linearity = (result & 0xF) -3;
+			if(result != -1) settings[port].linearity = (result-40) / 10.0;
 
 			result = ReadEntry(L"Controller", port, L"AntiDeadzone",  filename);
 			if(result != -1) settings[port].antiDeadzone = result / 100.0f;

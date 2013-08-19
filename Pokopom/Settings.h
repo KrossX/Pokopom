@@ -29,6 +29,7 @@ class _Settings
 {
 public:
 	_Settings();
+	void SetDefaults();
 
 public:
 	bool defaultAnalog;
@@ -41,7 +42,7 @@ public:
 	int axisValue[4];
 
 	unsigned short pressureRate;
-	short linearity;
+	double linearity;
 
 	bool isGuitar;
 
