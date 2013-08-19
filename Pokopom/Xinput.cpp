@@ -128,7 +128,7 @@ void Controller::poll()
 		triggerL = state.Gamepad.bLeftTrigger;
 		triggerR = state.Gamepad.bRightTrigger;
 		
-		printf("Pokopom: %4d %4d | %4d %4d\n", (state.Gamepad.sThumbLX)/256 , (state.Gamepad.sThumbLY)/256,  (analogL & 0xFF) - 0x7F, ((analogL>>8) & 0xFF) - 0x7F);
+		//printf("Pokopom: %04X %04X\n", analogL, analogR);
 	}
 	else
 		gamepadPlugged = false;
