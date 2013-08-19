@@ -443,9 +443,9 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP ? 1:0)	  << N64_UP;
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START ? 1:0)	  << N64_START;
 
-		buttons |= (state.Gamepad.bRightTrigger > 10? 1:0)	<< N64_TRIGGERZ;
+		buttons |= (state.Gamepad.bLeftTrigger > 10? 1:0)	<< N64_TRIGGERZ;
 
-		if(state.Gamepad.bLeftTrigger > 100)
+		if(state.Gamepad.bRightTrigger > 100)
 		{
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X ? 1:0) << N64_CLEFT;
 			buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y ? 1:0) << N64_CUP;
@@ -471,7 +471,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		set.axisValue[GP_AXIS_RY] = state.Gamepad.sThumbRY * (set.axisInverted[GP_AXIS_RY] ? -1 : 1);
 		set.axisValue[GP_AXIS_RX] = state.Gamepad.sThumbRX * (set.axisInverted[GP_AXIS_RX] ? -1 : 1);
 
-		const s32 threshold = 16384;
+		const s32 threshold = 24500;
 
 		if(analogToggle)
 		{

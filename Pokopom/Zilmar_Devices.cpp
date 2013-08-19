@@ -202,7 +202,7 @@ void FASTCALL N64controller::Command(u8 *cmd) // Input ?
 			//printf("Pokopom -> WP\t%4X %4X\n", blockAddress, crcAddress);
 			if (bRumble && blockAddress == 0x600) RumbleIt(cmd[5] != 0);
 			mempak.WriteBlock(&cmd[5], blockAddress, bRumble);
-        }
+		}
 		break;
 
 	case RAW_READ_ROM: break; // Handled by the emu?

@@ -194,8 +194,8 @@ note: This function is only needed if the DLL is allowing raw data, or the plugi
 
 DllExport void CALL ControllerCommand(s32 port, u8 *cmd)
 {
-	//printf("Pokopom -> ControllerCommand\t(%2d) | %02X\n", port, *cmd);
-	if(port < 0) return;
+	if(port < 0 || cmd == NULL) return;
+	//printf("Pokopom -> ControllerCommand\t(%2d) | %02X\n", port, cmd[2]);
 	zController[port]->Command(cmd);
 }
 
@@ -211,8 +211,8 @@ note: This function is only needed if the DLL is allowing raw data.
 *************************************************************************************/
 DllExport void CALL ReadController(s32 port, u8 *cmd)
 {
-	//printf("Pokopom -> ReadController\t(%2d) | %02X\n", port, *cmd);
-	if(port < 0) return;
+	if(port < 0 || cmd == NULL) return;
+	//printf("Pokopom -> ReadController\t(%2d) | %02X\n", port, cmd[2]);
 	zController[port]->Read(cmd);
 }
 

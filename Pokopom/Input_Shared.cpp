@@ -65,7 +65,8 @@ u16 FASTCALL ConvertAnalog(s32 X, s32 Y, _Settings &set, u8 mode)
 			X = X < 0 ? 0 : X > 0xFFFF ? 0xFFFF : X;
 			Y = Y < 0 ? 0 : Y > 0xFFFF ? 0xFFFF : Y;
 
-			X >>= 8;	Y >>= 8;
+			X = (s32)(X / 256.5f);
+			Y = (s32)(Y / 256.5f);
 
 			result = (u16)((Y << 8) | X);
 		} break;
@@ -78,8 +79,8 @@ u16 FASTCALL ConvertAnalog(s32 X, s32 Y, _Settings &set, u8 mode)
 			Y = ClampAnalog(rY * radius);
 
 			s8 res[2];
-			res[0] = (s8)(X>>8);
-			res[1] = (s8)(Y>>8);
+			res[0] = (s8)(X / 256.5f);
+			res[1] = (s8)(Y / 256.5f);
 
 			u16 * r16 = (u16*)&res[0];
 			result = r16[0];
