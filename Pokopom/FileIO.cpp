@@ -307,4 +307,39 @@ namespace FileIO
 #endif
 	}
 
+
+
+	bool FASTCALL LoadEEPROM(u8 *data)
+	{
+#ifdef _WIN32
+		FILE *file = NULL;
+		file = fopen("Pokopom.eeprom", "r");
+
+		if(file != NULL)
+		{
+			fread(data, 1, 0x80, file);
+			fclose(file);
+			return true;
+		}
+		else
+			return false;
+#else
+		return false;
+#endif
+	}
+
+	void FASTCALL SaveEEPROM(u8 *data)
+	{
+#ifdef _WIN32
+		FILE *file = NULL;
+		file = fopen("Pokopom.eeprom", "w");
+
+		if(file != NULL)
+		{
+			fwrite(data, 1, 0x80, file);
+			fclose(file);
+		}
+#endif
+	}
+
 } // End namespace FileIO

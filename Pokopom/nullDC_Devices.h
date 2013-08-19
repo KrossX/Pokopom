@@ -55,6 +55,26 @@ public:
 		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
 };
 
+class NaomiController : public nullDC_Device
+{
+	NaomiController & operator = (const NaomiController & other) {}
+
+	u8 EEPROM[0x100];
+	struct { u8 cmd, mode, node; } State;
+
+	void FASTCALL SetState(u8 *in, u8 mode);
+
+protected:
+	void PollOut(u32* buffer_out);
+
+public:
+	NaomiController(u32 _port, _Settings &config);
+
+public:
+	u32 FASTCALL DMA(void* device_instance, u32 command,
+		u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len);
+};
+
 ////////////////////////////////////////////////////////////////////////
 
 union RumbleSettings
@@ -171,7 +191,23 @@ enum DMA_COMMAND
 	GET_MEDIA_INFO,
 	BLOCK_READ,
 	BLOCK_WRITE,
-	SET_CONDITION = 14
+	SET_CONDITION = 14,
+
+	STATE_NAME = 0x10,
+	STATE_CMD_VER = 0x11,
+	STATE_JAMMA_VER = 0x12,
+	STATE_COM_VER = 0x13,
+	STATE_FEATURES = 0x14,
+
+	JAMMA_EEPROM_READ = 0x03,
+	JAMMA_EEPROM_WRITE = 0x0B,
+	JAMMA_GET_CAPS = 0x15,
+	JAMMA_SUBDEVICE = 0x17,
+	JAMMA_TRANSFER_REPEAT = 0x21,
+	JAMMA_TRANSFER = 0x27,
+	JAMMA_GET_DATA = 0x33,
+	JAMMA_ID = 0x82,
+	JAMMA_CMD = 0x86
 };
 
 enum DMA_RETURN
@@ -182,6 +218,20 @@ enum DMA_RETURN
 	RET_DATA_TRANSFER,
 	RET_TRAMSMIT_AGAIN = 0xFC,
 	RET_UNKNOWN_COMMAND,
+	RET_JAMMA_ID = 0x83
+};
+
+enum NDC_DEVICES0 // NORMAL
+{
+	NDC0_DREAMCAST_CONTROLLER = 0,
+	NDC0_PURUPURU_PAKKU,
+	NDC0_ENDOFLIST
+};
+
+enum NDC_DEVICES2 // NAOMI
+{
+	NDC2_NAOMI_JAMMA = 0,
+	NDC2_ENDOFLIST
 };
 
 #endif // WIN32

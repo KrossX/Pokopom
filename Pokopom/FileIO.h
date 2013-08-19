@@ -24,4 +24,7 @@ namespace FileIO
 
 	bool FASTCALL LoadMempak(u8 *data, u8 port);
 	void FASTCALL SaveMempak(u8 *data, u8 port);
+
+	bool FASTCALL LoadEEPROM(u8 *data);
+	void FASTCALL SaveEEPROM(u8 *data);
 }

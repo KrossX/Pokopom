@@ -32,6 +32,8 @@ namespace Input
 	void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
 	void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, void* thread, _Settings &set, bool &gamepadPlugged);
 
+	void FASTCALL NaomiPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
+
 	void FASTCALL N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged);
 	void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
 	void FASTCALL N64rumble(bool on, _Settings &set, bool &gamepadPlugged);

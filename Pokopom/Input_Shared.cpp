@@ -281,6 +281,113 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 }
 
 ////////////////////////////////////////////////////////////////////////
+// NAOMI
+////////////////////////////////////////////////////////////////////////
+
+void FASTCALL NaomiPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugged)
+{
+	_Pad pad[2];
+
+	u8 * buffer = (u8*)buffer_out;
+	buffer = &buffer[26];
+
+	u8 service = 0;
+
+	//DWord analog[2]; 
+	Word player; 
+	
+	player.bits32 = 0;
+	//analog[0].bits64 = 0;
+	//analog[1].bits64 = 0;
+
+	static Word coin;
+	static bool coinPressed[2] = {false};
+	
+	for(u8 i = 0; i < 2; i++)
+		if(InputGetState(pad[i], settings[i]))
+	{
+		player.bits16[i] |= pad[i].buttons[X360_DRIGHT]<< NAOMI_DRIGHT;
+		player.bits16[i] |= pad[i].buttons[X360_DLEFT] << NAOMI_DLEFT;
+		player.bits16[i] |= pad[i].buttons[X360_DDOWN] << NAOMI_DDOWN;
+		player.bits16[i] |= pad[i].buttons[X360_DUP]   << NAOMI_DUP;
+
+		player.bits16[i] |= pad[i].buttons[X360_A] << NAOMI_BUTTON1;
+		player.bits16[i] |= pad[i].buttons[X360_B] << NAOMI_BUTTON2;
+
+		player.bits16[i] |= pad[i].buttons[X360_X] << NAOMI_BUTTON3;
+		player.bits16[i] |= pad[i].buttons[X360_Y] << NAOMI_BUTTON4;
+		player.bits16[i] |= pad[i].buttons[X360_LB] << NAOMI_BUTTON5;
+		player.bits16[i] |= pad[i].buttons[X360_RB] << NAOMI_BUTTON6;
+
+		/*
+		analog[i].bits16[0] = (pad[i].analog[X360_STICKLX] + 32768) & 0xFFFF;
+		analog[i].bits16[1] = (pad[i].analog[X360_STICKLY] + 32768) & 0xFFFF;
+		analog[i].bits16[2] = (pad[i].analog[X360_STICKRX] + 32768) & 0xFFFF;
+		analog[i].bits16[3] = (pad[i].analog[X360_STICKRY] + 32768) & 0xFFFF;
+		*/
+
+		u8 stickD = GetAnalogDigital(pad[i].modL);
+
+		player.bits16[i] |= (stickD & ANALOGD_XP) << NAOMI_DRIGHT;
+		player.bits16[i] |= ((stickD & ANALOGD_XN) >> 1) << NAOMI_DLEFT;
+		player.bits16[i] |= ((stickD & ANALOGD_YP) >> 2) << NAOMI_DUP;
+		player.bits16[i] |= ((stickD & ANALOGD_YN) >> 3) << NAOMI_DDOWN;
+
+		if(pad[i].analog[X360_TRIGGERL] > 100)
+		{
+			service |= pad[i].buttons[X360_START] << NAOMI_START;
+			player.bits16[i] |= pad[i].buttons[X360_BACK] << NAOMI_TEST;
+		}
+		else
+		{
+			player.bits16[i] |= pad[i].buttons[X360_START] << NAOMI_START;
+
+			if(pad[i].buttons[X360_BACK] && !coinPressed[i])
+			{
+				coinPressed[i] = true;
+				coin.bits16[i]++;
+			}
+			else if(coinPressed[i] && !pad[i].buttons[X360_BACK])
+				coinPressed[i] = false;
+		}
+	}
+
+	buffer[ 0] = 1; // Enabled?
+	buffer[ 1] = service;	
+	buffer[ 2] = player.bits8[0];
+	buffer[ 3] = player.bits8[1];
+	buffer[ 4] = player.bits8[2];
+	buffer[ 5] = player.bits8[3];
+	buffer[ 6] = 1;
+	buffer[ 7] = coin.bits8[1];
+	buffer[ 8] = coin.bits8[0];
+	buffer[ 9] = coin.bits8[3];
+	buffer[10] = coin.bits8[2];
+	buffer[11] = 0;
+
+	/* Analogs screw things up... =S */
+	/*
+	buffer[12] = analog[0].bits8[1];
+	buffer[13] = analog[0].bits8[0];
+	buffer[14] = analog[0].bits8[3];
+	buffer[15] = analog[0].bits8[2];
+	buffer[16] = analog[0].bits8[5];
+	buffer[17] = analog[0].bits8[4];
+	buffer[18] = analog[0].bits8[7];
+	buffer[19] = analog[0].bits8[6];
+	buffer[20] = 1;//analog[0].bits8[1];
+	buffer[21] = analog[0].bits8[0];
+	buffer[22] = analog[0].bits8[3];
+	buffer[23] = analog[0].bits8[2];
+	buffer[24] = analog[0].bits8[5];
+	buffer[25] = analog[0].bits8[4];
+	buffer[26] = analog[0].bits8[7];
+	buffer[27] = analog[0].bits8[6];
+	*/
+}
+
+
+////////////////////////////////////////////////////////////////////////
 // Zilmar
 ////////////////////////////////////////////////////////////////////////
 
