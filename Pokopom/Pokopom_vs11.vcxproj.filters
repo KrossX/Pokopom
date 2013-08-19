@@ -93,6 +93,9 @@
     <ClInclude Include="Input_Shared.h">
       <Filter>General\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="nullDC_plugin_types_old.h">
+      <Filter>Systems\Dreamcast\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Settings.cpp">

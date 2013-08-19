@@ -16,6 +16,7 @@
 
 #ifdef _WIN32
 
+u32 ndcVersion = 0;
 u8 dcPlatform = 0; // Default Dreamcast
 
 wchar_t pluginName[] = L"Pokopom XInput Plugin v2.0 by KrossX ";
@@ -28,81 +29,114 @@ nullDC_Device * ndcSubDevice[4][5] = {NULL};
 
 nullDC::emu_info nullDCemu;
 
-void FASTCALL dcGetInterfaceVersion(nullDC::plugin_interface* info)
+static u32 FASTCALL dcGetInterfaceVersion(void* data)
 {
 	HINSTANCE drkPlugin = LoadLibrary(L"drkMapleDevices_Win32.dll");
 
 	if(drkPlugin)
 	{	
-		typedef void (CALLBACK* drkPlugin_t)(nullDC::plugin_interface* info);
+		typedef void (CALLBACK* drkPlugin_t)(void* info);
 		drkPlugin_t drkInterface = (drkPlugin_t) GetProcAddress(drkPlugin, "dcGetInterface");
 
-		nullDC::plugin_interface drkInfo;
-		drkInterface(&drkInfo);
-
-		if((drkInfo.InterfaceVersion & 0xFFFFFF) == 0x020001)
-		{
-			info->InterfaceVersion = drkInfo.InterfaceVersion;
-			info->common.InterfaceVersion = drkInfo.common.InterfaceVersion;
-			dcPlatform = drkInfo.InterfaceVersion >> 24;
-		}
-		else
-		{
-			info->InterfaceVersion = PLUGIN_I_F_VERSION;
-			info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
-		}
-
+		u32 drkInfo[1024];
+		drkInterface(drkInfo);
 		FreeLibrary(drkPlugin);
+
+		if(drkInfo[0]) return drkInfo[0];
 	}
-	else
+
+	return PLUGIN_I_F_VERSION;
+}
+
+static void ndcInterfaceDevices(nullDC::maple_device_definition *devices)
+{
+	switch(dcPlatform)
 	{
-		info->InterfaceVersion = PLUGIN_I_F_VERSION;
-		info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
+	case DC_PLATFORM_NORMAL:
+		wcscpy_s(devices[NDC0_DREAMCAST_CONTROLLER].Name, dcController);
+		devices[NDC0_DREAMCAST_CONTROLLER].Type = nullDC::MDT_Main;
+		devices[NDC0_DREAMCAST_CONTROLLER].Flags = nullDC::MDTF_Sub0 | nullDC::MDTF_Sub1 | nullDC::MDTF_Hotplug;
+
+		wcscpy_s(devices[NDC0_PURUPURU_PAKKU].Name, puruPakku);
+		devices[NDC0_PURUPURU_PAKKU].Type = nullDC::MDT_Sub;
+		devices[NDC0_PURUPURU_PAKKU].Flags = nullDC::MDTF_Hotplug;
+
+		devices[NDC0_ENDOFLIST].Type = nullDC::MDT_EndOfList;
+		break;
+
+	case DC_PLATFORM_NAOMI:
+		wcscpy_s(devices[NDC2_NAOMI_JAMMA].Name, naomiJAMMA);
+		devices[NDC2_NAOMI_JAMMA].Type = nullDC::MDT_Main;
+		devices[NDC2_NAOMI_JAMMA].Flags = 0;
+
+		devices[NDC2_ENDOFLIST].Type = nullDC::MDT_EndOfList;
+		break;
+
+	default:
+		printf("Pokopom -> Warning! Unknown Platform: %d", dcPlatform);
 	}
 }
 
-
-DllExport void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
+static void ndcInterface103(nullDC_103::plugin_interface *info)
 {
-	//Debug("Pokopom -> GetInterface\n");
-	dcGetInterfaceVersion(info);
 	wcscpy_s(info->common.Name, pluginName);
 
-	// Assign callback functions
 	info->common.Load = Load;
 	info->common.Unload = Unload;
 	info->common.Type = nullDC::Plugin_Maple;
+	info->maple.CreateMain = CreateMain;
+	info->maple.CreateSub = CreateSub;
+	info->common.Unknown = 1;
+
+	info->InterfaceVersion = DC_MakeVersion(1,0,1);
+	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
+
+	info->maple.InitMain = InitMain;
+	info->maple.TermMain = TermMain;
+	info->maple.DestroyMain = DestroyMain;
+
+	info->maple.InitSub = InitMain;
+	info->maple.TermSub = TermMain;
+	info->maple.DestroySub = DestroyMain;
+
+	ndcInterfaceDevices(info->maple.devices);
+};
+
+static void ndcInterface104(nullDC::plugin_interface *info)
+{
+	wcscpy_s(info->common.Name, pluginName);
+	info->common.Load = Load;
+	info->common.Unload = Unload;
+	info->common.Type = nullDC::Plugin_Maple;
+
+	info->InterfaceVersion = PLUGIN_I_F_VERSION;
+	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
+
 	info->maple.CreateMain = CreateMain;
 	info->maple.CreateSub = CreateSub;
 	info->maple.Init = Init;
 	info->maple.Term = Term;
 	info->maple.Destroy = Destroy;
 
-	switch(dcPlatform)
+	ndcInterfaceDevices(info->maple.devices);
+};
+
+DllExport void CALLBACK dcGetInterface(void* data)
+{
+	//Debug("Pokopom -> GetInterface\n");
+	u32 ndcData = dcGetInterfaceVersion(data);
+	dcPlatform = (ndcData >> 24) & 0xFF;
+	ndcVersion = (ndcData >> 16) & 0xFF;
+
+	//printf("Pokopom -> %s: %08X, %08X\n", __FUNCTION__, ndcData, dcPlatform);
+	
+	switch(ndcVersion)
 	{
-	case DC_PLATFORM_NORMAL:
-		wcscpy_s(info->maple.devices[NDC0_DREAMCAST_CONTROLLER].Name, dcController);
-		info->maple.devices[NDC0_DREAMCAST_CONTROLLER].Type = nullDC::MDT_Main;
-		info->maple.devices[NDC0_DREAMCAST_CONTROLLER].Flags = nullDC::MDTF_Sub0 | nullDC::MDTF_Sub1 | nullDC::MDTF_Hotplug;
+	case nullDC_VER_103: ndcInterface103((nullDC_103::plugin_interface*)data); break;
+	case nullDC_VER_104: ndcInterface104((nullDC::plugin_interface*)data); break;
+	};
 
-		wcscpy_s(info->maple.devices[NDC0_PURUPURU_PAKKU].Name, puruPakku);
-		info->maple.devices[NDC0_PURUPURU_PAKKU].Type = nullDC::MDT_Sub;
-		info->maple.devices[NDC0_PURUPURU_PAKKU].Flags = nullDC::MDTF_Hotplug;
 
-		info->maple.devices[NDC0_ENDOFLIST].Type = nullDC::MDT_EndOfList;
-		break;
-
-	case DC_PLATFORM_NAOMI:
-		wcscpy_s(info->maple.devices[NDC2_NAOMI_JAMMA].Name, naomiJAMMA);
-		info->maple.devices[NDC2_NAOMI_JAMMA].Type = nullDC::MDT_Main;
-		info->maple.devices[NDC2_NAOMI_JAMMA].Flags = 0;
-
-		info->maple.devices[NDC2_ENDOFLIST].Type = nullDC::MDT_EndOfList;
-		break;
-
-	default:
-		printf("Pokopom -> Warning! Unknown Platform: %d", dcPlatform);
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -190,8 +224,17 @@ s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, 
 			return nullDC::rv_serror;
 	}
 
-	inst->data = inst;
-	inst->dma = MainDMA;
+	switch(ndcVersion)
+	{
+	case nullDC_VER_103: 
+		{
+			nullDC_103::maple_device_instance *inst103 = (nullDC_103::maple_device_instance*)inst;
+			inst103->dma  = MainDMA_103;
+		}
+		break;
+
+	case nullDC_VER_104: inst->dma  = MainDMA; break;
+	};
 
 	WCHAR temp[512];
 	swprintf(temp, sizeof(temp), L"Player %d settings...", (inst->port >> 6) + 1);
@@ -254,7 +297,18 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 	}
 
 	inst->data = inst;
-	inst->dma  = SubDMA;
+
+	switch(ndcVersion)
+	{
+	case nullDC_VER_103: 
+		{
+			nullDC_103::maple_subdevice_instance *inst103 = (nullDC_103::maple_subdevice_instance*)inst;
+			inst103->dma  = SubDMA_103;
+		}
+		break;
+
+	case nullDC_VER_104: inst->dma  = SubDMA; break;
+	};
 
 	return nullDC::rv_ok;
 }
@@ -289,6 +343,24 @@ void FASTCALL Destroy(void* data, u32 id)
 	//Debug("Pokopom -> Destroy [%d]\n", port);
 }
 
+//103////////////////////////////////////////////////////////////////////
+
+s32 FASTCALL InitMain(void* data, u32 id, nullDC::maple_init_params* params)
+{
+	return Init(data, id, params);
+}
+
+void FASTCALL TermMain(void* data, u32 id) { Term(data, id); }
+void FASTCALL DestroyMain(void* data, u32 id) {}
+
+s32 FASTCALL InitSub(void* data, u32 id, nullDC::maple_init_params* params)
+{
+	return Init(data, id, params);
+}
+
+void FASTCALL TermSub(void* data, u32 id) { Term(data, id); }
+void FASTCALL DestroySub(void* data, u32 id) {}
+
 ////////////////////////////////////////////////////////////////////////
 // Commands and stuff
 ////////////////////////////////////////////////////////////////////////
@@ -306,6 +378,20 @@ u32 FASTCALL SubDMA(void* device_instance, u32 command,
 	u8 port=((nullDC::maple_device_instance*)device_instance)->port>>6;
 	u8 subport = GetSubport(((nullDC::maple_device_instance*)device_instance)->port);
 	return ndcSubDevice[port][subport]->DMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
+}
+
+//103////////////////////////////////////////////////////////////////////
+
+void FASTCALL MainDMA_103(void* device_instance, u32 command,
+	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len, u32& response)
+{
+	response = MainDMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
+}
+
+void FASTCALL SubDMA_103(void* device_instance, u32 command,
+	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len, u32& response)
+{
+	response = SubDMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
 
 ////////////////////////////////////////////////////////////////////////

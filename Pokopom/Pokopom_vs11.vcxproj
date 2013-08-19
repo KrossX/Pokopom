@@ -96,6 +96,7 @@
     <ClInclude Include="General.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Input_Shared.h" />
+    <ClInclude Include="nullDC_plugin_types_old.h" />
     <ClInclude Include="PlayStation.h" />
     <ClInclude Include="nullDC.h" />
     <ClInclude Include="nullDC_Devices.h" />
