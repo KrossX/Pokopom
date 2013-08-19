@@ -12,10 +12,12 @@
 #include "nullDC_plugin_types.h"
 #include "nullDC_plugin_types_old.h"
 
+
 enum
 {
-	nullDC_VER_104 = 0x02,
-	nullDC_VER_103 = 0x01
+	nullDC_VER_10B = 0x00,
+	nullDC_VER_103,
+	nullDC_VER_104
 };
 
 

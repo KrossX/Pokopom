@@ -29,7 +29,12 @@ nullDC_Device * ndcSubDevice[4][5] = {NULL};
 
 nullDC::emu_info nullDCemu;
 
-static u32 FASTCALL dcGetInterfaceVersion(void* data)
+static inline u32 Pokopom_MakeVersion(u8 platform, u8 major, u8 minor, u8 build)
+{
+	 return (((platform)<<24)|((build)<<16)|((minor)<<8)|(major));
+}
+
+static u32 FASTCALL dcGetInterfaceVersion()
 {
 	HINSTANCE drkPlugin = LoadLibrary(L"drkMapleDevices_Win32.dll");
 
@@ -41,6 +46,14 @@ static u32 FASTCALL dcGetInterfaceVersion(void* data)
 		u32 drkInfo[1024];
 		drkInterface(drkInfo);
 		FreeLibrary(drkPlugin);
+
+		FILE *drkdump = fopen("drkdump.txt", "w");
+
+		if(drkdump)
+		{
+			fwrite(drkInfo, 1, 1024 * 4, drkdump);
+			fclose(drkdump);
+		}
 
 		if(drkInfo[0]) return drkInfo[0];
 	}
@@ -73,7 +86,7 @@ static void ndcInterfaceDevices(nullDC::maple_device_definition *devices)
 		break;
 
 	default:
-		printf("Pokopom -> Warning! Unknown Platform: %d", dcPlatform);
+		printf("Pokopom -> Error! Unknown Platform: %d", dcPlatform);
 	}
 }
 
@@ -86,10 +99,10 @@ static void ndcInterface103(nullDC_103::plugin_interface *info)
 	info->common.Type = nullDC::Plugin_Maple;
 	info->maple.CreateMain = CreateMain;
 	info->maple.CreateSub = CreateSub;
-	info->common.Unknown = 1;
-
-	info->InterfaceVersion = DC_MakeVersion(1,0,1);
-	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
+	
+	info->InterfaceVersion = Pokopom_MakeVersion(dcPlatform, 1, 0, 1);
+	info->common.InterfaceVersion = Pokopom_MakeVersion(dcPlatform, 1, 0, 0);
+	info->common.Unknown = Pokopom_MakeVersion(dcPlatform, 1, 0, 0);
 
 	info->maple.InitMain = InitMain;
 	info->maple.TermMain = TermMain;
@@ -109,8 +122,8 @@ static void ndcInterface104(nullDC::plugin_interface *info)
 	info->common.Unload = Unload;
 	info->common.Type = nullDC::Plugin_Maple;
 
-	info->InterfaceVersion = PLUGIN_I_F_VERSION;
-	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
+	info->InterfaceVersion = Pokopom_MakeVersion(dcPlatform, 1, 0, 2);
+	info->common.InterfaceVersion = Pokopom_MakeVersion(dcPlatform, 1, 0, 0);
 
 	info->maple.CreateMain = CreateMain;
 	info->maple.CreateSub = CreateSub;
@@ -121,19 +134,30 @@ static void ndcInterface104(nullDC::plugin_interface *info)
 	ndcInterfaceDevices(info->maple.devices);
 };
 
+/*
+Pokopom -> dcGetInterface: 01000001 // 1.0.0 Dreamcast
+Pokopom -> dcGetInterface: 00010001 // 1.0.3 Dreamcast
+Pokopom -> dcGetInterface: 02010001 // 1.0.3 NAOMI
+Pokopom -> dcGetInterface: 00020001 // 1.0.4 Dreamcast
+Pokopom -> dcGetInterface: 02020001 // 1.0.4 NAOMI
+*/
+
 DllExport void CALLBACK dcGetInterface(void* data)
 {
 	//Debug("Pokopom -> GetInterface\n");
-	u32 ndcData = dcGetInterfaceVersion(data);
+	u32 ndcData = dcGetInterfaceVersion();
 	dcPlatform = (ndcData >> 24) & 0xFF;
 	ndcVersion = (ndcData >> 16) & 0xFF;
 
-	//printf("Pokopom -> %s: %08X, %08X\n", __FUNCTION__, ndcData, dcPlatform);
+	printf("Pokopom -> %s: %08X\n", __FUNCTION__, ndcData);
 	
 	switch(ndcVersion)
 	{
 	case nullDC_VER_103: ndcInterface103((nullDC_103::plugin_interface*)data); break;
 	case nullDC_VER_104: ndcInterface104((nullDC::plugin_interface*)data); break;
+	
+	default:
+		printf("Pokopom -> Error! Unknown nullDC Version: %08X", ndcData);
 	};
 
 
@@ -145,7 +169,8 @@ DllExport void CALLBACK dcGetInterface(void* data)
 
 s32 FASTCALL Load(nullDC::emu_info* emu)
 {
-	//Debug("Pokopom -> Load\n");
+	DebugFunc();
+
 	if(emu == NULL) return nullDC::rv_error;
 	memcpy(&nullDCemu, emu, sizeof(nullDCemu));
 
@@ -157,6 +182,8 @@ s32 FASTCALL Load(nullDC::emu_info* emu)
 
 void FASTCALL Unload()
 {
+	DebugFunc();
+
 	for(u8 i = 0; i < 4; i++)
 	{
 		if(ndcDevice[i] != NULL)
@@ -183,7 +210,7 @@ void FASTCALL Unload()
 
 s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, u32 rootmenu)
 {
-	//Debug("Pokopom -> CreateMain [%X|%X]\n", inst->port, id);
+	Debug("Pokopom -> CreateMain [%X|%X]\n", inst->port >> 6, id);
 	u32 port = (inst->port >> 6);
 
 	switch(dcPlatform)
@@ -224,17 +251,19 @@ s32 FASTCALL CreateMain(nullDC::maple_device_instance* inst, u32 id, u32 flags, 
 			return nullDC::rv_serror;
 	}
 
+	inst->data = inst;
+
 	switch(ndcVersion)
 	{
 	case nullDC_VER_103: 
-		{
-			nullDC_103::maple_device_instance *inst103 = (nullDC_103::maple_device_instance*)inst;
-			inst103->dma  = MainDMA_103;
-		}
+		((nullDC_103::maple_device_instance*)inst)->dma = MainDMA_103;
 		break;
 
-	case nullDC_VER_104: inst->dma  = MainDMA; break;
+	case nullDC_VER_104: 
+		inst->dma  = MainDMA;
+		break;
 	};
+
 
 	WCHAR temp[512];
 	swprintf(temp, sizeof(temp), L"Player %d settings...", (inst->port >> 6) + 1);
@@ -265,7 +294,7 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 {
 	u8 port = inst->port>>6;
 	u8 subport = GetSubport(inst->port);
-	//Debug("Pokopom -> CreateSub [%X|%X|%X]\n", port, subport, id);
+	Debug("Pokopom -> CreateSub [%X|%X|%X]\n", port, subport, id);
 
 	switch(dcPlatform)
 	{
@@ -319,8 +348,8 @@ s32 FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, u32 id, u32 flags
 
 s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 {
-	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//Debug("Pokopom -> Init [%d]\n", port);
+	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	Debug("Pokopom -> Init [%d]\n", port);
 
 	Input::Pause(false);
 	KeepAwake(KEEPAWAKE_INIT);
@@ -330,8 +359,8 @@ s32 FASTCALL Init(void* data, u32 id, nullDC::maple_init_params* params)
 
 void FASTCALL Term(void* data, u32 id)
 {
-	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//Debug("Pokopom -> Term [%d]\n", port);
+	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	Debug("Pokopom -> Term [%d]\n", port);
 
 	Input::Pause(true);
 	KeepAwake(KEEPAWAKE_CLOSE);
@@ -339,8 +368,8 @@ void FASTCALL Term(void* data, u32 id)
 
 void FASTCALL Destroy(void* data, u32 id)
 {
-	//u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//Debug("Pokopom -> Destroy [%d]\n", port);
+	u32 port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	Debug("Pokopom -> Destroy [%d]\n", port);
 }
 
 //103////////////////////////////////////////////////////////////////////
@@ -368,6 +397,8 @@ void FASTCALL DestroySub(void* data, u32 id) {}
 u32 FASTCALL MainDMA(void* device_instance, u32 command,
 	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
+	DebugFunc();
+
 	u32 port=((nullDC::maple_device_instance*)device_instance)->port>>6;
 	return ndcDevice[port]->DMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
@@ -375,6 +406,8 @@ u32 FASTCALL MainDMA(void* device_instance, u32 command,
 u32 FASTCALL SubDMA(void* device_instance, u32 command,
 	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len)
 {
+	DebugFunc();
+
 	u8 port=((nullDC::maple_device_instance*)device_instance)->port>>6;
 	u8 subport = GetSubport(((nullDC::maple_device_instance*)device_instance)->port);
 	return ndcSubDevice[port][subport]->DMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
@@ -385,12 +418,16 @@ u32 FASTCALL SubDMA(void* device_instance, u32 command,
 void FASTCALL MainDMA_103(void* device_instance, u32 command,
 	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len, u32& response)
 {
+	DebugFunc();
+
 	response = MainDMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
 
 void FASTCALL SubDMA_103(void* device_instance, u32 command,
 	u32* buffer_in, u32 buffer_in_len, u32* buffer_out, u32& buffer_out_len, u32& response)
 {
+	DebugFunc();
+
 	response = SubDMA(device_instance, command, buffer_in, buffer_in_len, buffer_out, buffer_out_len);
 }
 
