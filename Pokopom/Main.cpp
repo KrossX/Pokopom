@@ -21,7 +21,8 @@
 HINSTANCE hInstance;
 wchar_t  settingsDirectory[1024] = {0}; // for PCSX2
 extern _Settings settings[2];
-bool bScrollLock; // backup to restore on exit
+bool bScrollLock = false; // backup to restore on exit
+bool bKeepAwake = false; // Screensaver and stuff
 
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build
@@ -88,16 +89,16 @@ int CALLBACK PADinit(int flags) // PAD INIT
 
 	if (flags & emupro::pad::USE_PORT1)
 	{
-		if(isPs2Emulator)	controller[0] = new Controller2(settings[0]);
+		if(isPs2Emulator) controller[0] = settings[0].isGuitar? new ControllerGuitar(settings[0]) : new Controller2(settings[0]);
 		else controller[0] = new Controller(settings[0]);		
 	}
 
 	if (flags & emupro::pad::USE_PORT2)
 	{
-		if(isPs2Emulator)	controller[1] = new Controller2(settings[1]);
+		if(isPs2Emulator) controller[1] = settings[1].isGuitar? new ControllerGuitar(settings[1]) : new Controller2(settings[1]);
 		else controller[1] = new Controller(settings[1]);		
 	}
-		
+	
 	return emupro::INIT_ERR_SUCCESS;
 }
 
@@ -156,8 +157,11 @@ extern void XInputPaused(bool pewpew);
 
 int CALLBACK PADopen(emupro::pad::DataS* ppis) // PAD OPEN
 {	
-	//printf("Pokopom -> PADopen\n");	
+	//printf("Pokopom -> PADopen\n");
 	XInputPaused(false);
+
+	if(bKeepAwake)
+		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
 	if(isPs2Emulator)
 	{	
@@ -173,6 +177,9 @@ int CALLBACK PADclose(void) // PAD CLOSE
 	//printf("Pokopom -> PADclose\n");
 	XInputPaused(true);
 
+	if(bKeepAwake)
+		SetThreadExecutionState(ES_CONTINUOUS);
+
 	if(isPs2Emulator)
 		SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)emuStuff.WndProc);
 
@@ -186,8 +193,7 @@ int CALLBACK PADclose(void) // PAD CLOSE
 int CALLBACK PADconfigure(void)
 {			
 	INI_LoadSettings();
-	CreateDialogs(hInstance);
-
+	CreateDialogs(hInstance, GetActiveWindow());
 
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -277,6 +283,8 @@ unsigned char CALLBACK PADstartPoll(int port)
 
 	//if(curPort == 0) printf("\n[%02d] [%02X|%02X]\n", bufferCount, 0x01, data);
 	//printf("\n[%02d|%02d] [%02X|%02X]\n", bufferCount, curPort, 0x01, data);
+
+	if(bKeepAwake) mouse_event( MOUSEEVENTF_MOVE, 0, 0, 0, NULL);
 
 	return data;
 }

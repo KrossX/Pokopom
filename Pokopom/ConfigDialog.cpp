@@ -27,7 +27,9 @@
 #include "ConfigDialog.h"
 
 _Settings settings[2];
-HWND hChild = NULL;
+HWND hChild, hParent = NULL;
+extern bool bKeepAwake;
+extern bool isPs2Emulator;
 
 void UpdateControls(HWND hDialog, int port)
 {		
@@ -37,9 +39,14 @@ void UpdateControls(HWND hDialog, int port)
 		CheckDlgButton(hDialog, i + 1031, settings[port].axisInverted[i] ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);	
 	}
-		
+	
+	CheckDlgButton(hDialog, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
+
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1044:1043, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? 1043:1044, BST_UNCHECKED);
+
+	if(!isPs2Emulator) EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
 
 	int position = (int)(settings[port].deadzone * 100);
 	wchar_t text[8] = {0};					
@@ -72,18 +79,18 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis LY");
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RX");
 				SendMessage(GetDlgItem(hwndDlg, control), CB_ADDSTRING, 0, (LPARAM)L"Axis RY");
-			}		
-												
+			}	
+			
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE), TBM_SETRANGE, TRUE, MAKELONG(0, 100));			
 			SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE), TBM_SETRANGE, TRUE, MAKELONG(0, 200));
 			
 			UpdateControls(hwndDlg, port);
-				
+			
 			ShowWindow(hwndDlg, SW_SHOW);
 		} break;  
 
 	case WM_HSCROLL:	
-		{											
+		{
 			if((HWND)lParam == GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE)) 
 			{	
 				wchar_t text[8] = {0};
@@ -100,7 +107,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 				int rumble = SendMessage(GetDlgItem(hwndDlg, IDC_SLIDER_RUMBLE),TBM_GETPOS,0,0);
 				settings[port].rumble =  rumble / 100.0f;
-								
+				
 				swprintf(text, 5, L"%d%%", rumble);
 				SetDlgItemText(hwndDlg, IDC_TEXT_RUMBLE_P, text);
 			}	
@@ -111,7 +118,7 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			short command = LOWORD(wParam);
 
 			switch(command)
-			{				
+			{
 			case IDC_XINPUT1: settings[port].xinputPort = 0; break;
 			case IDC_XINPUT2: settings[port].xinputPort = 1; break;
 			case IDC_XINPUT3: settings[port].xinputPort = 2; break;
@@ -145,12 +152,16 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_INVERT_RY:
 				settings[port].axisInverted[GP_AXIS_RY] = IsDlgButtonChecked(hwndDlg, IDC_INVERT_RY) == BST_CHECKED? true:false;
 				break;
+
+			case IDC_SCREENSAVER:
+				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED? true:false;
+				break;
 			}
 
 		} break;
 
 	case WM_USER: if(wParam == 0xDEADBEEF) 
-		{			
+		{
 			port = lParam;	
 			UpdateControls(hChild, port);
 		}
@@ -191,24 +202,25 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			short command = LOWORD(wParam);
 
 			switch(command)
-			{				
-			case ID_OK: INI_SaveSettings(); PostQuitMessage(0); break; // SAVE SETTINGS and QUIT			
-			case ID_CANCEL: PostQuitMessage(0); break;
+			{
+			case ID_OK: 
+					INI_SaveSettings(); // SAVE SETTINGS
+			case ID_CANCEL:
+					EndDialog(hwndDlg, command); // .. and QUIT
+					PostQuitMessage(0);
+					break;
 			}
 
 		} break;
 
-	case WM_NOTIFY:		
+	case WM_NOTIFY:
 			if ( ((LPNMHDR)lParam)->idFrom==IDC_TAB1 && ((LPNMHDR)lParam)->code == TCN_SELCHANGE  )
-			{								
+			{
 				int port =  TabCtrl_GetCurSel(GetDlgItem(hwndDlg, IDC_TAB1));
 				SendMessage(hChild, WM_USER, 0xDEADBEEF, port);				
 			}
 			break;
-
-	case WM_DESTROY: PostQuitMessage(0); break;
-	case WM_CLOSE: DestroyWindow(hwndDlg); break;
-	
+		
 	default: return FALSE;
 	}
 
@@ -216,13 +228,15 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 }
 
 
-void CreateDialogs (HINSTANCE hInstance)
+void CreateDialogs (HINSTANCE hInstance, HWND _hParent)
 {
-	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_CONFIG), 0, DialogProc, (LPARAM)hInstance);
+	hParent = _hParent;
+	
+	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_CONFIG), hParent, DialogProc, (LPARAM)hInstance);
 	MSG message;
 
 	while(GetMessage(&message, NULL, NULL, NULL))
-	{		
+	{
 		if(hChild == NULL || !IsDialogMessage(hChild, &message))
 		{
 			TranslateMessage(&message);

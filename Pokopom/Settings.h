@@ -39,6 +39,8 @@ public:
 	short axisRemap[4];
 	int axisValue[4];
 
+	bool isGuitar;
+
 private:
 	_Settings(const _Settings &);
 	_Settings& operator=(const _Settings &);

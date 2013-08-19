@@ -23,11 +23,16 @@
 extern HINSTANCE hInstance;
 extern _Settings settings[2];
 extern wchar_t  settingsDirectory[1024];
+extern bool bKeepAwake; 
 
 bool SaveEntry(wchar_t * section, int sectionNumber, wchar_t * key, int value, wchar_t * filename)
 {	
 	wchar_t controller[512] = {0};
-	swprintf(controller, 512, L"%s%d", section, sectionNumber);
+
+	if(sectionNumber < 0)
+		swprintf(controller, 512, L"%s", section);
+	else
+		swprintf(controller, 512, L"%s%d", section, sectionNumber);
 
 	wchar_t valuestring[512] = {0};
 	swprintf(valuestring, 512, L"%d", value);
@@ -38,7 +43,11 @@ bool SaveEntry(wchar_t * section, int sectionNumber, wchar_t * key, int value, w
 int ReadEntry(wchar_t * section, int sectionNumber, wchar_t * key, wchar_t * filename)
 {	
 	wchar_t controller[512] = {0};
-	swprintf(controller, 512, L"%s%d", section, sectionNumber);
+
+	if(sectionNumber < 0)
+		swprintf(controller, 512, L"%s", section);
+	else
+		swprintf(controller, 512, L"%s%d", section, sectionNumber);
 	
 	int returnInteger = -1;
 	wchar_t returnvalue[512] = {0};
@@ -75,6 +84,8 @@ void INI_SaveSettings()
 
 	if(ready)
 	{		
+		SaveEntry(L"General", -1, L"KeepAwake", bKeepAwake?1:0, filename);
+		
 		for(int port = 0; port < 2; port++)
 		{
 			int AxisInverted =	((settings[port].axisInverted[GP_AXIS_LX]?1:0) << 12) | ((settings[port].axisInverted[GP_AXIS_LY]?1:0) << 8) |
@@ -91,6 +102,7 @@ void INI_SaveSettings()
 
 			SaveEntry(L"Controller", port, L"XInputPort", settings[port].xinputPort, filename);
 			SaveEntry(L"Controller", port, L"DefautMode", settings[port].defaultAnalog ? 1 : 0, filename);
+			SaveEntry(L"Controller", port, L"GuitarController", settings[port].isGuitar ? 1 : 0, filename);
 						
 		}		
 	}
@@ -126,6 +138,8 @@ void INI_LoadSettings()
 
 	if(ready)
 	{
+		bKeepAwake = ReadEntry(L"General", -1, L"KeepAwake", filename) == 1 ? true : false;
+		
 		for(int port = 0; port < 2; port++)
 		{
 			int result;
@@ -159,7 +173,10 @@ void INI_LoadSettings()
 
 			result = ReadEntry(L"Controller", port, L"DefautMode", filename);
 			if(result != -1) settings[port].defaultAnalog = result == 1? true : false;
-						
-		}		
+			
+			result = ReadEntry(L"Controller", port, L"GuitarController", filename);
+			if(result != -1) settings[port].isGuitar = result == 1? true : false;
+			
+		}
 	}
 }

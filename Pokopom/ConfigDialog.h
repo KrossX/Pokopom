@@ -18,4 +18,4 @@
 #pragma once
 
 
-void CreateDialogs (HINSTANCE hInstance);
+void CreateDialogs (HINSTANCE hInstance, HWND hParent);

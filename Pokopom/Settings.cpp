@@ -20,6 +20,7 @@
 _Settings::_Settings()
 {
 	defaultAnalog = false;
+	isGuitar = false;
 	xinputPort = 0;
 	deadzone = 0.0;
 	rumble = 1.0;
