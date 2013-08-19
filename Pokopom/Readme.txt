@@ -39,6 +39,8 @@ lots. Site: http://www.geocities.co.jp/Playtown-Rook/2087/
 Tons of thanks to Curious Inventor too, for this great source of information:
 http://store.curiousinventor.com/guides/ps2/
 
+Thanks to H.Kashima, fundamental information to get multitap working
+http://kaele.com/~kashima/games/ps_jpn.txt
 
 = Contact =
 KrossX, krossx@live.com
