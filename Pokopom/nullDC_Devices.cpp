@@ -20,8 +20,7 @@ NaomiController::NaomiController(u32 _port, _Settings &config) : nullDC_Device(_
 	FileIO::LoadEEPROM(EEPROM);
 }
 
-PuruPuruPack::PuruPuruPack(u32 _port, _Settings &config) : nullDC_Device(_port, config),
-	thread(hVibrationThread, Watchdog_ms, set.xinputPort, gamepadPlugged)
+PuruPuruPack::PuruPuruPack(u32 _port, _Settings &config) : nullDC_Device(_port, config)
 {
 	AST = 0x13; // 5 seconds in 0.25s units
 	AST_ms = AST * 250 + 250; // 5000ms
@@ -73,12 +72,12 @@ u32 FASTCALL DreamcastController::DMA(void* device_instance, u32 command,
 	{
 	case GET_STATUS:
 		memcpy(buffer_out, &ControllerID, 112);
-		buffer_out_len += 112;
+		buffer_out_len = 112;
 		return RET_STATUS;
 
 	case GET_CONDITION:
 		PollOut(buffer_out);
-		buffer_out_len += 12;
+		buffer_out_len = 12;
 		return RET_DATA_TRANSFER;
 
 	default:
@@ -353,7 +352,7 @@ u32 FASTCALL PuruPuruPack::DMA(void* device_instance, u32 command,
 
 void PuruPuruPack::StopVibration()
 {
-	Input::StopRumble(set.xinputPort, gamepadPlugged);
+	Input::StopRumble(set.xinputPort);
 }
 
 void PuruPuruPack::UpdateVibration()
@@ -363,9 +362,13 @@ void PuruPuruPack::UpdateVibration()
 	if(intensity == 0)
 		StopVibration();
 	else
-		Input::DreamcastRumble(intensity, rConfig.FREQ > FreqH, rConfig.FREQ < FreqL,
-			(LPVOID)&thread, set, gamepadPlugged);
+	{
+		if(rConfig.CNT)
+			printf("Pokopom Rumble -> Continuous mode not implemented!\n");
 
+		Input::DreamcastRumble(intensity, rConfig.FREQ > FreqH, rConfig.FREQ < FreqL,
+			Watchdog_ms, set, gamepadPlugged, hVibrationThread);
+	}
 }
 
 #endif // WIN32

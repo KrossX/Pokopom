@@ -28,7 +28,6 @@ PlayStationDevice::PlayStationDevice(_Settings &config, u16 bufferSize) :
 	settings(config), sizeBuffer(bufferSize)
 {
 	gamepadPlugged = false;
-	disabled = false;
 
 	cmdBuffer = new u8[sizeBuffer];
 	dataBuffer = new u8[sizeBuffer];
@@ -44,7 +43,7 @@ PlayStationDevice::~PlayStationDevice()
 
 void PlayStationDevice::Recheck()
 {
-	gamepadPlugged = disabled? false : Input::Recheck(settings.xinputPort);
+	gamepadPlugged = Input::Recheck(settings.xinputPort);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -308,7 +307,7 @@ void DualShock::Cmd8(const u8 data)
 void DualShock::poll()
 {
 	u16 buffer[5];
-	Input::DualshockPoll(buffer, settings, gamepadPlugged);
+	Input::DualshockPoll(buffer, settings, gamepadPlugged, padID == ID_DIGITAL);
 
 	buttons = buffer[0];
 	buttonsStick = buffer[1];

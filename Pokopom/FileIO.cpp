@@ -162,6 +162,7 @@ namespace FileIO
 				SaveEntry("Controller", port, "ExtentionThreshold", (s32)(settings[port].extThreshold), iniFile);
 
 				SaveEntry("Controller", port, "XInputPort", settings[port].xinputPort, iniFile);
+				SaveEntry("Controller", port, "Disabled", settings[port].disabled ? 1 : 0, iniFile);
 				SaveEntry("Controller", port, "DefautMode", settings[port].defaultAnalog ? 1 : 0, iniFile);
 				SaveEntry("Controller", port, "GuitarController", settings[port].isGuitar ? 1 : 0, iniFile);
 				SaveEntry("Controller", port, "GreenAnalog", settings[port].greenAnalog ? 1 : 0, iniFile);
@@ -247,6 +248,9 @@ namespace FileIO
 				result = ReadEntry("Controller", port, "XInputPort", iniFile);
 				if(result != -1) settings[port].xinputPort = result & 0xF;
 
+				result = ReadEntry("Controller", port, "Disabled", iniFile);
+				if(result != -1) settings[port].disabled = result == 1? true : false;
+
 				result = ReadEntry("Controller", port, "DefautMode", iniFile);
 				if(result != -1) settings[port].defaultAnalog = result == 1? true : false;
 
@@ -255,7 +259,6 @@ namespace FileIO
 
 				result = ReadEntry("Controller", port, "GuitarController", iniFile);
 				if(result != -1) settings[port].isGuitar = result == 1? true : false;
-
 			}
 
 			fclose(iniFile);

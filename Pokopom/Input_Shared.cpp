@@ -23,6 +23,10 @@ namespace Input
 {
 const u16 ANALOG_TRESHOLD = 12540;
 
+const f64 PI = 3.14159265358979323846;
+const f64 PI_HALF = PI / 2.0;
+const f64 PI_2 = 2 * PI;
+
 void FASTCALL GetRadius(_Stick& stick)
 {
 	f64 X = stick.X;
@@ -36,11 +40,49 @@ u8 FASTCALL GetAnalogDigital(_Stick& stick)
 
 	if(stick.radius > 28000)
 	{
-		if(stick.X > ANALOG_TRESHOLD) data |= ANALOGD_XP;
-		else if(stick.X < -ANALOG_TRESHOLD) data |= ANALOGD_XN;
+		f64 angle = atan2((f64)stick.Y, (f64)stick.X) / PI_2;
+		stick.angle = angle = angle < 0 ? angle + 1 : angle;
 
-		if(stick.Y > ANALOG_TRESHOLD) data |= ANALOGD_YP;
-		else if(stick.Y < -ANALOG_TRESHOLD) data |= ANALOGD_YN;
+		u8 angled = (u8)(angle * 16);
+		
+		switch(angled)
+		{
+		case 0: 
+			data = ANALOGD_XP; 
+			break;
+
+		case 1: case 2: 
+			data = ANALOGD_XP | ANALOGD_YP;
+			break;
+
+		case 3: case 4: 
+			data = ANALOGD_YP;
+			break;
+
+		case 5: case 6: 
+			data = ANALOGD_XN | ANALOGD_YP;
+			break;
+
+		case 7: case 8: 
+			data = ANALOGD_XN;
+			break;
+
+		case 9: case 10: 
+			data = ANALOGD_XN | ANALOGD_YN;
+			break;
+
+		case 11: case 12: 
+			data = ANALOGD_YN;
+			break;
+
+		case 13: case 14: 
+			data = ANALOGD_XP | ANALOGD_YN;
+			break;
+
+		case 15: 
+			data = ANALOGD_XP;
+			break;
+		}
 	}
 
 	return data;
@@ -50,15 +92,16 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
 {
 	s32 X = stick.X;
 	s32 Y = stick.Y;
+	u16 result = mode == 0? 0x7F7F : 0;
 	
 	// If input is dead, no need to check or do anything else
-	if((X == 0) && (Y == 0)) return mode == 0 ? 0x7F7F : 0;
+	if((X == 0) && (Y == 0)) return result;
 
 	f64 radius = stick.radius;
 	const f64 deadzone = set.extThreshold * set.deadzone;
 
 	// Input should be effectively dead under deadzone, no need to do more
-	if(radius <= deadzone) return mode == 0? 0x7F7F : 0;
+	if(radius <= deadzone) return result;
 
 	f64 rX = X/radius, rY = Y/radius;
 
@@ -77,15 +120,13 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
 
 	if(radius > set.extThreshold) radius *= set.extMult;
 
-	u16 result = mode == 0? 0x7F7F : 0;
+	X = ClampAnalog(rX * radius);
+	Y = ClampAnalog(rY * radius);
 
 	switch(mode)
 	{
 	case 0: // Dualshock, Dreamcast...
 		{
-			X = ClampAnalog(rX * radius);
-			Y = ClampAnalog(rY * radius);
-
 			Y = 32767 - Y;
 			X = X + 32767;
 
@@ -100,11 +141,6 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
 
 	case 1: // N64
 		{
-			//radius modifier should go here...
-
-			X = ClampAnalog(rX * radius);
-			Y = ClampAnalog(rY * radius);
-
 			s8 res[2];
 			res[0] = (s8)(X / 256.5f);
 			res[1] = (s8)(Y / 256.5f);
@@ -122,7 +158,7 @@ u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, u8 mode)
 ////////////////////////////////////////////////////////////////////////
 
 
-void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged)
+void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugged, const bool digital)
 {
 	_Pad pad;
 
@@ -156,25 +192,30 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		buttons |= (~pad.buttons[X360_A] & 0x1) << DS_CROSS;
 		buttons |= (~pad.buttons[X360_X] & 0x1) << DS_SQUARE;
 
-		u8 stickLD = GetAnalogDigital(pad.stickL);
-		u8 stickRD = GetAnalogDigital(pad.stickR);
-		
-		buttonsStick = buttons | 0x06;
-		buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
-		buttonsStick &= ~(((stickLD & ANALOGD_XN) >> 1) << DS_LEFT);
-		buttonsStick &= ~(((stickLD & ANALOGD_YP) >> 2) << DS_UP);
-		buttonsStick &= ~(((stickLD & ANALOGD_YN) >> 3) << DS_DOWN);
-		
-		buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CIRCLE);
-		buttonsStick &= ~(((stickRD & ANALOGD_XN) >> 1) << DS_SQUARE);
-		buttonsStick &= ~(((stickRD & ANALOGD_YP) >> 2) << DS_TRIANGLE);
-		buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CROSS);
+		if(digital)
+		{
+			u8 stickLD = GetAnalogDigital(pad.stickL);
+			u8 stickRD = GetAnalogDigital(pad.stickR);
 
-		analogL = ConvertAnalog(pad.modL, set, 0);
-		analogR = ConvertAnalog(pad.modR, set, 0);
+			buttonsStick = buttons | 0x06;
+			buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
+			buttonsStick &= ~(((stickLD & ANALOGD_XN) >> 1) << DS_LEFT);
+			buttonsStick &= ~(((stickLD & ANALOGD_YP) >> 2) << DS_UP);
+			buttonsStick &= ~(((stickLD & ANALOGD_YN) >> 3) << DS_DOWN);
+		
+			buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CIRCLE);
+			buttonsStick &= ~(((stickRD & ANALOGD_XN) >> 1) << DS_SQUARE);
+			buttonsStick &= ~(((stickRD & ANALOGD_YP) >> 2) << DS_TRIANGLE);
+			buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CROSS);
+		}
+		else
+		{
+			analogL = ConvertAnalog(pad.modL, set, 0);
+			analogR = ConvertAnalog(pad.modR, set, 0);
 
-		triggerL = pad.analog[X360_TRIGGERL] & 0xFF;
-		triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
+			triggerL = pad.analog[X360_TRIGGERL] & 0xFF;
+			triggerR = pad.analog[X360_TRIGGERR] & 0xFF;
+		}
 
 		//printf("Pokopom: %04X %04X\n", analogL, analogR);
 	}
@@ -241,10 +282,10 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 			u8 stickD = GetAnalogDigital(stickL);
 
 			// Inactive left stick to work as dpad
-			buttons &= ~((stickD & ANALOGD_XP) << DC_RIGHT);
-			buttons &= ~(((stickD & ANALOGD_XN) >> 1) << DC_LEFT);
-			buttons &= ~(((stickD & ANALOGD_YP) >> 2) << DC_UP);
-			buttons &= ~(((stickD & ANALOGD_YN) >> 3) << DC_DOWN);
+			buttons |= (stickD & ANALOGD_XP) << DC_RIGHT;
+			buttons |= ((stickD & ANALOGD_XN) >> 1) << DC_LEFT;
+			buttons |= ((stickD & ANALOGD_YP) >> 2) << DC_UP;
+			buttons |= ((stickD & ANALOGD_YN) >> 3) << DC_DOWN;
 		}
 		else
 		{
@@ -257,12 +298,13 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 			u8 stickD = GetAnalogDigital(stickR);
 
 			// Inactive right stick to work as face buttons
-			buttons &= ~((stickD & ANALOGD_XP) << DC_B);
-			buttons &= ~(((stickD & ANALOGD_YP) >> 2) << DC_Y);
-			buttons &= ~(((stickD & ANALOGD_XN) >> 1) << DC_X);
-			buttons &= ~(((stickD & ANALOGD_YN) >> 3) << DC_A);
+			buttons |= (stickD & ANALOGD_XP) << DC_B;
+			buttons |= ((stickD & ANALOGD_YP) >> 2) << DC_Y;
+			buttons |= ((stickD & ANALOGD_XN) >> 1) << DC_X;
+			buttons |= ((stickD & ANALOGD_YN) >> 3) << DC_A;
 		}
 
+		buttons = ~buttons;
 	}
 	else
 		gamepadPlugged = false;

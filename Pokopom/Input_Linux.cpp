@@ -144,6 +144,7 @@ bool JoyPoll(u8 port)
 
 bool Recheck(u8 port)
 {
+	if(settings[port].disabled) return false;
 	if(port > 0) return false;
 
 	printf("Pokopom(%d) -> Recheck\n", port);
@@ -216,7 +217,7 @@ void Pause(bool pewpew)
 	return;
 }
 
-void StopRumble(u8 port, bool &gamepadPlugged)
+void StopRumble(u8 port)
 {
 	return;
 }

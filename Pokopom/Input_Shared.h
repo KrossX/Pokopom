@@ -134,11 +134,13 @@ namespace Input
 	{
 		s32 X, Y;
 		f64 radius;
+		f64 angle;
 
 		_Stick()
 		{ 
 			X = Y = 0;
 			radius = 0;
+			angle = 0;
 		}
 	};
 

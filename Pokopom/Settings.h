@@ -43,6 +43,7 @@ struct _Settings
 	f64 linearity;
 
 	bool isGuitar;
+	bool disabled;
 
 	_Settings();
 	_Settings(const _Settings &);

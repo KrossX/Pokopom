@@ -27,6 +27,7 @@ void _Settings::SetDefaults()
 	greenAnalog = false;
 	defaultAnalog = false;
 	isGuitar = false;
+	disabled = false;
 	xinputPort = 0;
 	deadzone = 0.0;
 	antiDeadzone = 0.0;

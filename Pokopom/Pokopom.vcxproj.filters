@@ -4,15 +4,6 @@
     <Filter Include="Misc">
       <UniqueIdentifier>{4c20094a-04fd-4df1-a7cd-e472e3475890}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PlayStation">
-      <UniqueIdentifier>{11bb5839-4261-44c1-a36e-72c509d3e422}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Dreamcast">
-      <UniqueIdentifier>{dfaccc45-c85a-4055-abcd-ddacdc88594f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nintendo64">
-      <UniqueIdentifier>{932760f6-c7ff-4ff5-83b0-0b1b09adda6f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="General">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -25,11 +16,23 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Dreamcast\Headers">
-      <UniqueIdentifier>{20d05d85-002f-4b06-9feb-fdb5cd3c0b22}</UniqueIdentifier>
+    <Filter Include="Systems">
+      <UniqueIdentifier>{d1dab64c-56a1-4a70-8ee2-7103d24dd2d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PlayStation\Headers">
+    <Filter Include="Systems\Nintendo64">
+      <UniqueIdentifier>{932760f6-c7ff-4ff5-83b0-0b1b09adda6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\PlayStation">
+      <UniqueIdentifier>{11bb5839-4261-44c1-a36e-72c509d3e422}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\PlayStation\Headers">
       <UniqueIdentifier>{84f30087-addb-4003-8e34-61012555c6b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Dreamcast">
+      <UniqueIdentifier>{dfaccc45-c85a-4055-abcd-ddacdc88594f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Dreamcast\Headers">
+      <UniqueIdentifier>{20d05d85-002f-4b06-9feb-fdb5cd3c0b22}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -55,28 +58,28 @@
       <Filter>Misc</Filter>
     </ClInclude>
     <ClInclude Include="Zilmar_Devices.h">
-      <Filter>Nintendo64</Filter>
+      <Filter>Systems\Nintendo64</Filter>
     </ClInclude>
     <ClInclude Include="Chankast.h">
-      <Filter>Dreamcast\Headers</Filter>
+      <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
     <ClInclude Include="nullDC.h">
-      <Filter>Dreamcast\Headers</Filter>
+      <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
     <ClInclude Include="nullDC_Devices.h">
-      <Filter>Dreamcast\Headers</Filter>
+      <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
     <ClInclude Include="nullDC_plugin_types.h">
-      <Filter>Dreamcast\Headers</Filter>
+      <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Codes_IDs.h">
-      <Filter>PlayStation\Headers</Filter>
+      <Filter>Systems\PlayStation\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Controller.h">
-      <Filter>PlayStation\Headers</Filter>
+      <Filter>Systems\PlayStation\Headers</Filter>
     </ClInclude>
     <ClInclude Include="PlayStation.h">
-      <Filter>PlayStation\Headers</Filter>
+      <Filter>Systems\PlayStation\Headers</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
@@ -102,34 +105,34 @@
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="Controller.cpp">
-      <Filter>PlayStation</Filter>
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="Controller2.cpp">
-      <Filter>PlayStation</Filter>
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="ControllerGuitar.cpp">
-      <Filter>PlayStation</Filter>
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="ControllerMtap.cpp">
-      <Filter>PlayStation</Filter>
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="PlayStation.cpp">
-      <Filter>PlayStation</Filter>
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="Chankast.cpp">
-      <Filter>Dreamcast</Filter>
+      <Filter>Systems\Dreamcast</Filter>
     </ClCompile>
     <ClCompile Include="nullDC.cpp">
-      <Filter>Dreamcast</Filter>
+      <Filter>Systems\Dreamcast</Filter>
     </ClCompile>
     <ClCompile Include="nullDC_Devices.cpp">
-      <Filter>Dreamcast</Filter>
+      <Filter>Systems\Dreamcast</Filter>
     </ClCompile>
     <ClCompile Include="Zilmar.cpp">
-      <Filter>Nintendo64</Filter>
+      <Filter>Systems\Nintendo64</Filter>
     </ClCompile>
     <ClCompile Include="Zilmar_Devices.cpp">
-      <Filter>Nintendo64</Filter>
+      <Filter>Systems\Nintendo64</Filter>
     </ClCompile>
     <ClCompile Include="Input_XInput.cpp">
       <Filter>General</Filter>

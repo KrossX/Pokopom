@@ -38,8 +38,6 @@ class PlayStationDevice
 	PlayStationDevice(const PlayStationDevice &);
 	PlayStationDevice& operator=(const PlayStationDevice &);
 
-	bool disabled;
-
 protected:
 	_Settings &settings;
 
@@ -51,8 +49,8 @@ protected:
 	void Recheck();
 
 public:
-	void Enable() { disabled = false; }
-	void Disable() { disabled = true; }
+	void Enable() { settings.disabled = false; }
+	void Disable() { settings.disabled = true; }
 	void SetPort(u8 p) { port = p; }
 
 	virtual void LoadState(PlayStationDeviceState state) = 0;

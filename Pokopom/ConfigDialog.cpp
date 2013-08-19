@@ -40,6 +40,7 @@ void UpdateControls(HWND hDialog, s32 port)
 		CheckDlgButton(hDialog, i + 1039, settings[port].xinputPort == i ? BST_CHECKED : BST_UNCHECKED);
 	}
 
+	CheckDlgButton(hDialog, IDC_DISABLED, settings[port].disabled ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
 
@@ -210,6 +211,10 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 			case IDC_GUITAR:
 				settings[port].isGuitar = IsDlgButtonChecked(hwndDlg, IDC_GUITAR) == BST_CHECKED? true:false;
+				break;
+
+			case IDC_DISABLED:
+				settings[port].disabled = IsDlgButtonChecked(hwndDlg, IDC_DISABLED) == BST_CHECKED? true:false;
 				break;
 
 			case IDC_ANALOG_GREEN:

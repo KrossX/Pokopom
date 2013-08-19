@@ -145,21 +145,6 @@ class PuruPuruPack : public nullDC_Device
 	void UpdateVibration();
 
 public:
-	struct _thread
-	{
-		HANDLE &hThread;
-		u16 &wait;
-		u8 &port;
-		bool &gamepadPlugged;
-
-		_thread(HANDLE hT, u16 w, u8 p, bool g) :
-			hThread(hT), wait(w), port(p), gamepadPlugged(g)
-		{}
-
-		_thread&operator=(const _thread&other) { return *this; }
-	} thread;
-
-public:
 	u16 Watchdog_ms;
 	void StopVibration();
 

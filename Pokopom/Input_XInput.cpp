@@ -40,6 +40,8 @@ namespace Input
 
 bool FASTCALL Recheck(u8 port)
 {
+	if(settings[port].disabled) return false;
+
 	XINPUT_STATE state;
 	DWORD result = XInputGetState(port, &state);
 
@@ -48,17 +50,8 @@ bool FASTCALL Recheck(u8 port)
 
 void FASTCALL Pause(bool pewpew) { XInputEnable(!pewpew); }
 
-void FASTCALL StopRumble(u8 port, bool &gamepadPlugged)
+void FASTCALL StopRumble(u8 port)
 {
-	XINPUT_STATE state;
-	DWORD result = XInputGetState(port, &state);
-
-	if(result != ERROR_SUCCESS)
-	{
-		gamepadPlugged = false;
-		return;
-	}
-
 	XINPUT_VIBRATION vib;
 
 	vib.wLeftMotorSpeed = 0;
@@ -246,15 +239,22 @@ bool FASTCALL DualshockPressure(u8 * bufferOut, u32 mask, _Settings &set, bool &
 // Dreamcast
 ////////////////////////////////////////////////////////////////////////
 
-void FASTCALL VibrationWatchdog(LPVOID param)
+struct watchdogThread
 {
-	PuruPuruPack::_thread *pochy = (PuruPuruPack::_thread*)param;
+	u16 wait;
+	u8 port;
+};
+
+void VibrationWatchdog(LPVOID param)
+{
+	if(param == NULL) return;
+	watchdogThread *pochy = (watchdogThread*)param;
 	Sleep(pochy->wait);
-	StopRumble(pochy->port, pochy->gamepadPlugged);
+	StopRumble(pochy->port);
 }
 
-void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thread,
-	_Settings &set, bool &gamepadPlugged)
+void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, u16 wait,
+	_Settings &set, bool &gamepadPlugged, HANDLE &thread)
 {
 	XINPUT_STATE state;
 	DWORD result = XInputGetState(set.xinputPort, &state);
@@ -265,7 +265,6 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thre
 		return;
 	}
 
-	PuruPuruPack::_thread *th = (PuruPuruPack::_thread*)thread;
 	XINPUT_VIBRATION vib;
 
 	u16 uIntensity = intensity < 0 ? -intensity : intensity;
@@ -273,15 +272,19 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, LPVOID thre
 	vib.wLeftMotorSpeed = freqH ? 0 : (WORD)((uIntensity * 9362) * set.rumble);
 	vib.wRightMotorSpeed = freqL ? 0 : (WORD)((uIntensity * 8192 + 8190) * set.rumble);
 
-	if(th->hThread)
+	if(thread)
 	{
-		TerminateThread(th->hThread, 0);
-		CloseHandle(th->hThread);
-		th->hThread = NULL;
+		TerminateThread(thread, 0);
+		CloseHandle(thread);
+		thread = NULL;
 	}
 
-	th->hThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, thread, 0, NULL);
-
+	watchdogThread * th = new watchdogThread();
+		th->wait = wait;
+		th->port = set.xinputPort;
+	
+	thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, th, 0, NULL);
+	
 	XInputSetState(set.xinputPort, &vib);
 }
 
