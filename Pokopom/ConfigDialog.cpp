@@ -17,12 +17,11 @@
 
 #include "General.h"
 #include "ConfigDialog.h"
+#include "FileIO.h"
 
 #ifdef _WIN32
 #include <Uxtheme.h>
 #include <CommCtrl.h>
-
-#include "FileIO.h"
 
 #include "resource.h"
 
@@ -424,6 +423,8 @@ void CreateConfigDialog()
 
 void CreateConfigDialog()
 {
+	// There is no config dialog, so at least save some settings.
+	FileIO::INI_SaveSettings();
 }
 
 #endif

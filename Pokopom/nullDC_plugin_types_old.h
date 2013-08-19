@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _WIN32
+
 namespace nullDC_103
 {
 	typedef void FASTCALL MapleDeviceDMAFP(void* device_instance,unsigned int Command,unsigned int* buffer_in,unsigned int buffer_in_len,unsigned int* buffer_out,unsigned int& buffer_out_len, unsigned int& response);
@@ -80,3 +82,5 @@ namespace nullDC_103
 
 
 } // End namespace nullDC_103
+
+#endif // WIN32

@@ -149,7 +149,7 @@ bool Recheck(u8 port)
 	if(settings[port].disabled) return false;
 	if(port > 0) return false;
 
-	printf("Pokopom(%d) -> Recheck\n", port);
+	//printf("Pokopom(%d) -> Recheck\n", port);
 
 	s32 joy_fd, count = 0;
 	char name_of_joystick[80] = {0};
@@ -262,10 +262,10 @@ bool InputGetState(_Pad& pad, _Settings &set)
 		pad.buttons[X360_X] = js.button[LIN_BTN_X] ? 1:0;
 		pad.buttons[X360_Y] = js.button[LIN_BTN_Y] ? 1:0;
 
-		pad.analog[X360_STICKLX] = js.axis[LIN_AXIS_LX];
-		pad.analog[X360_STICKLY] = js.axis[LIN_AXIS_LY];
-		pad.analog[X360_STICKRX] = js.axis[LIN_AXIS_RX];
-		pad.analog[X360_STICKRY] = js.axis[LIN_AXIS_RY];
+		pad.analog[X360_STICKLX] =  js.axis[LIN_AXIS_LX];
+		pad.analog[X360_STICKLY] = -js.axis[LIN_AXIS_LY];
+		pad.analog[X360_STICKRX] =  js.axis[LIN_AXIS_RX];
+		pad.analog[X360_STICKRY] = -js.axis[LIN_AXIS_RY];
 
 		pad.analog[X360_TRIGGERL] = (js.axis[LIN_AXIS_LT] + 32767) / 256;
 		pad.analog[X360_TRIGGERR] = (js.axis[LIN_AXIS_RT] + 32767) / 256;
