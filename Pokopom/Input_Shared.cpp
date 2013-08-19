@@ -34,7 +34,7 @@ void FASTCALL GetRadius(_Stick& stick)
 	stick.radius = sqrt(X*X + Y*Y);
 }
 
-u8 FASTCALL GetAnalogDigital(_Stick& stick)
+u8 FASTCALL GetAnalogDigital(_Stick& stick, bool b4way)
 {
 	u8 data = 0;
 
@@ -43,45 +43,76 @@ u8 FASTCALL GetAnalogDigital(_Stick& stick)
 		f64 angle = atan2((f64)stick.Y, (f64)stick.X) / PI_2;
 		stick.angle = angle = angle < 0 ? angle + 1 : angle;
 
-		u8 angled = (u8)(angle * 16);
-		
-		switch(angled)
+		if(b4way)
 		{
-		case 0: 
-			data = ANALOGD_XP; 
-			break;
+			u8 angled = (u8)(angle * 8);
+		
+			switch(angled)
+			{
+			case 0: 
+				data = ANALOGD_XP; 
+				break;
 
-		case 1: case 2: 
-			data = ANALOGD_XP | ANALOGD_YP;
-			break;
+			case 1: case 2: 
+				data = ANALOGD_YP;
+				break;
 
-		case 3: case 4: 
-			data = ANALOGD_YP;
-			break;
+			case 3: case 4: 
+				data = ANALOGD_XN;
+				break;
 
-		case 5: case 6: 
-			data = ANALOGD_XN | ANALOGD_YP;
-			break;
+			case 5: case 6: 
+				data = ANALOGD_YN;
+				break;
 
-		case 7: case 8: 
-			data = ANALOGD_XN;
-			break;
+			case 7: 
+				data = ANALOGD_XP;
+				break;
+			}
 
-		case 9: case 10: 
-			data = ANALOGD_XN | ANALOGD_YN;
-			break;
+		}
+		else
+		{
+			u8 angled = (u8)(angle * 16);
+		
+			switch(angled)
+			{
+			case 0: 
+				data = ANALOGD_XP; 
+				break;
 
-		case 11: case 12: 
-			data = ANALOGD_YN;
-			break;
+			case 1: case 2: 
+				data = ANALOGD_XP | ANALOGD_YP;
+				break;
 
-		case 13: case 14: 
-			data = ANALOGD_XP | ANALOGD_YN;
-			break;
+			case 3: case 4: 
+				data = ANALOGD_YP;
+				break;
 
-		case 15: 
-			data = ANALOGD_XP;
-			break;
+			case 5: case 6: 
+				data = ANALOGD_XN | ANALOGD_YP;
+				break;
+
+			case 7: case 8: 
+				data = ANALOGD_XN;
+				break;
+
+			case 9: case 10: 
+				data = ANALOGD_XN | ANALOGD_YN;
+				break;
+
+			case 11: case 12: 
+				data = ANALOGD_YN;
+				break;
+
+			case 13: case 14: 
+				data = ANALOGD_XP | ANALOGD_YN;
+				break;
+
+			case 15: 
+				data = ANALOGD_XP;
+				break;
+			}
 		}
 	}
 
@@ -195,7 +226,7 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		if(digital)
 		{
 			u8 stickLD = GetAnalogDigital(pad.stickL);
-			u8 stickRD = GetAnalogDigital(pad.stickR);
+			u8 stickRD = GetAnalogDigital(pad.stickR, true);
 
 			buttonsStick = buttons | 0x06;
 			buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
@@ -295,7 +326,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR);
+			u8 stickD = GetAnalogDigital(stickR, true);
 
 			// Inactive right stick to work as face buttons
 			buttons |= (stickD & ANALOGD_XP) << DC_B;
@@ -484,7 +515,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
 			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
 
-			u8 stickD = GetAnalogDigital(stickL);
+			u8 stickD = GetAnalogDigital(stickL, true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
@@ -499,7 +530,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR);
+			u8 stickD = GetAnalogDigital(stickR, true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);

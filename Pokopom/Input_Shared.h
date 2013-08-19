@@ -157,7 +157,7 @@ namespace Input
 	inline s32 ClampAnalog(f64 input) {	return (s32)(input < -32768? -32768 : input > 32767 ? 32767 : input); }
 
 	void FASTCALL GetRadius(_Stick& stick);
-	u8 FASTCALL GetAnalogDigital(_Stick& stick);
+	u8 FASTCALL GetAnalogDigital(_Stick& stick, bool b4way = false);
 
 	u16 FASTCALL ConvertAnalog(_Stick& stick, _Settings &set, AxisSettings &aset, u8 mode);
 
