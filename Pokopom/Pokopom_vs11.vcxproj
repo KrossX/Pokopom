@@ -56,7 +56,7 @@
       <AdditionalDependencies>UxTheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Readme.txt" "$(TargetDir)" /Y</Command>
+      <Command>copy "$(SolutionDir)README.md" "$(TargetDir)Readme.txt" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -80,10 +80,11 @@
       <AdditionalDependencies>UxTheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Readme.txt" "$(TargetDir)" /Y</Command>
+      <Command>copy "$(SolutionDir)README.md" "$(TargetDir)Readme.txt" /Y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>"$(SolutionDir)..\Common\svnrev" *.*</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

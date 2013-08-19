@@ -33,7 +33,7 @@ u8 multitap = 0;
 ////////////////////////////////////////////////////////////////////////
 
 const u32 revision = 2;
-const u32 build    = 0;
+const u32 build    = 1;
 
 const u32 versionPS1 = (emupro::PLUGIN_VERSION << 16) | (revision << 8) | build;
 const u32 versionPS2 = (0x02 << 16) | (revision << 8) | build;

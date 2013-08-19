@@ -21,7 +21,7 @@
 
 #ifdef _WIN32
 
-#include "../../Common/SCPExtensions.cpp"
+#include "../SCP/SCPExtensions.cpp"
 //#include "Controller.h"
 //#include "General.h"
 #include "nullDC_Devices.h"

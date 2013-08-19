@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <list>
 
-#include "../../Common/TypeDefs.h"
+#include "TypeDefs.h"
 #include "Stuff.h"
 #include "Settings.h"
 

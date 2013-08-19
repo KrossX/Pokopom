@@ -19,7 +19,7 @@
 u32 ndcVersion = 0;
 u8 dcPlatform = 0; // Default Dreamcast
 
-wchar_t pluginName[] = L"Pokopom XInput Plugin v2.0 by KrossX ";
+wchar_t pluginName[] = L"Pokopom XInput Plugin v2.1 by KrossX ";
 wchar_t dcController[] = L"Pokopom Dreamcast Controller";
 wchar_t naomiJAMMA[] = L"Pokopom NAOMI JAMMA Controller";
 wchar_t puruPakku[] = L"Pokopom Rumble Pack";
