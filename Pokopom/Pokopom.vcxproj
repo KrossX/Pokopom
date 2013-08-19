@@ -55,8 +55,7 @@
       <AdditionalDependencies>UxTheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(ProjectDir)Readme.txt $(TargetDir)
-</Command>
+      <Command>xcopy "$(ProjectDir)Readme.txt" "$(TargetDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

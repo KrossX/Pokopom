@@ -100,8 +100,11 @@ void INI_SaveSettings()
 			SaveEntry(L"Controller", port, L"Pressure", settings[port].pressureRate, filename);
 			SaveEntry(L"Controller", port, L"Linearity", settings[port].linearity +3, filename);
 
+			SaveEntry(L"Controller", port, L"AntiDeadzone", (int)(settings[port].antiDeadzone * 100), filename);
 			SaveEntry(L"Controller", port, L"Deadzone", (int)(settings[port].deadzone * 100), filename);
 			SaveEntry(L"Controller", port, L"Rumble", (int)(settings[port].rumble * 100), filename);
+
+			SaveEntry(L"Controller", port, L"ExtentionThreshold", (int)(settings[port].extThreshold), filename);
 
 			SaveEntry(L"Controller", port, L"XInputPort", settings[port].xinputPort, filename);
 			SaveEntry(L"Controller", port, L"DefautMode", settings[port].defaultAnalog ? 1 : 0, filename);
@@ -165,11 +168,21 @@ void INI_LoadSettings()
 				settings[port].axisRemap[GP_AXIS_LX] = (result >> 12) & 0xF;
 			}
 
+			result = ReadEntry(L"Controller", port, L"ExtentionThreshold",  filename);
+			if(result != -1)
+			{
+				settings[port].extThreshold = result;
+				settings[port].extMult = 46339.535798279205464084934426179 / result;
+			}
+
 			result = ReadEntry(L"Controller", port, L"Pressure",  filename);
 			if(result != -1) settings[port].pressureRate = result & 0xFF;
 
 			result = ReadEntry(L"Controller", port, L"Linearity",  filename);
 			if(result != -1) settings[port].linearity = (result & 0xF) -3;
+
+			result = ReadEntry(L"Controller", port, L"AntiDeadzone",  filename);
+			if(result != -1) settings[port].antiDeadzone = result / 100.0f;
 
 			result = ReadEntry(L"Controller", port, L"Deadzone",  filename);
 			if(result != -1) settings[port].deadzone = result / 100.0f;

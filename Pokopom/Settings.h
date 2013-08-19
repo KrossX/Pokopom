@@ -33,7 +33,8 @@ public:
 public:
 	bool defaultAnalog;
 	int xinputPort;
-	float deadzone, rumble;	
+	float deadzone, rumble, antiDeadzone;
+	double extThreshold, extMult;
 	
 	bool axisInverted[4];
 	short axisRemap[4];

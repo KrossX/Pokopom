@@ -23,10 +23,14 @@ _Settings::_Settings()
 	isGuitar = false;
 	xinputPort = 0;
 	deadzone = 0.0;
+	antiDeadzone = 0.0;
 	rumble = 1.0;
 	pressureRate = 10;
 	linearity = 0;
 	
+	extThreshold = 32767.0; // 40201 real max radius
+	extMult = 1.4142135623730950488016887242097; // sqrt(2)
+
 	for(short i = 0; i < 4; i++)
 	{
 		axisInverted[i] = false;

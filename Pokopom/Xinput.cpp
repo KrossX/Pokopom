@@ -23,43 +23,49 @@
 
 #include <math.h>
 
-const double root2 = 1.4142135623730950488016887242097;
-
 inline double Linearity(double radius, short linearity)
 {
 	const double exp = linearity > 0 ? linearity +1 : 1.0/(-linearity+1);
 	return pow(radius / 32768.0, exp) * 32768.0;
 }
 
-unsigned short ConvertAnalog(int X, int Y, double deadzone, short linearity)
+inline int ClampAnalog(double input)
+{
+	return (int)(input < -32768? -32768 : input > 32767 ? 32767 : input);
+}
+
+unsigned short ConvertAnalog(int X, int Y, _Settings &set)
 {							
 	// If input is dead, no need to check or do anything else
 	if((X == 0) && (Y == 0)) return 0x7F7F;
 
-	double const max = 32768.0; // 40201 real max radius
-
 	double radius = sqrt((double)X*X + (double)Y*Y);
+	const double deadzone = set.extThreshold * set.deadzone;
+
+	// Input should be effectively dead under deadzone, no need to do more
+	if(radius <= deadzone) return 0x7F7F;
+
 	double rX = X/radius, rY = Y/radius;
-	
+
+	if(set.linearity != 0) radius = Linearity(radius, set.linearity);
+
 	if(deadzone > 0)
 	{	
-		deadzone = max * deadzone; 		
-
-		radius = radius <= deadzone ? 0 : (radius - deadzone) * max / (max - deadzone);
-
-		if(linearity != 0) Linearity(radius, linearity);
-
-		X = (int)(rX * radius);
-		Y = (int)(rY * radius);
+		radius =  (radius - deadzone) * set.extThreshold / (set.extThreshold - deadzone);
 	}
-	else if(linearity != 0) Linearity(radius, linearity);
-			
-	if(radius > 32768.0f)
+
+	//Antideadzone, inspired by x360ce's setting
+	if(set.antiDeadzone > 0)
 	{
-		X = (int)(X * root2) ;
-		Y = (int)(Y * root2);	
-	}	
+		const double antiDeadzone = set.extThreshold * set.antiDeadzone;
+		radius = radius * ((set.extThreshold - antiDeadzone) / set.extThreshold) + antiDeadzone;		
+	}
+
+	if(radius > set.extThreshold) radius *= set.extMult;
 	
+	X = ClampAnalog(rX * radius);
+	Y = ClampAnalog(rY * radius);
+		
 	Y = 32767 - Y;
 	X = X + 32767;
 
@@ -122,8 +128,8 @@ void Controller::poll()
 		if(settings.axisValue[GP_AXIS_RY] < -threshold) buttonsStick &= ~(1 << 0xE);
 		if(settings.axisValue[GP_AXIS_RX] < -threshold) buttonsStick &= ~(1 << 0xF);
 
-		analogL = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_LX]], settings.axisValue[settings.axisRemap[GP_AXIS_LY]], settings.deadzone, settings.linearity);
-		analogR = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_RX]], settings.axisValue[settings.axisRemap[GP_AXIS_RY]], settings.deadzone, settings.linearity);
+		analogL = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_LX]], settings.axisValue[settings.axisRemap[GP_AXIS_LY]], settings);
+		analogR = ConvertAnalog(settings.axisValue[settings.axisRemap[GP_AXIS_RX]], settings.axisValue[settings.axisRemap[GP_AXIS_RY]], settings);
 		
 		triggerL = state.Gamepad.bLeftTrigger;
 		triggerR = state.Gamepad.bRightTrigger;
