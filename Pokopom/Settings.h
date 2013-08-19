@@ -39,6 +39,8 @@ public:
 	short axisRemap[4];
 	int axisValue[4];
 
+	unsigned short pressureRate;
+
 	bool isGuitar;
 
 private:

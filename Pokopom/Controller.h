@@ -26,15 +26,21 @@ public:
 public:
 	struct State
 	{
+		char libraryName[25];
+		unsigned short version;
+		
 		unsigned short buttons, buttonsStick, analogL, analogR;
 		unsigned char padID;	
 		bool bConfig, bModeLock;	
 		unsigned char motorMapS, motorMapL;
 		unsigned char triggerL, triggerR;
+
+		unsigned char pollMask[6];
+		unsigned short pressureButton[12];
 	};
 
-	void LoadState(State state);
-	void SaveState(State &state);
+	virtual void LoadState(State state);
+	virtual void SaveState(State &state);
 
 public:			
 	unsigned char command(const unsigned int counter, const unsigned char data);
@@ -77,7 +83,10 @@ public:
 	Controller2(_Settings &config);		
 
 public:
-	unsigned char command(const unsigned int counter, const unsigned char data);	
+	unsigned char command(const unsigned int counter, const unsigned char data);
+	
+	void LoadState(State state);
+	void SaveState(State &state);
 
 protected:	
 	void Cmd1(const unsigned char data);

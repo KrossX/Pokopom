@@ -24,6 +24,7 @@ _Settings::_Settings()
 	xinputPort = 0;
 	deadzone = 0.0;
 	rumble = 1.0;
+	pressureRate = 10;
 	
 	for(short i = 0; i < 4; i++)
 	{

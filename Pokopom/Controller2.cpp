@@ -23,7 +23,7 @@ Controller2::Controller2(_Settings &config):
 	Controller(config, 21)
 { 				
 	memset(pressureButton, 0x00, sizeof(pressureButton));
-	memcpy(pollMask, POLL_MASK_FULL, 6);	
+	memcpy(pollMask, POLL_MASK_FULL, 6);
 }
 
 void Controller2::ReadInputPressure(unsigned char *buffer)
@@ -35,20 +35,20 @@ void Controller2::ReadInputPressure(unsigned char *buffer)
 	if(mask)
 	{
 		//Right, left, up, down		
-		pressureButton[0x00] = (mask & 0x01) && (buttons & 0x20) ? 0x00 : pressureButton[0x00] + 10;
-		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + 10;
-		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + 10;
-		pressureButton[0x03] = (mask & 0x04) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + 10;
+		pressureButton[0x00] = (mask & 0x01) && (buttons & 0x20) ? 0x00 : pressureButton[0x00] + settings.pressureRate;
+		pressureButton[0x01] = (mask & 0x02) && (buttons & 0x80) ? 0x00 : pressureButton[0x01] + settings.pressureRate;
+		pressureButton[0x02] = (mask & 0x03) && (buttons & 0x10) ? 0x00 : pressureButton[0x02] + settings.pressureRate;
+		pressureButton[0x03] = (mask & 0x04) && (buttons & 0x40) ? 0x00 : pressureButton[0x03] + settings.pressureRate;
 	
 		//triangle, circle, cross, square
-		pressureButton[0x04] = (mask & 0x05) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + 10;
-		pressureButton[0x05] = (mask & 0x06) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + 10;
-		pressureButton[0x06] = (mask & 0x07) && (buttons & 0x4000) ? 0x00 : pressureButton[0x06] + 10;
-		pressureButton[0x07] = (mask & 0x08) && (buttons & 0x8000) ? 0x00 : pressureButton[0x07] + 10;
+		pressureButton[0x04] = (mask & 0x05) && (buttons & 0x1000) ? 0x00 : pressureButton[0x04] + settings.pressureRate;
+		pressureButton[0x05] = (mask & 0x06) && (buttons & 0x2000) ? 0x00 : pressureButton[0x05] + settings.pressureRate;
+		pressureButton[0x06] = (mask & 0x07) && (buttons & 0x4000) ? 0x00 : pressureButton[0x06] + settings.pressureRate;
+		pressureButton[0x07] = (mask & 0x08) && (buttons & 0x8000) ? 0x00 : pressureButton[0x07] + settings.pressureRate;
 
 		//l1, r1, l2, r2
-		pressureButton[0x08] = (mask & 0x09) && (buttons & 0x400) ? 0x00 : pressureButton[0x08] + 10;
-		pressureButton[0x09] = (mask & 0x0A) && (buttons & 0x800) ? 0x00 : pressureButton[0x09] + 10;
+		pressureButton[0x08] = (mask & 0x09) && (buttons & 0x400) ? 0x00 : pressureButton[0x08] + settings.pressureRate;
+		pressureButton[0x09] = (mask & 0x0A) && (buttons & 0x800) ? 0x00 : pressureButton[0x09] + settings.pressureRate;
 		pressureButton[0x0A] = (mask & 0x0B) && (buttons & 0x100) ? 0x00 : triggerL;
 		pressureButton[0x0B] = (mask & 0x0C) && (buttons & 0x200) ? 0x00 : triggerR;
 
@@ -127,4 +127,20 @@ void Controller2::Cmd8(const unsigned char data)
 
 	default: Controller::Cmd8(data);
 	}
+}
+
+void Controller2::SaveState(State &state)
+{
+	Controller::SaveState(state);
+	
+	memcpy(state.pollMask, pollMask, 6);
+	memcpy(state.pressureButton, pressureButton, sizeof(pressureButton));
+}
+
+void Controller2::LoadState(State state)
+{
+	Controller::LoadState(state);
+	
+	memcpy(pollMask, state.pollMask, 6);
+	memcpy(pressureButton, state.pressureButton, sizeof(pressureButton));
 }

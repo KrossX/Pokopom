@@ -21,9 +21,9 @@
 
 void Controller::Reset()
 {			
-	memset(dataBuffer, 0xFF, sizeof(dataBuffer));
-	memset(cmdBuffer, 0x00, sizeof(cmdBuffer));
-	
+	memset(dataBuffer, 0xFF, sizeBuffer);
+	memset(cmdBuffer, 0x00, sizeBuffer);
+
 	dataBuffer[2] = 0x5A;
 	padID = settings.defaultAnalog ? (unsigned char)ID_ANALOG : (unsigned char)ID_DIGITAL;	
 

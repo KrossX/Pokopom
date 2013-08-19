@@ -310,19 +310,37 @@ unsigned int CALLBACK PADfreeze(int mode, freezeData *data)
 {
 	//printf("Pokopom -> PADfreeze [%X]\n", mode);
 	if(!data) return emupro::ERR_FATAL;
-	
+
 	switch(mode)
 	{
 	case emupro::Savestate::LOAD:
 		{
 			Controller::State *state = (Controller::State *)data->data;
-			controller[0]->LoadState(state[0]);
-			controller[1]->LoadState(state[1]);
+			
+			if(memcmp(state[0].libraryName, libraryName, 25) == 0 &&
+				state[0].version == (revision << 8) | build)
+			{
+				controller[0]->LoadState(state[0]);
+				controller[1]->LoadState(state[1]);
+			}
+			else
+			{
+				printf("Pokopom -> Wrong savestate data to load.");
+			}
+			
 		} break;
 
 	case emupro::Savestate::SAVE:
 		{
 			Controller::State state[2];
+
+			memset(state, 0, sizeof(state));
+
+			memcpy(state[0].libraryName, libraryName, 25);
+			memcpy(state[1].libraryName, libraryName, 25);
+			
+			state[0].version = state[1].version = (revision << 8) | build;
+
 			controller[0]->SaveState(state[0]);
 			controller[1]->SaveState(state[1]);			
 			memcpy(data->data, state, sizeof(state));
