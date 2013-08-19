@@ -57,6 +57,8 @@ N64controller::N64controller(_Settings &settings, Zilmar::CONTROL &control, u8 p
 	// 0x02 : Relative
 	// 0x04 : Gamepad
 	status.Mode = 0x04 | 0x01;	
+
+	bPolled = false;
 };
 
 N64controller::N64controller(const N64controller& other):
@@ -140,7 +142,8 @@ void __fastcall N64controller::Command(u8 *cmd) // Input ?
 
 	case RAW_READ_KEYS: // 1 / 4
 		if(cmd[1] != 4) return;
-		Poll();		
+		Poll();
+		bPolled = true; // for PJ64
 		break;
 
 	case RAW_READ_PACK: break; // 3 / 33 ? // Handled on Read		
@@ -187,7 +190,6 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 	{	
 	case RAW_GET_STATUS:
 		if(cmd[1] != 3) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
-
 		cmd[3] = status.Mode;
 		cmd[4] = status.EEPROM;
 		cmd[5] = status.Plugin;
@@ -195,14 +197,17 @@ void __fastcall N64controller::Read(u8 *cmd) // Output ?
 
 	case RAW_READ_KEYS:
 		if(cmd[1] != 4) { cmd[1] |= RAW_RET_WRONG_SIZE; return; }
-		
+
+		if(!bPolled) Poll();	// Let's do a Poll here if there wasn't a command() before.
+		bPolled = false;		// For PJ64 that doesn't seem to use command() much.
+
 		cmd[3] = poll.RAW8[0];
 		cmd[4] = poll.RAW8[1];
 		cmd[5] = poll.RAW8[2];
 		cmd[6] = poll.RAW8[3];		
 		break;
 
-	case RAW_READ_PACK: 
+	case RAW_READ_PACK:
 		{
             if((cmd[3] >= 0x80) && (cmd[3] < 0x90))
                 memset(&cmd[5], 0x80, 32);

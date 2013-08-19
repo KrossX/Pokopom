@@ -44,7 +44,8 @@ public:
 
 class N64controller : public Zilmar_Device
 {
-
+	bool bPolled;
+	
 	struct _status { u8 Mode, EEPROM, Plugin; } status;
 	union _poll { u8 RAW8[4]; s16 RAW16[2]; } poll;
 

@@ -64,7 +64,7 @@ void CALL InitiateControllers(HWND hMain, Zilmar::CONTROL Controls[4])
 	
 	for(u8 i = 0; i < 4; i++)
 	{
-		zilmarInfo->Controls[i].Plugin = Zilmar::PLUGIN_NONE;
+		zilmarInfo->Controls[i].Plugin = Zilmar::PLUGIN_RAW;
 		zilmarInfo->Controls[i].Present = TRUE;
 		zilmarInfo->Controls[i].RawData = TRUE;
 
@@ -173,6 +173,7 @@ input: - Controller Number (0 to 3).
 void CALL GetKeys(s32 port, Zilmar::BUTTONS *keys)
 {
 	// Only raw here...
+	//printf("Pokopom -> GetKeys\n");
 }
 
 /************************************************************************************
