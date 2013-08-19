@@ -1,4 +1,14 @@
-﻿#include "General.h"
+﻿/**********************************************************************************
+Based on...
+
+Common Controller plugin spec, version #1.1 maintained by 
+zilmar (zilmar@emulation64.com)
+
+All questions or suggestions should go through the emutalk plugin forum.
+http://www.emutalk.net/cgi-bin/ikonboard/ikonboard.cgi?s=3bd272222f66ffff;act=SF;f=20
+**********************************************************************************/
+
+#include "General.h"
 #include "Zilmar_Devices.h"
 #include "FileIO.h"
 #include "ConfigDialog.h"
