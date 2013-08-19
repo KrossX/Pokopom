@@ -20,6 +20,8 @@
 
 class nullDC_Device
 {
+	nullDC_Device & operator = (const nullDC_Device & other) {}
+
 protected:	
 	bool isPlugged;
 	unsigned int port;
@@ -35,6 +37,9 @@ public:
 
 class DreamcastController : public nullDC_Device
 {
+	DreamcastController & operator = (const DreamcastController & other) {}
+
+protected:
 	void PollOut(unsigned int* buffer_out);
 
 public:
@@ -47,6 +52,7 @@ public:
 
 class PuruPuruPack : public nullDC_Device
 {
+	PuruPuruPack & operator = (const PuruPuruPack & other) {}
 
 public:
 	PuruPuruPack(unsigned int _port, _Settings &config);

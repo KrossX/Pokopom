@@ -17,7 +17,8 @@
 
 #include "Controller.h"
 #include "General.h"
-#include "nullDC_Devices.h"
+//#include "nullDC_Devices.h"
+#include "Chankast.h"
 
 #include <XInput.h>
 #pragma comment(lib, "Xinput.lib")
@@ -245,7 +246,7 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 
 	if(result == ERROR_SUCCESS) 
 	{	
-		unsigned short buttons = 0;
+		buttons = 0;
 
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B ? 0:1)	<< 0x1; // B
 		buttons |= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A ? 0:1)	<< 0x2; // A
@@ -272,4 +273,11 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 	
 	// Right Stick... not present.
 	buffer[5] = 0x8080;
+}
+
+void ChankastController::PollData(ChankastPadData &Data)
+{
+	unsigned short buffer[6];
+	PollOut((unsigned int*)buffer);
+	memcpy(&Data, &buffer[2], 8);
 }

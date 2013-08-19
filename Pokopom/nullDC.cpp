@@ -75,6 +75,22 @@ int FASTCALL Load(nullDC::emu_info* emu)
 
 void FASTCALL Unload()
 {
+	for(int i = 0; i < 4; i++)
+	{
+		if(ndcDevice[i] != NULL)
+		{
+			delete ndcDevice[i];
+			ndcDevice[i] = NULL;
+		}
+
+		if(ndcSubDevice[i] != NULL)
+		{
+			delete ndcSubDevice[i];
+			ndcSubDevice[i] = NULL;
+		}
+
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -54,6 +54,9 @@
     <ClInclude Include="nullDC_Devices.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Chankast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -86,15 +89,18 @@
     <ClCompile Include="nullDC_Devices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Chankast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Exports.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="Background.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Readme.txt">
+      <Filter>Misc</Filter>
+    </None>
+    <None Include="Exports.def">
       <Filter>Misc</Filter>
     </None>
   </ItemGroup>

@@ -85,6 +85,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Chankast.h" />
     <ClInclude Include="Codes_IDs.h" />
     <ClInclude Include="ConfigDialog.h" />
     <ClInclude Include="Controller.h" />
@@ -99,6 +100,7 @@
     <ClInclude Include="Settings.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Chankast.cpp" />
     <ClCompile Include="ConfigDialog.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Controller2.cpp" />
