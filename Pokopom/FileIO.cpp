@@ -144,7 +144,8 @@ namespace FileIO
 			SaveEntry("General", -1, "KeepAwake", bKeepAwake? 1 : 0, iniFile);
 			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);
-			SaveEntry("General", -1, "SwapPorts", SwapPortsEnabled, iniFile);
+			SaveEntry("General", -1, "SwapPorts", SwapPortsEnabled, iniFile); 
+			SaveEntry("General", -1, "SwapSticks", SwapSticksEnabled, iniFile);
 
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -207,11 +208,12 @@ namespace FileIO
 				return;
 			}
 
-			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1 ? true : false;
+			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1;
 				SetPriority();
-
-			SwapPortsEnabled = ReadEntry("General", -1, "SwapPorts", iniFile) == 1 ? true : false;
-			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1 ? true : false;
+				
+			SwapSticksEnabled = ReadEntry("General", -1, "SwapSticks", iniFile) == 1;
+			SwapPortsEnabled = ReadEntry("General", -1, "SwapPorts", iniFile) == 1;
+			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1;
 			multitap = ReadEntry("General", -1, "Multitap", iniFile) & 0xFF;
 			multitap = multitap > 2 ? 0 : multitap;
 

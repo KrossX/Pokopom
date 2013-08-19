@@ -91,25 +91,13 @@ void UpdateControls(HWND hDialog, s32 port)
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_ANALOG : IDC_MODE_DIGITAL, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_DIGITAL : IDC_MODE_ANALOG, BST_UNCHECKED);
 
-	if(!isPSemulator)
-	{
-		EnableWindow(GetDlgItem(hDialog, IDC_MODE_DIGITAL), false);
-		EnableWindow(GetDlgItem(hDialog, IDC_MODE_ANALOG), false);
+	EnableWindow(GetDlgItem(hDialog, IDC_MODE_DIGITAL), isPSemulator);
+	EnableWindow(GetDlgItem(hDialog, IDC_MODE_ANALOG), isPSemulator);
+	EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), isPSemulator);
+	EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), isPSemulator && !isPs2Emulator);
+	EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), isPs2Emulator);
 
-		EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
-		EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
-	}
-	else
-	{
-		if(!isPs2Emulator)
-			EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), false);
-		else
-		{
-			EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), false);
-			EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), false);
-		}
-	}
-
+	
 	SliderSet(hDialog, IDC_SLIDER_RUMBLE, settings[port].rumble);
 
 	SliderSet(hDialog, IDC_SLIDER_DEADZONE2, settings[port].stickR.deadzone);
@@ -303,7 +291,9 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), isPSemulator);
 			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPPORTS), isPSemulator);
+			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPSTICKS), !isPSemulator);
 
+			CheckDlgButton(hwndDlg, IDC_SWAPSTICKS, SwapSticksEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SWAPPORTS, SwapPortsEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_PROCPRIORITY, bPriority ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
@@ -324,6 +314,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			case IDC_SWAPPORTS:
 				SwapPortsEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPPORTS) == BST_CHECKED;
+				break;
+
+			case IDC_SWAPSTICKS:
+				SwapSticksEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPSTICKS) == BST_CHECKED;
 				break;
 
 			case IDC_SCREENSAVER:

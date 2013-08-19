@@ -3,6 +3,7 @@
 std::list <keyEvent> keyEventList;
 
 bool SwapPortsEnabled = false;
+bool SwapSticksEnabled = false;
 bool bPriority = false;
 bool isPs2Emulator = false;
 bool isPSemulator = false;

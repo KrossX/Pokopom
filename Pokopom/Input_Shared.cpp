@@ -271,7 +271,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 		if(pad.buttons[X360_LS]) analogToggle = false;
 		else if (pad.buttons[X360_RS]) analogToggle = true;
 
-		if(analogToggle)
+		if(SwapSticksEnabled && analogToggle)
 		{
 			analog = ConvertAnalog(pad.modR, set, set.stickR, 0);
 
@@ -476,7 +476,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		if(pad.buttons[X360_LS]) analogToggle = false;
 		else if (pad.buttons[X360_RS]) analogToggle = true;
 
-		if(analogToggle)
+		if(SwapSticksEnabled && analogToggle)
 		{
 			analog = ConvertAnalog(pad.modR, set, set.stickR, 1);
 
