@@ -25,6 +25,9 @@ _Settings::_Settings()
 
 void _Settings::SetDefaults()
 {
+	b4wayStick = false;
+	SwapXO = false;
+	SwapSticksEnabled = false;
 	greenAnalog = false;
 	defaultAnalog = false;
 	isGuitar = false;

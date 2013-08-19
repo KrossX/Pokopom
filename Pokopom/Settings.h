@@ -50,6 +50,9 @@ struct _Settings
 
 	u16 pressureRate;
 
+	bool b4wayStick;
+	bool SwapXO;
+	bool SwapSticksEnabled;
 	bool isGuitar;
 	bool disabled;
 

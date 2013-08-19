@@ -145,8 +145,6 @@ namespace FileIO
 			SaveEntry("General", -1, "INIversion", INIversion, iniFile);
 			SaveEntry("General", -1, "Multitap", multitap, iniFile);
 			SaveEntry("General", -1, "SwapPorts", SwapPortsEnabled, iniFile); 
-			SaveEntry("General", -1, "SwapSticks", SwapSticksEnabled, iniFile);
-			SaveEntry("General", -1, "4wayStick", b4wayStick, iniFile);
 
 			for(s32 port = 0; port < 4; port++)
 			{
@@ -176,8 +174,11 @@ namespace FileIO
 				SaveEntry("Controller", port, "XInputPort", settings[port].xinputPort, iniFile);
 				SaveEntry("Controller", port, "Disabled", settings[port].disabled ? 1 : 0, iniFile);
 				SaveEntry("Controller", port, "DefautMode", settings[port].defaultAnalog ? 1 : 0, iniFile);
-				SaveEntry("Controller", port, "GuitarController", settings[port].isGuitar ? 1 : 0, iniFile);
 				SaveEntry("Controller", port, "GreenAnalog", settings[port].greenAnalog ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "GuitarController", settings[port].isGuitar ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "4wayStick", settings[port].b4wayStick ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "SwapSticks", settings[port].SwapSticksEnabled ? 1 : 0, iniFile);
+				SaveEntry("Controller", port, "SwapXO", settings[port].SwapXO ? 1 : 0, iniFile);
 
 			}
 
@@ -212,8 +213,6 @@ namespace FileIO
 			bPriority = ReadEntry("General", -1, "ProcPriority", iniFile) == 1;
 				SetPriority();
 			
-			b4wayStick = ReadEntry("General", -1, "4wayStick", iniFile) == 1;
-			SwapSticksEnabled = ReadEntry("General", -1, "SwapSticks", iniFile) == 1;
 			SwapPortsEnabled = ReadEntry("General", -1, "SwapPorts", iniFile) == 1;
 			bKeepAwake = ReadEntry("General", -1, "KeepAwake", iniFile) == 1;
 			multitap = ReadEntry("General", -1, "Multitap", iniFile) & 0xFF;
@@ -289,6 +288,15 @@ namespace FileIO
 
 				result = ReadEntry("Controller", port, "GuitarController", iniFile);
 				if(result != -1) settings[port].isGuitar = result == 1;
+
+				result = ReadEntry("Controller", port, "4wayStick", iniFile);
+				if(result != -1) settings[port].b4wayStick = result == 1;
+
+				result = ReadEntry("Controller", port, "SwapSticks", iniFile);
+				if(result != -1) settings[port].SwapSticksEnabled = result == 1;
+
+				result = ReadEntry("Controller", port, "SwapXO", iniFile);
+				if(result != -1) settings[port].SwapXO = result == 1;
 			}
 
 			fclose(iniFile);

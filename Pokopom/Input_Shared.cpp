@@ -219,14 +219,23 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 		buttons |= (~pad.buttons[X360_RB] & 0x1) << DS_R1;
 
 		buttons |= (~pad.buttons[X360_Y] & 0x1) << DS_TRIANGLE;
-		buttons |= (~pad.buttons[X360_B] & 0x1) << DS_CIRCLE;
-		buttons |= (~pad.buttons[X360_A] & 0x1) << DS_CROSS;
 		buttons |= (~pad.buttons[X360_X] & 0x1) << DS_SQUARE;
+
+		if(set.SwapXO)
+		{
+			buttons |= (~pad.buttons[X360_A] & 0x1) << DS_CIRCLE;
+			buttons |= (~pad.buttons[X360_B] & 0x1) << DS_CROSS;
+		}
+		else
+		{
+			buttons |= (~pad.buttons[X360_B] & 0x1) << DS_CIRCLE;
+			buttons |= (~pad.buttons[X360_A] & 0x1) << DS_CROSS;
+		}
 
 		if(digital)
 		{
 			u8 stickLD = GetAnalogDigital(pad.stickL);
-			u8 stickRD = GetAnalogDigital(pad.stickR, b4wayStick && true);
+			u8 stickRD = GetAnalogDigital(pad.stickR, set.b4wayStick && true);
 
 			buttonsStick = buttons | 0x06;
 			buttonsStick &= ~((stickLD & ANALOGD_XP) << DS_RIGHT);
@@ -234,10 +243,19 @@ void FASTCALL DualshockPoll(u16 * bufferOut, _Settings &set, bool &gamepadPlugge
 			buttonsStick &= ~(((stickLD & ANALOGD_YP) >> 2) << DS_UP);
 			buttonsStick &= ~(((stickLD & ANALOGD_YN) >> 3) << DS_DOWN);
 		
-			buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CIRCLE);
 			buttonsStick &= ~(((stickRD & ANALOGD_XN) >> 1) << DS_SQUARE);
 			buttonsStick &= ~(((stickRD & ANALOGD_YP) >> 2) << DS_TRIANGLE);
-			buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CROSS);
+			
+			if(set.SwapXO)
+			{
+				buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CROSS);
+				buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CIRCLE);
+			}
+			else
+			{
+				buttonsStick &= ~((stickRD & ANALOGD_XP) << DS_CIRCLE);
+				buttonsStick &= ~(((stickRD & ANALOGD_YN) >> 3) << DS_CROSS);
+			}
 		}
 		else
 		{
@@ -302,7 +320,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 		if(pad.buttons[X360_LS]) analogToggle = false;
 		else if (pad.buttons[X360_RS]) analogToggle = true;
 
-		if(SwapSticksEnabled && analogToggle)
+		if(set.SwapSticksEnabled && analogToggle)
 		{
 			analog = ConvertAnalog(pad.modR, set, set.stickR, 0);
 
@@ -326,7 +344,7 @@ void FASTCALL DreamcastPoll(u32* buffer_out, _Settings &set, bool &gamepadPlugge
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickR, set.b4wayStick && true);
 
 			// Inactive right stick to work as face buttons
 			buttons |= (stickD & ANALOGD_XP) << DC_B;
@@ -507,7 +525,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 		if(pad.buttons[X360_LS]) analogToggle = false;
 		else if (pad.buttons[X360_RS]) analogToggle = true;
 
-		if(SwapSticksEnabled && analogToggle)
+		if(set.SwapSticksEnabled && analogToggle)
 		{
 			analog = ConvertAnalog(pad.modR, set, set.stickR, 1);
 
@@ -515,7 +533,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickL.X *= set.axisInverted[GP_AXIS_LX] ? -1 : 1;
 			stickL.Y *= set.axisInverted[GP_AXIS_LY] ? -1 : 1;
 
-			u8 stickD = GetAnalogDigital(stickL, b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickL, set.b4wayStick && true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);
@@ -530,7 +548,7 @@ void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlug
 			stickR.X *= set.axisInverted[GP_AXIS_RX] ? -1 : 1;
 			stickR.Y *= set.axisInverted[GP_AXIS_RY] ? -1 : 1;
 			
-			u8 stickD = GetAnalogDigital(stickR, b4wayStick && true);
+			u8 stickD = GetAnalogDigital(stickR, set.b4wayStick && true);
 
 			buttons |= ((stickD & ANALOGD_XP) << N64_CRIGHT);
 			buttons |= (((stickD & ANALOGD_XN) >> 1) << N64_CLEFT);

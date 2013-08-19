@@ -87,6 +87,9 @@ void UpdateControls(HWND hDialog, s32 port)
 	CheckDlgButton(hDialog, IDC_GUITAR, settings[port].isGuitar ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_ANALOG_GREEN, settings[port].greenAnalog ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(hDialog, IDC_LOCKSLIDERS, settings[port].sticksLocked ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_4WAYSTICK, settings[port].b4wayStick ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_SWAPSTICKS, settings[port].SwapSticksEnabled ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hDialog, IDC_SWAPXO, settings[port].SwapXO ? BST_CHECKED : BST_UNCHECKED);
 
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_ANALOG : IDC_MODE_DIGITAL, BST_CHECKED);
 	CheckDlgButton(hDialog, settings[port].defaultAnalog ? IDC_MODE_DIGITAL : IDC_MODE_ANALOG, BST_UNCHECKED);
@@ -96,7 +99,8 @@ void UpdateControls(HWND hDialog, s32 port)
 	EnableWindow(GetDlgItem(hDialog, IDC_MULTITAP), isPSemulator);
 	EnableWindow(GetDlgItem(hDialog, IDC_ANALOG_GREEN), isPSemulator && !isPs2Emulator);
 	EnableWindow(GetDlgItem(hDialog, IDC_GUITAR), isPs2Emulator);
-
+	EnableWindow(GetDlgItem(hDialog, IDC_SWAPSTICKS), !isPSemulator);
+	EnableWindow(GetDlgItem(hDialog, IDC_SWAPXO), isPSemulator);
 	
 	SliderSet(hDialog, IDC_SLIDER_RUMBLE, settings[port].rumble);
 
@@ -240,7 +244,18 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_DEADZONE2), !settings[port].sticksLocked);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_ANTIDEADZONE2), !settings[port].sticksLocked);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_SLIDER_LINEARITY2), !settings[port].sticksLocked);
+				break;
 
+			case IDC_4WAYSTICK:
+				settings[port].b4wayStick = IsDlgButtonChecked(hwndDlg, IDC_4WAYSTICK) == BST_CHECKED;
+				break;
+
+			case IDC_SWAPSTICKS:
+				settings[port].SwapSticksEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPSTICKS) == BST_CHECKED;
+				break;
+
+			case IDC_SWAPXO:
+				settings[port].SwapXO = IsDlgButtonChecked(hwndDlg, IDC_SWAPXO) == BST_CHECKED;
 				break;
 			}
 
@@ -291,10 +306,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 			EnableWindow(GetDlgItem(hwndDlg, IDC_MULTITAP), isPSemulator);
 			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPPORTS), isPSemulator);
-			EnableWindow(GetDlgItem(hwndDlg, IDC_SWAPSTICKS), !isPSemulator);
-
-			CheckDlgButton(hwndDlg, IDC_4WAYSTICK, b4wayStick ? BST_CHECKED : BST_UNCHECKED);
-			CheckDlgButton(hwndDlg, IDC_SWAPSTICKS, SwapSticksEnabled ? BST_CHECKED : BST_UNCHECKED);
+			
 			CheckDlgButton(hwndDlg, IDC_SWAPPORTS, SwapPortsEnabled ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_PROCPRIORITY, bPriority ? BST_CHECKED : BST_UNCHECKED);
 			CheckDlgButton(hwndDlg, IDC_SCREENSAVER, bKeepAwake ? BST_CHECKED : BST_UNCHECKED);
@@ -317,13 +329,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 				SwapPortsEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPPORTS) == BST_CHECKED;
 				break;
 
-			case IDC_4WAYSTICK:
-				b4wayStick = IsDlgButtonChecked(hwndDlg, IDC_4WAYSTICK) == BST_CHECKED;
-				break;
 
-			case IDC_SWAPSTICKS:
-				SwapSticksEnabled = IsDlgButtonChecked(hwndDlg, IDC_SWAPSTICKS) == BST_CHECKED;
-				break;
 
 			case IDC_SCREENSAVER:
 				bKeepAwake = IsDlgButtonChecked(hwndDlg, IDC_SCREENSAVER) == BST_CHECKED;
