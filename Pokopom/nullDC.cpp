@@ -30,7 +30,7 @@ void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 	info->common.InterfaceVersion = MAPLE_PLUGIN_I_F_VERSION;
 	
 	is_nullDC = true;
-	wcscpy_s(info->common.Name, L"Pokopom XInput Plugin");
+	wcscpy_s(info->common.Name, L"Pokopom XInput Plugin ");
 
 	// Assign callback functions
 	info->common.Load = Load;
@@ -48,11 +48,11 @@ void CALLBACK dcGetInterface(nullDC::plugin_interface* info)
 	info->maple.devices[id].Type = nullDC::MDT_Main;	
 	info->maple.devices[id].Flags = nullDC::MDTF_Sub0 | nullDC::MDTF_Sub1 | nullDC::MDTF_Hotplug;
 	id++;
-	/*
-	wcscpy_s(info->maple.devices[id].Name, L"Pokopom Rumble");
+	
+	wcscpy_s(info->maple.devices[id].Name, L"Pokopom Rumble Pack");
 	info->maple.devices[id].Type = nullDC::MDT_Sub;
 	info->maple.devices[id].Flags = nullDC::MDTF_Hotplug;	
-	*/
+	
 	id++;//EOL marker
 	info->maple.devices[id].Type = nullDC::MDT_EndOfList;
 }
@@ -146,23 +146,30 @@ int FASTCALL CreateSub(nullDC::maple_subdevice_instance* inst, unsigned int id, 
 // Emulation start, stop... quit?
 ////////////////////////////////////////////////////////////////////////
 
+extern void XInputPaused(bool pewpew);
+
 int FASTCALL Init(void* data, unsigned int id, nullDC::maple_init_params* params)
 {
-	if(bKeepAwake)
-		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
-	
 	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
 	//printf("Pokopom -> Init [%d]\n", port);
+
+	if(bKeepAwake)
+		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+
+	XInputPaused(false);
+	
 	return nullDC::rv_ok;
 }
 
 void FASTCALL Term(void* data, unsigned int id)
 {
+	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
+	//printf("Pokopom -> Term [%d]\n", port);
+	
 	if(bKeepAwake)
 		SetThreadExecutionState(ES_CONTINUOUS);
 	
-	//unsigned int port = ((nullDC::maple_device_instance*)data)->port >> 6;
-	//printf("Pokopom -> Term [%d]\n", port);
+	XInputPaused(true);
 }
 
 void FASTCALL Destroy(void* data, unsigned int id)

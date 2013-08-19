@@ -33,7 +33,6 @@ struct ChankastPadData
   BYTE joy2x;			/* second joystick X */
   BYTE joy2y;			/* second joystick Y */
 };
-#pragma pack(0)
 
 ////////////////////////////////////////////////////////////////////////
 // Device.. stuff

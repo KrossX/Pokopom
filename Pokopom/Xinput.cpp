@@ -53,7 +53,7 @@ unsigned short ConvertAnalog(int X, int Y, _Settings &set)
 	if(set.antiDeadzone > 0)
 	{
 		const double antiDeadzone = set.extThreshold * set.antiDeadzone;
-		radius = radius * ((set.extThreshold - antiDeadzone) / set.extThreshold) + antiDeadzone;		
+		radius = radius * ((set.extThreshold - antiDeadzone) / set.extThreshold) + antiDeadzone;
 	}
 
 	if(radius > set.extThreshold) radius *= set.extMult;
@@ -216,7 +216,7 @@ void Controller::vibration(unsigned char smalldata, unsigned char bigdata)
 		//printf("Vibrate! [%X] [%X]\n", vib.wLeftMotorSpeed, vib.wRightMotorSpeed);
 		
 
-		XInputSetState(settings.xinputPort, &vib);							
+		XInputSetState(settings.xinputPort, &vib);
 	}	
 	else
 		gamepadPlugged = false;
@@ -226,7 +226,7 @@ void XInputPaused(bool pewpew)
 {	XInputEnable(!pewpew); }
 
 ////////////////////////////////////////////////////////////////////////
-// nullDC stuff below...
+// Dreamcast stuff below...
 ////////////////////////////////////////////////////////////////////////
 
 void DreamcastController::PollOut(unsigned int* buffer_out)
@@ -261,6 +261,8 @@ void DreamcastController::PollOut(unsigned int* buffer_out)
 		triggers = ((state.Gamepad.bLeftTrigger&0xFF)<<8) | (state.Gamepad.bRightTrigger&0xFF);
 		analog = ConvertAnalog(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY, set);
 	}
+	else 
+		gamepadPlugged = false;
 
 	// Buttons
 	buffer[2] = buttons | 0xF901;
@@ -280,4 +282,34 @@ void ChankastController::PollData(ChankastPadData &Data)
 	unsigned short buffer[6];
 	PollOut((unsigned int*)buffer);
 	memcpy(&Data, &buffer[2], 8);
+}
+
+void PuruPuruPack::Update()
+{
+	XINPUT_STATE state;
+	DWORD result = XInputGetState(set.xinputPort, &state);
+
+	if(result != ERROR_SUCCESS)
+	{
+		gamepadPlugged = false;
+		return;
+	}
+
+	XINPUT_VIBRATION vib;
+
+	short direction = (short)(rConfig.Mpow - rConfig.Ppow);
+	unsigned short uDirection = direction < 0 ? -direction : direction;
+
+	if(direction != 0)
+	{
+		vib.wLeftMotorSpeed = rConfig.FREQ > FreqH ? 0 : (WORD)((uDirection * 9362) * set.rumble);
+		vib.wRightMotorSpeed = rConfig.FREQ < FreqL ? 0 : (WORD)((uDirection * 8192 + 8190) * set.rumble);
+	}
+	else
+	{
+		vib.wLeftMotorSpeed = 0;
+		vib.wRightMotorSpeed = 0;
+	}
+
+	XInputSetState(set.xinputPort, &vib);
 }
