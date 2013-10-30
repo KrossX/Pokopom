@@ -35,6 +35,22 @@ void FASTCALL GetRadius(_Stick& stick)
 	stick.radius = sqrt(X*X + Y*Y);
 }
 
+void FASTCALL TriggerDeadzone(_Pad& pad, _Settings &set)
+{
+	if(!set.triggerDeadzone) return;
+
+	float dz = set.triggerDeadzone;
+
+	for(int i = 0; i < 2; i++)
+	{
+		float tg = (float)pad.analog[X360_TRIGGERL + i];
+
+		tg = tg < dz ? 0 : (tg - dz) * 255.0f / (255.0f - dz);
+
+		pad.analog[X360_TRIGGERL + i] = ((s32)tg) & 0xFF;
+	}
+}
+
 static u8 FASTCALL GetAnalogDigital(_Stick& stick, StickSettings &aset)
 {
 	u8 data = 0;

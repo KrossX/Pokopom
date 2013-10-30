@@ -270,6 +270,8 @@ bool InputGetState(_Pad& pad, _Settings &set)
 		pad.analog[X360_TRIGGERL] = (js.axis[LIN_AXIS_LT] + 32767) / 256;
 		pad.analog[X360_TRIGGERR] = (js.axis[LIN_AXIS_RT] + 32767) / 256;
 
+		TriggerDeadzone(pad, set);
+
 		pad.stickL.X = pad.analog[X360_STICKLX];
 		pad.stickL.Y = pad.analog[X360_STICKLY];
 		pad.stickR.X = pad.analog[X360_STICKRX];

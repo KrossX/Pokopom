@@ -157,6 +157,7 @@ namespace FileIO
 				SaveEntry("Controller", port, "AxisInverted", AxisInverted, iniFile);
 				SaveEntry("Controller", port, "AxisRemap", AxisRemap, iniFile);
 
+				SaveEntry("Controller", port, "TriggerDeadzone", settings[port].triggerDeadzone, iniFile);
 				SaveEntry("Controller", port, "Pressure", settings[port].pressureRate, iniFile);
 				SaveEntry("Controller", port, "Rumble", (s32)(settings[port].rumble * 100.1), iniFile);
 				SaveEntry("Controller", port, "SticksLocked", settings[port].sticksLocked ? 1 : 0, iniFile);
@@ -254,6 +255,9 @@ namespace FileIO
 					settings[port].axisRemap[GP_AXIS_LY] =  (result >> 8) & 0xF;
 					settings[port].axisRemap[GP_AXIS_LX] = (result >> 12) & 0xF;
 				}
+
+				result = ReadEntry("Controller", port, "TriggerDeadzone",  iniFile);
+				if(result != -1) settings[port].triggerDeadzone = result & 0xFF;
 
 				result = ReadEntry("Controller", port, "Pressure",  iniFile);
 				if(result != -1) settings[port].pressureRate = result & 0xFF;

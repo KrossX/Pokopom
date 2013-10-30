@@ -153,6 +153,7 @@ namespace Input
 		_Stick modL, modR;
 	};
 
+	void FASTCALL TriggerDeadzone(_Pad& pad, _Settings &set);
 	bool FASTCALL InputGetState(_Pad& pad, _Settings &set);
 	void FASTCALL GetRadius(_Stick& stick);
 

@@ -38,6 +38,7 @@ void _Settings::SetDefaults()
 
 	rumble = 1.0;
 	pressureRate = 10;
+	triggerDeadzone = 0;
 
 	for(s16 i = 0; i < 4; i++)
 	{

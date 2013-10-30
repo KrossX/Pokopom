@@ -139,6 +139,8 @@ bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 		pad.analog[X360_TRIGGERL] = state[xport].Gamepad.bLeftTrigger;
 		pad.analog[X360_TRIGGERR] = state[xport].Gamepad.bRightTrigger;
 
+		TriggerDeadzone(pad, set);
+
 		pad.stickL.X = pad.analog[X360_STICKLX];
 		pad.stickL.Y = pad.analog[X360_STICKLY];
 		pad.stickR.X = pad.analog[X360_STICKRX];

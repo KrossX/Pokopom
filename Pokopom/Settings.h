@@ -56,6 +56,7 @@ struct _Settings
 	s32 axisValue[4];
 
 	u16 pressureRate;
+	u8 triggerDeadzone;
 
 	bool SwapDCBumpers;
 	bool SwapXO;
