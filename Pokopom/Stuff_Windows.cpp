@@ -1,3 +1,7 @@
+/* Copyright (c) 2012 KrossX <krossx@live.com>
+ * License: http://www.opensource.org/licenses/mit-license.html  MIT License
+ */
+
 //#include "General.h"
 #include "PlayStation.h"
 #include "Input.h"
