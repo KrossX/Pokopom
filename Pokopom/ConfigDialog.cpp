@@ -15,7 +15,7 @@
 HWND hChild, hParent = NULL;
 extern u8 multitap;
 extern HINSTANCE hInstance;
-extern u8 dcPlatform;
+//extern u8 dcPlatform;
 
 f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
 {
@@ -280,7 +280,8 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			tci.pszText = L"Controller 2";
 			TabCtrl_InsertItem(hTabControl, 1, &tci);
 
-			if(dcPlatform != 2 && (!isPSemulator || multitap > 0))
+			//if(dcPlatform != 2 && (!isPSemulator || multitap > 0))
+			if (!isPSemulator || multitap > 0)
 			{
 				tci.pszText = L"Controller 3";
 				TabCtrl_InsertItem(hTabControl, 2, &tci);

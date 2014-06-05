@@ -78,6 +78,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalDependencies>UxTheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)README" "$(TargetDir)Readme.txt" /Y</Command>
@@ -88,21 +89,30 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Chankast.h" />
+    <ClInclude Include="Chankast.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Codes_IDs.h" />
     <ClInclude Include="ConfigDialog.h" />
-    <ClInclude Include="ConsoleOutput.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="DebugStuff.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Input_Shared.h" />
-    <ClInclude Include="nullDC_plugin_types_old.h" />
+    <ClInclude Include="nullDC_plugin_types_old.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PlayStation.h" />
-    <ClInclude Include="nullDC.h" />
-    <ClInclude Include="nullDC_Devices.h" />
-    <ClInclude Include="nullDC_plugin_types.h" />
+    <ClInclude Include="nullDC.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="nullDC_Devices.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="nullDC_plugin_types.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PSemuPro_Interface.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
@@ -111,9 +121,10 @@
     <ClInclude Include="Zilmar_Devices.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Chankast.cpp" />
+    <ClCompile Include="Chankast.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ConfigDialog.cpp" />
-    <ClCompile Include="ConsoleOutput.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Controller2.cpp" />
     <ClCompile Include="ControllerGuitar.cpp" />
@@ -124,8 +135,12 @@
     <ClCompile Include="Input_Shared.cpp" />
     <ClCompile Include="Input_XInput.cpp" />
     <ClCompile Include="PlayStation.cpp" />
-    <ClCompile Include="nullDC.cpp" />
-    <ClCompile Include="nullDC_Devices.cpp" />
+    <ClCompile Include="nullDC.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="nullDC_Devices.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Stuff_Linux.cpp" />
     <ClCompile Include="Stuff_Shared.cpp" />

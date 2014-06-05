@@ -51,9 +51,6 @@
     <ClInclude Include="ConfigDialog.h">
       <Filter>General\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="ConsoleOutput.h">
-      <Filter>General\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Zilmar_Controller_Interface.h">
       <Filter>Misc</Filter>
     </ClInclude>
@@ -105,9 +102,6 @@
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="ConsoleOutput.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="Controller.cpp">

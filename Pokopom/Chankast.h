@@ -3,9 +3,10 @@
  */
 
 #pragma once
-#include "nullDC_Devices.h"
+//#include "nullDC_Devices.h"
 
-#ifdef _WIN32
+#if 0
+//#ifdef _WIN32
 
 ////////////////////////////////////////////////////////////////////////
 // Interface stuff
