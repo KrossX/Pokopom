@@ -57,7 +57,7 @@ bool FASTCALL Recheck(u8 port)
 void FASTCALL Pause(bool pewpew) 
 { 
 	if(pewpew) StopRumbleAll();
-	XInputEnable(!pewpew); 
+	//XInputEnable(!pewpew); 
 }
 
 void StopRumbleAll()
