@@ -92,9 +92,9 @@
     <ClInclude Include="Chankast.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Codes_IDs.h" />
+    <ClInclude Include="playstation_codes.h" />
     <ClInclude Include="ConfigDialog.h" />
-    <ClInclude Include="Controller.h" />
+    <ClInclude Include="playstation_devices.h" />
     <ClInclude Include="DebugStuff.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="General.h" />
@@ -103,7 +103,7 @@
     <ClInclude Include="nullDC_plugin_types_old.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="PlayStation.h" />
+    <ClInclude Include="psemupro.h" />
     <ClInclude Include="nullDC.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
@@ -114,6 +114,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="PSemuPro_Interface.h" />
+    <ClInclude Include="regini.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Stuff.h" />
@@ -125,22 +126,23 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp" />
-    <ClCompile Include="Controller.cpp" />
-    <ClCompile Include="Controller2.cpp" />
-    <ClCompile Include="ControllerGuitar.cpp" />
-    <ClCompile Include="ControllerMtap.cpp" />
+    <ClCompile Include="playstation_dualshock.cpp" />
+    <ClCompile Include="playstation_dualschock2.cpp" />
+    <ClCompile Include="playstation_guitar.cpp" />
+    <ClCompile Include="playstation_mtap.cpp" />
     <ClCompile Include="DebugStuff.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="Input_Linux.cpp" />
     <ClCompile Include="Input_Shared.cpp" />
     <ClCompile Include="Input_XInput.cpp" />
-    <ClCompile Include="PlayStation.cpp" />
+    <ClCompile Include="psemupro.cpp" />
     <ClCompile Include="nullDC.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="nullDC_Devices.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="regini.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Stuff_Linux.cpp" />
     <ClCompile Include="Stuff_Shared.cpp" />

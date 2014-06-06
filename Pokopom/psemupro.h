@@ -4,22 +4,6 @@
 
 #include "General.h"
 
-#include "Controller.h"
+#include "playstation_devices.h"
 #include "PSemuPro_Interface.h"
 #include "FileIO.h"
-
-struct freezeData
-{
-	s32 size;
-	u8 *data;
-};
-
-struct _emuStuff
-{
-	HWND hWnd;
-	WNDPROC WndProc;
-};
-
-extern _emuStuff emuStuff;
-
-u8 SwapPorts();

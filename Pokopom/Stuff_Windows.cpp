@@ -2,15 +2,16 @@
  * License: http://www.opensource.org/licenses/mit-license.html  MIT License
  */
 
-//#include "General.h"
-#include "PlayStation.h"
-#include "Input.h"
-#include "Stuff.h"
+//#include "general.h"
+#include "psemupro.h"
+#include "input.h"
+#include "stuff.h"
 
 #ifdef _WIN32
 
-HWND hDisplay = NULL;
-HINSTANCE hInstance = NULL;
+HWND h_display = NULL;
+HINSTANCE h_instance = NULL;
+WNDPROC h_winproc = NULL;
 
 void ShowDialog(const wchar_t* message, const wchar_t* title)
 {
@@ -64,13 +65,11 @@ void KeepAwake(u8 mode)
 void GetDisplay(void* pDisplay)
 {
 	if(IsWindow((HWND)pDisplay))
-		emuStuff.hWnd = (HWND)pDisplay;
+		h_display = (HWND)pDisplay;
 	else if(IsWindow(*(HWND*)pDisplay)) // And hopefully doesn't crash...
-		emuStuff.hWnd = *(HWND*)pDisplay;
+		h_display = *(HWND*)pDisplay;
 	else
-		emuStuff.hWnd = NULL;
-
-	hDisplay = emuStuff.hWnd;
+		h_display = NULL;
 }
 
 LRESULT CALLBACK KeyboardProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -101,7 +100,7 @@ LRESULT CALLBACK KeyboardProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	return CallWindowProcW(emuStuff.WndProc, hWnd, msg, wParam, lParam);
+	return CallWindowProcW(h_winproc, hWnd, msg, wParam, lParam);
 }
 
 u8 SwapPorts()
@@ -126,13 +125,13 @@ u8 SwapPorts()
 void KeyboardOpen()
 {
 	if(isPs2Emulator)
-		emuStuff.WndProc = (WNDPROC)SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)KeyboardProc);
+		h_winproc = (WNDPROC)SetWindowLongPtr(h_display, GWLP_WNDPROC, (LPARAM)KeyboardProc);
 }
 
 void KeyboardClose()
 {
 	if(isPs2Emulator)
-		SetWindowLongPtr(emuStuff.hWnd, GWLP_WNDPROC, (LPARAM)emuStuff.WndProc);
+		SetWindowLongPtr(h_display, GWLP_WNDPROC, (LPARAM)h_winproc);
 }
 
 void KeyboardCheck() {}
@@ -159,21 +158,14 @@ void ScrollLockStuff(bool init)
 
 BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
 {
-	hInstance = hInst;
+	h_instance = hInst;
 
 	switch(dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-	//case DLL_THREAD_ATTACH:
-		DebugOpen();
-		ScrollLockStuff(true);
 		break;
 
 	case DLL_PROCESS_DETACH:
-	//case DLL_THREAD_DETACH:
-		DebugClose();
-		Input::StopRumbleAll();
-		ScrollLockStuff(false);
 		break;
 	}
 

@@ -34,11 +34,3 @@ extern bool isPSemulator;
 extern bool bPriority;
 extern bool bKeepAwake;
 extern s32 INIversion;
-
-#ifdef _WIN32
-extern HWND hDisplay;
-#endif
-
-#ifdef __linux__
-extern Display *hDisplay;
-#endif

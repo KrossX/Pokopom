@@ -38,8 +38,8 @@ struct _Settings
 	
 	StickSettings stickL, stickR;
 
-	bool axisInverted[4];
-	s16 axisRemap[4];
+	u8 axisInverted[4];
+	u8 axisRemap[4];
 	s32 axisValue[4];
 
 	u16 pressureRate;

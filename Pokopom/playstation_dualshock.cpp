@@ -3,8 +3,8 @@
  */
 
 #include "General.h"
-#include "Codes_IDs.h"
-#include "Controller.h"
+#include "playstation_codes.h"
+#include "playstation_devices.h"
 #include "Input.h"
 
 ////////////////////////////////////////////////////////////////////////

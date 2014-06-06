@@ -27,7 +27,7 @@ void _Settings::SetDefaults()
 	pressureRate = 10;
 	triggerDeadzone = 0;
 
-	for(s16 i = 0; i < 4; i++)
+	for(u8 i = 0; i < 4; i++)
 	{
 		axisInverted[i] = false;
 		axisRemap[i] = i;

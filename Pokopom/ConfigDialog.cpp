@@ -13,8 +13,9 @@
 #include "resource.h"
 
 HWND hChild, hParent = NULL;
-extern u8 multitap;
-extern HINSTANCE hInstance;
+//extern u8 multitap;
+u8 multitap = NULL;
+extern HINSTANCE h_instance;
 //extern u8 dcPlatform;
 
 f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
@@ -189,16 +190,16 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_MODE_ANALOG: settings[port].defaultAnalog = true; break;
 
 			case IDC_COMBO_LX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LX] = (s16)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);
+				settings[port].axisRemap[GP_AXIS_LX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_LY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LY] = (s16)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);
+				settings[port].axisRemap[GP_AXIS_LY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RX] = (s16)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);
+				settings[port].axisRemap[GP_AXIS_RX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RY] = (s16)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
+				settings[port].axisRemap[GP_AXIS_RY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
 				break;
 
 			case IDC_INVERT_LX:
@@ -393,7 +394,7 @@ void CreateConfigDialog()
 {
 	hParent = GetActiveWindow();
 
-	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_CONFIG), hParent, DialogProc, (LPARAM)hInstance);
+	DialogBoxParam(h_instance, MAKEINTRESOURCE(IDD_CONFIG), hParent, DialogProc, (LPARAM)h_instance);
 	MSG message;
 
 	while(GetMessage(&message, NULL, NULL, NULL))

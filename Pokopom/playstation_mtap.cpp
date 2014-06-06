@@ -3,8 +3,8 @@
  */
 
 #include "General.h"
-#include "Controller.h"
-#include "Codes_IDs.h"
+#include "playstation_devices.h"
+#include "playstation_codes.h"
 
 
 extern u8 multitap;

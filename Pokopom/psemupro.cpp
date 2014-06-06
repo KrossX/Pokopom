@@ -2,18 +2,13 @@
  * License: http://www.opensource.org/licenses/mit-license.html  MIT License
  */
 
-#include "PlayStation.h"
+#include "psemupro.h"
 #include "ConfigDialog.h"
 #include "Input.h"
 
-_emuStuff emuStuff;
-PlayStationDevice * controller[2] = {NULL, NULL};
+//PlayStationDevice * controller[2] = {NULL, NULL};
 
-char settingsDirectory[1024] = {0}; // for PCSX2
-
-u32 bufferCount = 0;
-u8 curPort = 0, curSlot = 1;
-u8 multitap = 0;
+char settingsDirectory[1024]; // for PCSX2
 
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build
@@ -78,54 +73,7 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 	FileIO::INI_LoadSettings();
 	DebugPrint("[%X]", flags);
 
-	for(int pad = 0; pad < 2; pad++)
-	{
-		if(isPs2Emulator)
-		{
-			switch(multitap)
-			{
-			case 0: 
-				if(settings[pad].isGuitar)	controller[pad] = new PS2_Guitar(settings[pad]);
-				else						controller[pad] = new DualShock2(settings[pad]);
-				break;
-
-			case 1: 
-				if(pad == 0) controller[pad] = new MultiTap2(settings);
-				else controller[pad] = new DualShock(settings[pad]);
-				break;
-
-			case 2: 
-				if(pad == 0) controller[pad] = new DualShock(settings[pad]);
-				else controller[pad] = new MultiTap2(settings);
-				break;
-			}
-
-		}
-		else
-		{
-			switch(multitap)
-			{
-			case 0: 
-				controller[pad] = new DualShock(settings[pad]); 
-				break;
-
-			case 1: 
-				if(pad == 0) controller[pad] = new MultiTap(settings);
-				else controller[pad] = new DualShock(settings[pad]);
-				break;
-
-			case 2: 
-				if(pad == 0) controller[pad] = new DualShock(settings[pad]);
-				else controller[pad] = new MultiTap(settings);
-				break;
-			}
-		}
-
-		if(controller[pad])
-			controller[pad]->SetPort((u8)pad);
-		else 
-			return emupro::ERR_FATAL;
-	}
+	//return emupro::ERR_FATAL;
 
 	return emupro::INIT_ERR_SUCCESS;
 }
@@ -134,10 +82,10 @@ DllExport void CALLBACK PADshutdown() // PAD SHUTDOWN
 {
 	DebugFunc();
 
-	delete controller[0];
-	delete controller[1];
+	//delete controller[0];
+	//delete controller[1];
 
-	controller[0] = controller[1] = NULL;
+	//controller[0] = controller[1] = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -219,26 +167,26 @@ s32 FASTCALL PADreadPort(s32 port, emupro::pad::DataS* ppds)
 {
 	DebugPrint("[%X]", port);
 
-	controller[port]->command(0, 0x01);
-	u8 cType = controller[port]->command(1, 0x42);
-	ppds->controllerType = cType >> 4;
+	//controller[port]->command(0, 0x01);
+	//u8 cType = controller[port]->command(1, 0x42);
+	//ppds->controllerType = cType >> 4;
 
-	controller[port]->command(2, 0x00);
-	ppds->buttonStatus = controller[port]->command(3, 0x00) | (controller[port]->command(4, 0x00) << 8);
+	//controller[port]->command(2, 0x00);
+	//ppds->buttonStatus = controller[port]->command(3, 0x00) | (controller[port]->command(4, 0x00) << 8);
 
-	cType = cType & 0xF;
+	//cType = cType & 0xF;
 
-	if(cType > 2)
-	{
-		ppds->rightJoyX = ppds->moveX = controller[port]->command(5, 0x00);
-		ppds->rightJoyY = ppds->moveY = controller[port]->command(6, 0x00);
+	//if(cType > 2)
+	//{
+	//	ppds->rightJoyX = ppds->moveX = controller[port]->command(5, 0x00);
+	//	ppds->rightJoyY = ppds->moveY = controller[port]->command(6, 0x00);
 
-		if (cType >= 0x03)
-		{
-			ppds->leftJoyX = controller[port]->command(7, 0x00);
-			ppds->leftJoyY = controller[port]->command(8, 0x00);
-		}
-	}
+	//	if (cType >= 0x03)
+	//	{
+	//		ppds->leftJoyX = controller[port]->command(7, 0x00);
+	//		ppds->leftJoyY = controller[port]->command(8, 0x00);
+	//	}
+	//}
 
 	return emupro::pad::ERR_SUCCESS;
 }
@@ -259,27 +207,29 @@ DllExport s32 CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 
 DllExport u8 CALLBACK PADstartPoll(s32 port)
 {
-	curPort = SwapPortsEnabled ? (u8)(port - 1) ^ SwapPorts() : (u8)(port - 1);
-	bufferCount = 0;
-	
-	u8 data = controller[curPort]->command(bufferCount, curSlot);
+	//curPort = SwapPortsEnabled ? (u8)(port - 1) ^ SwapPorts() : (u8)(port - 1);
+	//bufferCount = 0;
+	//
+	//u8 data = controller[curPort]->command(bufferCount, curSlot);
 
 	//if(curPort == 0)
 	DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, curSlot, data);
 
-	return data;
+	//return data;
+	return 0xFF;
 }
 
 DllExport u8 CALLBACK PADpoll(u8 data)
 {
-	bufferCount++;
+	//bufferCount++;
 
-	u8 doto = controller[curPort]->command(bufferCount, data);
+	//u8 doto = controller[curPort]->command(bufferCount, data);
 
-	//if(curPort == 0)
-	DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, data, doto);
+	////if(curPort == 0)
+	//DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, data, doto);
 
-	return doto;
+	//return doto;
+	return 0xFF;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -287,52 +237,52 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 ////////////////////////////////////////////////////////////////////////
 
 
-DllExport u32 CALLBACK PADfreeze(s32 mode, freezeData *data)
+DllExport u32 CALLBACK PADfreeze(s32 mode, u32 *data)
 {
 	DebugPrint("[%X]", mode);
 
 	if(!data) return (u32)emupro::ERR_FATAL;
 
-	switch(mode)
-	{
-	case emupro::Savestate::LOAD:
-		{
-			PlayStationDeviceState *state = (PlayStationDeviceState *)data->data;
+	//switch(mode)
+	//{
+	//case emupro::Savestate::LOAD:
+	//	{
+	//		PlayStationDeviceState *state = (PlayStationDeviceState *)data->data;
 
-			if(memcmp(state[0].libraryName, libraryName, 25) == 0 &&
-				state[0].version == ((revision << 8) | build))
-			{
-				controller[0]->LoadState(state[0]);
-				controller[1]->LoadState(state[1]);
-			}
-			else
-			{
-				printf("Pokopom -> Wrong savestate data to load.");
-			}
+	//		if(memcmp(state[0].libraryName, libraryName, 25) == 0 &&
+	//			state[0].version == ((revision << 8) | build))
+	//		{
+	//			controller[0]->LoadState(state[0]);
+	//			controller[1]->LoadState(state[1]);
+	//		}
+	//		else
+	//		{
+	//			printf("Pokopom -> Wrong savestate data to load.");
+	//		}
 
-		} break;
+	//	} break;
 
-	case emupro::Savestate::SAVE:
-		{
-			PlayStationDeviceState state[2];
+	//case emupro::Savestate::SAVE:
+	//	{
+	//		PlayStationDeviceState state[2];
 
-			memset(state, 0, sizeof(state));
+	//		memset(state, 0, sizeof(state));
 
-			memcpy(state[0].libraryName, libraryName, 25);
-			memcpy(state[1].libraryName, libraryName, 25);
+	//		memcpy(state[0].libraryName, libraryName, 25);
+	//		memcpy(state[1].libraryName, libraryName, 25);
 
-			state[0].version = state[1].version = (revision << 8) | build;
+	//		state[0].version = state[1].version = (revision << 8) | build;
 
-			controller[0]->SaveState(state[0]);
-			controller[1]->SaveState(state[1]);
-			memcpy(data->data, state, sizeof(state));
-		} break;
+	//		controller[0]->SaveState(state[0]);
+	//		controller[1]->SaveState(state[1]);
+	//		memcpy(data->data, state, sizeof(state));
+	//	} break;
 
-	case emupro::Savestate::QUERY_SIZE:
-		{
-			data->size = sizeof(PlayStationDeviceState) * 2;
-		} break;
-	}
+	//case emupro::Savestate::QUERY_SIZE:
+	//	{
+	//		data->size = sizeof(PlayStationDeviceState) * 2;
+	//	} break;
+	//}
 
 	return emupro::ERR_SUCCESS;
 }
@@ -365,10 +315,11 @@ DllExport s32 PADkeypressed()
 DllExport u32 CALLBACK PADqueryMtap(u8 port)
 {
 	DebugPrint("[%X]", port);
+	return 0;
 
-	if(multitap == 1 && port == 1) return 1;
-	else if(multitap == 2) return 1;
-	else return 0;
+	//if(multitap == 1 && port == 1) return 1;
+	//else if(multitap == 2) return 1;
+	//else return 0;
 }
 
 DllExport void CALLBACK PADsetSettingsDir(const char *dir)
@@ -402,21 +353,21 @@ DllExport u32 CALLBACK PADsetSlot(u8 port, u8 slot)
 {
 	DebugPrint("[%X|%X]", port, slot);
 
-	curPort = port - 1;
-	curSlot = slot;
+	//curPort = port - 1;
+	//curSlot = slot;
 
-	switch(multitap)
-	{
-	case 0:
-		if(slot == 1) return 1;
+	//switch(multitap)
+	//{
+	//case 0:
+	//	if(slot == 1) return 1;
 
-	case 1:
-		if(port == 1) return 1;
+	//case 1:
+	//	if(port == 1) return 1;
 
-	case 2:
-		if(port == 1 && slot == 1) return 1;
-		else if(port == 2 && slot < 4) return 1;
-	}
+	//case 2:
+	//	if(port == 1 && slot == 1) return 1;
+	//	else if(port == 2 && slot < 4) return 1;
+	//}
 
 	return 0;
 }

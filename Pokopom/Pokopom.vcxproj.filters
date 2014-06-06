@@ -69,15 +69,6 @@
     <ClInclude Include="nullDC_plugin_types.h">
       <Filter>Systems\Dreamcast\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Codes_IDs.h">
-      <Filter>Systems\PlayStation\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Controller.h">
-      <Filter>Systems\PlayStation\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayStation.h">
-      <Filter>Systems\PlayStation\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -96,6 +87,18 @@
     <ClInclude Include="DebugStuff.h">
       <Filter>General\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="psemupro.h">
+      <Filter>Systems\PlayStation\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="playstation_devices.h">
+      <Filter>Systems\PlayStation\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="playstation_codes.h">
+      <Filter>Systems\PlayStation\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="regini.h">
+      <Filter>General\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Settings.cpp">
@@ -103,21 +106,6 @@
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp">
       <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="Controller.cpp">
-      <Filter>Systems\PlayStation</Filter>
-    </ClCompile>
-    <ClCompile Include="Controller2.cpp">
-      <Filter>Systems\PlayStation</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerGuitar.cpp">
-      <Filter>Systems\PlayStation</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerMtap.cpp">
-      <Filter>Systems\PlayStation</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayStation.cpp">
-      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
     <ClCompile Include="Chankast.cpp">
       <Filter>Systems\Dreamcast</Filter>
@@ -156,6 +144,24 @@
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="DebugStuff.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="psemupro.cpp">
+      <Filter>Systems\PlayStation</Filter>
+    </ClCompile>
+    <ClCompile Include="playstation_mtap.cpp">
+      <Filter>Systems\PlayStation</Filter>
+    </ClCompile>
+    <ClCompile Include="playstation_guitar.cpp">
+      <Filter>Systems\PlayStation</Filter>
+    </ClCompile>
+    <ClCompile Include="playstation_dualschock2.cpp">
+      <Filter>Systems\PlayStation</Filter>
+    </ClCompile>
+    <ClCompile Include="playstation_dualshock.cpp">
+      <Filter>Systems\PlayStation</Filter>
+    </ClCompile>
+    <ClCompile Include="regini.cpp">
       <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
