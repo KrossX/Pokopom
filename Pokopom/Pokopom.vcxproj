@@ -130,7 +130,7 @@
     <ClCompile Include="ConfigDialog.cpp" />
     <ClCompile Include="demul.cpp" />
     <ClCompile Include="playstation_dualshock.cpp" />
-    <ClCompile Include="playstation_dualschock2.cpp" />
+    <ClCompile Include="playstation_dualshock2.cpp" />
     <ClCompile Include="playstation_guitar.cpp" />
     <ClCompile Include="playstation_mtap.cpp" />
     <ClCompile Include="DebugStuff.cpp" />

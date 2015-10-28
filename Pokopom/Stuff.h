@@ -14,6 +14,7 @@ void GetDisplay(void* pDisplay);
 void ShowDialog(const wchar_t* message, const wchar_t* title);
 void KeepAwake(u8 mode);
 
+u8 SwapPorts();
 void SetPriority();
 
 void KeyboardOpen();
