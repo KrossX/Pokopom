@@ -13,20 +13,21 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{25BE40B9-3ADC-4163-B055-AC71B856A9C3}</ProjectGuid>
     <RootNamespace>Pokopom</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -92,6 +93,7 @@
     <ClInclude Include="Chankast.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="demul.h" />
     <ClInclude Include="playstation_codes.h" />
     <ClInclude Include="ConfigDialog.h" />
     <ClInclude Include="playstation_devices.h" />
@@ -126,6 +128,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConfigDialog.cpp" />
+    <ClCompile Include="demul.cpp" />
     <ClCompile Include="playstation_dualshock.cpp" />
     <ClCompile Include="playstation_dualschock2.cpp" />
     <ClCompile Include="playstation_guitar.cpp" />
