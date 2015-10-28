@@ -41,3 +41,8 @@ EXPORTS
 	ReadController
 	WM_KeyDown
 	WM_KeyUp
+
+	;DEMUL
+	getType				
+	getName				
+	getInterface

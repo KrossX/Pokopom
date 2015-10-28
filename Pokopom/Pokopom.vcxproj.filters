@@ -99,6 +99,9 @@
     <ClInclude Include="regini.h">
       <Filter>General\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="demul.h">
+      <Filter>Systems\Dreamcast\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Settings.cpp">
@@ -163,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="regini.cpp">
       <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="demul.cpp">
+      <Filter>Systems\Dreamcast</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

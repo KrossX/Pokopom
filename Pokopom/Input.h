@@ -26,4 +26,6 @@ namespace Input
 	void FASTCALL N64rumbleSwitch(u8 port, bool &rumble, bool &gamepadPlugged);
 	void FASTCALL N64controllerPoll(u8 *outBuffer, _Settings &set, bool &gamepadPlugged);
 	void FASTCALL N64rumble(bool on, _Settings &set, bool &gamepadPlugged);
+
+	void FASTCALL demul_read1(u32* buffer_out, _Settings &set, bool &gamepadPlugged);
 }
