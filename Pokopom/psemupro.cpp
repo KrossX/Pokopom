@@ -256,17 +256,15 @@ DllExport s32 CALLBACK PADreadPort2(emupro::pad::DataS* ppds)
 // input and output of pad
 ////////////////////////////////////////////////////////////////////////
 
-
-
 DllExport u8 CALLBACK PADstartPoll(s32 port)
 {
 	current_port = SwapPortsEnabled ? (u8)(port - 1) ^ SwapPorts() : (u8)(port - 1);
 	buffer_count = 0;
-	
+
 	u8 data = controller[current_port]->command(buffer_count, current_slot);
 
-	//if(curPort == 0)
-	DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, curSlot, data);
+	if(current_port == 0)
+	DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, current_slot, data);
 
 	return data;
 }
@@ -277,8 +275,8 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 
 	u8 doto = controller[current_port]->command(buffer_count, data);
 
-	//if(curPort == 0)
-	//DebugPrint("[%02d|%02d] [%02X|%02X]", bufferCount, curPort, data, doto);
+	if(current_port == 0)
+	DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, data, doto);
 
 	return doto;
 }

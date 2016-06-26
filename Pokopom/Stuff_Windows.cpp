@@ -141,20 +141,26 @@ void ScrollLockStuff(bool init)
 	static bool scrollLock = false;
 	static bool scrollLockSaved = false;
 
-	if(!scrollLockSaved && init)
+	if (!scrollLockSaved && init)
 	{
-		scrollLock = GetKeyState(VK_SCROLL)&0x1;
+		scrollLock = GetKeyState(VK_SCROLL) & 0x1;
 		scrollLockSaved = true;
 	}
-	else if(scrollLockSaved && !init)
+	else if (scrollLockSaved && !init)
 	{
-		if(scrollLock != (GetKeyState(VK_SCROLL)&0x1))
+		if (scrollLock != (GetKeyState(VK_SCROLL) & 0x1))
 		{
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
-			keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
+			keybd_event(VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0);
+			keybd_event(VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 		}
 	}
 }
+
+struct scroll_auto
+{
+	scroll_auto() { ScrollLockStuff(true); }
+	~scroll_auto() { ScrollLockStuff(false); }
+} scrolly;
 
 BOOL APIENTRY DllMain(HMODULE hInst, DWORD dwReason, LPVOID lpReserved)
 {

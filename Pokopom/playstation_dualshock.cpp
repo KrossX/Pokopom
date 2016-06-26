@@ -63,11 +63,23 @@ DualShock::DualShock(_Settings &config, u16 bsize): PlayStationDevice(config, bs
 
 u8 DualShock::command(const u32 counter, const u8 data)
 {
+	static bool loop = false;
+
 	if(!gamepadPlugged)
 	{
-		if(counter == 0) Recheck();
-		if(!gamepadPlugged) return 0x00;
+		if (counter == 0)
+		{
+			Recheck();
+			loop = true;
+		}
+
+		if (!gamepadPlugged)
+		{
+			return loop? 0x00 : 0xFF;
+		}
 	}
+
+	loop = false;
 
 	if (counter >= sizeBuffer)
 	{

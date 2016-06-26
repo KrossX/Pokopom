@@ -158,9 +158,6 @@
     <ClCompile Include="playstation_guitar.cpp">
       <Filter>Systems\PlayStation</Filter>
     </ClCompile>
-    <ClCompile Include="playstation_dualschock2.cpp">
-      <Filter>Systems\PlayStation</Filter>
-    </ClCompile>
     <ClCompile Include="playstation_dualshock.cpp">
       <Filter>Systems\PlayStation</Filter>
     </ClCompile>
@@ -169,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="demul.cpp">
       <Filter>Systems\Dreamcast</Filter>
+    </ClCompile>
+    <ClCompile Include="playstation_dualshock2.cpp">
+      <Filter>Systems\PlayStation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
