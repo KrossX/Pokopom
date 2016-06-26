@@ -65,8 +65,8 @@ void FASTCALL StopRumble(u8 port)
 
 bool FASTCALL CheckAnalogToggle(u8 port)
 {
-	const bool key = !!(GetAsyncKeyState(0x31 + port) >> 1);
-	const bool pad = !!(state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE);
+	const bool key = (GetAsyncKeyState(0x31 + port) & 0x8000) != 0;
+	const bool pad = (state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) != 0;
 
 	return pad || key;
 }
@@ -86,7 +86,7 @@ bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 {
 	if(!XInputGetStateEx)
 	{
-		HINSTANCE hXInput = LoadLibrary(XINPUT_DLL);
+		HINSTANCE hXInput = LoadLibraryA("xinput1_3.dll");
 		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
 
 		if(!XInputGetStateEx) // Might help with wrappers compatibility

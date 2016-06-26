@@ -8,6 +8,13 @@
 
 PlayStationDevice * controller[2] = {NULL, NULL};
 
+PS2_Guitar *ps2_guitar[4] = { new PS2_Guitar(settings[0]), new PS2_Guitar(settings[1]), new PS2_Guitar(settings[2]), new PS2_Guitar(settings[3]) };
+DualShock2 *dualshock2[4] = { new DualShock2(settings[0]), new DualShock2(settings[1]), new DualShock2(settings[2]), new DualShock2(settings[3]) };
+DualShock *dualshock[4] = { new DualShock(settings[0]), new DualShock(settings[1]), new DualShock(settings[2]), new DualShock(settings[3]) };
+
+MultiTap *mtap[2] = { new MultiTap(settings), new MultiTap(settings) };
+MultiTap *mtap2[2] = { new MultiTap2(settings), new MultiTap2(settings) };
+
 char settingsDirectory[1024]; // for PCSX2
 
 u32 buffer_count;
@@ -84,18 +91,18 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 			switch (multitap)
 			{
 			case 0:
-				if (settings[pad].isGuitar)	controller[pad] = new PS2_Guitar(settings[pad]);
-				else						controller[pad] = new DualShock2(settings[pad]);
+				if (settings[pad].isGuitar)	controller[pad] = ps2_guitar[pad];
+				else						controller[pad] = dualshock2[pad];
 				break;
 
 			case 1:
-				if (pad == 0) controller[pad] = new MultiTap2(settings);
-				else controller[pad] = new DualShock(settings[pad]);
+				if (pad == 0) controller[pad] = mtap2[pad];
+				else controller[pad] = dualshock2[pad];
 				break;
 
 			case 2:
-				if (pad == 0) controller[pad] = new DualShock(settings[pad]);
-				else controller[pad] = new MultiTap2(settings);
+				if (pad == 0) controller[pad] = dualshock2[pad];
+				else controller[pad] = mtap2[pad];
 				break;
 			}
 
@@ -105,17 +112,17 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 			switch (multitap)
 			{
 			case 0:
-				controller[pad] = new DualShock(settings[pad]);
+				controller[pad] = dualshock[pad];
 				break;
 
 			case 1:
-				if (pad == 0) controller[pad] = new MultiTap(settings);
-				else controller[pad] = new DualShock(settings[pad]);
+				if (pad == 0) controller[pad] = mtap[pad];
+				else controller[pad] = dualshock[pad];
 				break;
 
 			case 2:
-				if (pad == 0) controller[pad] = new DualShock(settings[pad]);
-				else controller[pad] = new MultiTap(settings);
+				if (pad == 0) controller[pad] = dualshock[pad];
+				else controller[pad] = mtap[pad];
 				break;
 			}
 		}
@@ -133,8 +140,8 @@ DllExport void CALLBACK PADshutdown() // PAD SHUTDOWN
 {
 	DebugFunc();
 
-	delete controller[0];
-	delete controller[1];
+	//delete controller[0];
+	//delete controller[1];
 
 	controller[0] = controller[1] = nullptr;
 }
@@ -263,8 +270,8 @@ DllExport u8 CALLBACK PADstartPoll(s32 port)
 
 	u8 data = controller[current_port]->command(buffer_count, current_slot);
 
-	if(current_port == 0)
-	DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, current_slot, data);
+	//if(current_port == 0)
+	//DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, current_slot, data);
 
 	return data;
 }
@@ -275,8 +282,8 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 
 	u8 doto = controller[current_port]->command(buffer_count, data);
 
-	if(current_port == 0)
-	DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, data, doto);
+	//if(current_port == 0)
+	//DebugPrint("[%02d|%02d] [%02X|%02X]", buffer_count, current_port, data, doto);
 
 	return doto;
 }
