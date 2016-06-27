@@ -9,9 +9,9 @@
 PS2_Guitar::PS2_Guitar(_Settings &config):
 	DualShock2(config) {}
 
-void PS2_Guitar::ReadInputGuitar(const bool bConfig, u8 *buffer)
+void PS2_Guitar::ReadInputGuitar(const bool config, u8 *buffer)
 {
-	if(bConfig) ReadInput(buffer);
+	if(config) ReadInput(buffer);
 	else ReadInputPressure(buffer);
 
 	buffer[3] &= 0x7F; // Switch off LEFT DPAD for some reason.

@@ -7,6 +7,8 @@
 #include "playstation_devices.h"
 #include "Input.h"
 
+#include "FileIO.h"
+
 ////////////////////////////////////////////////////////////////////////
 // PlayStation Device
 ////////////////////////////////////////////////////////////////////////
@@ -43,7 +45,9 @@ void DualShock::Reset()
 	memset(cmdBuffer, 0x00, sizeBuffer);
 
 	dataBuffer[2] = 0x5A;
-	padID = settings.defaultAnalog? (settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED) : (u8)ID_DIGITAL;
+
+	padDefault = settings.defaultAnalog ? (settings.greenAnalog ? ID_ANALOG_GREEN : ID_ANALOG_RED) : ID_DIGITAL;
+	padID = padDefault;
 
 	buttons = buttonsStick = 0xFFFF;
 	analogL = analogR = 0x7F7F;
@@ -58,6 +62,7 @@ void DualShock::Reset()
 
 DualShock::DualShock(_Settings &config, u16 bsize): PlayStationDevice(config, bsize)
 {
+	FileIO::INI_LoadSettings();
 	Reset();
 }
 
@@ -76,6 +81,10 @@ u8 DualShock::command(const u32 counter, const u8 data)
 		if (!gamepadPlugged)
 		{
 			return loop? 0x00 : 0xFF;
+		}
+		else
+		{ 
+			padID = padDefault;
 		}
 	}
 
@@ -156,7 +165,7 @@ void DualShock::Cmd0()
 		{
 			if(padID == ID_DIGITAL)
 			{
-				padID = settings.greenAnalog? (u8)ID_ANALOG_GREEN : (u8)ID_ANALOG_RED;
+				padID = settings.greenAnalog? ID_ANALOG_GREEN : ID_ANALOG_RED;
 				//Debug("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
 			}
 			else
@@ -232,14 +241,18 @@ void DualShock::Cmd4(const u8 data)
 	{
 	case 0x40: break;
 	case 0x41: break;
-	case 0x42: break;
+	case 0x42: 
+		if(padID == ID_DIGITAL)
+		vibration(motorMapS == 0xFF ? 0 : cmdBuffer[motorMapS + 3],
+			      motorMapL == 0xFF ? 0 : cmdBuffer[motorMapL + 3]);
+		break;
 
 	case 0x43: // Config mode
 		bConfig = cmdBuffer[3] == 1;
 		break;
 
 	case 0x44: if(bConfig) {// Set mode and lock
-		padID = cmdBuffer[3] == 0x01 ? (u8)ID_ANALOG_RED : (u8)ID_DIGITAL;
+		padID = cmdBuffer[3] == 0x01 ? ID_ANALOG_RED : ID_DIGITAL;
 		bModeLock = cmdBuffer[4] == 0x03; } // Disgaea sends 0x01 here
 		break;
 
@@ -279,8 +292,8 @@ void DualShock::Cmd8(const u8 data)
 	case 0x41: break;
 
 	case 0x42:
-		vibration(	motorMapS == 0xFF? 0: cmdBuffer[motorMapS+3],
-					motorMapL == 0xFF? 0: cmdBuffer[motorMapL+3]);
+		vibration(motorMapS == 0xFF? 0: cmdBuffer[motorMapS+3],
+			      motorMapL == 0xFF? 0: cmdBuffer[motorMapL+3]);
 		break;
 
 	case 0x43: break;

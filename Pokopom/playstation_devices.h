@@ -69,7 +69,7 @@ protected:
 	void Reset();
 
 	u16 buttons, buttonsStick, analogL, analogR;
-	u8 padID;
+	u8 padID, padDefault;
 	bool bConfig, bModeLock;
 	u8 motorMapS, motorMapL;
 	u8 triggerL, triggerR;
