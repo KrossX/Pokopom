@@ -14,7 +14,7 @@ void _Settings::SetDefaults()
 	SwapXO = false;
 	SwapSticksEnabled = false;
 	greenAnalog = false;
-	defaultAnalog = true;
+	defaultAnalog = false;
 	isGuitar = false;
 	disabled = false;
 	sticksLocked = true;
