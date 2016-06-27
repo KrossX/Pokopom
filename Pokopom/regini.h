@@ -27,7 +27,7 @@ namespace regini
 		string filename;
 
 		section_type* current_section;
-		vector<section_type> section;
+		vector<section_type> vsection;
 		
 		void add_section(string in);
 		void add_entry(string in);
@@ -42,7 +42,9 @@ namespace regini
 		template<class T>
 		T read(string section, string key, T default_value)
 		{
-			return default_value;
+			string value;
+			if (read_string(section, key, value)) default_value = std::stoi(value);
+			return static_cast<T>(default_value);
 		}
 
 		template<>

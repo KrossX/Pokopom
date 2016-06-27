@@ -35,19 +35,19 @@ namespace regini
 	{
 		in = in.substr(1, in.size() - 2);
 
-		for (size_t i = 0; i < section.size(); i++)
+		for (size_t i = 0; i < vsection.size(); i++)
 		{
-			if (section[i].name.compare(in) == 0)
+			if (vsection[i].name.compare(in) == 0)
 			{
-				current_section = &section[i];
+				current_section = &vsection[i];
 				return;
 			}
 		}
 
 		section_type newsection;
 		newsection.name = in;
-		section.push_back(newsection);
-		current_section= &section.back();
+		vsection.push_back(newsection);
+		current_section= &vsection.back();
 	}
 
 	void regini_file::add_entry(string in)
@@ -71,13 +71,13 @@ namespace regini
 	}
 
 
-	bool regini_file::open(string filename)
+	bool regini_file::open(string fname)
 	{
-		this->filename = filename;
-		std::ifstream file(filename);
+		filename = fname;
+		std::ifstream file(fname);
 		vector<string> line;
 
-		section.clear();
+		vsection.clear();
 
 		if (file.is_open())
 		{
@@ -112,12 +112,12 @@ namespace regini
 			}
 		}
 
-		return !section.empty();
+		return !vsection.empty();
 	}
 
 	void regini_file::save()
 	{
-		if (section.empty()) return;
+		if (vsection.empty()) return;
 
 		std::ofstream file(filename, std::ios::out | std::ios::trunc);
 
@@ -125,7 +125,7 @@ namespace regini
 		{
 			//file << winreg << "\n\n";
 
-			for (section_type sec : section)
+			for (section_type sec : vsection)
 			{
 				file << "[" << sec.name << "]\n";
 
@@ -145,12 +145,12 @@ namespace regini
 	{
 		section_name = string_tolower(section_name);
 
-		for (size_t i = 0; i < section.size(); i++)
+		for (size_t i = 0; i < vsection.size(); i++)
 		{
-			string sname = string_tolower(section[i].name);
+			string sname = string_tolower(vsection[i].name);
 
 			if (sname.compare(section_name) == 0)
-				return &section[i];
+				return &vsection[i];
 		}
 
 		return nullptr;
@@ -204,7 +204,7 @@ namespace regini
 			section_type newsection;
 			newsection.name = section;
 			newsection.entry.push_back(newentry);
-			this->section.push_back(newsection);
+			this->vsection.push_back(newsection);
 		}
 		else
 		{
