@@ -9,16 +9,13 @@
 
 extern u8 multitap;
 
-extern DualShock2 *dualshock2[4];
-extern DualShock *dualshock[4];
-
 MultiTap::MultiTap(_Settings *config) : PlayStationDevice(config[0], 1)
 {
 	for(slot = 0; slot < 4; slot++)
 	{
 		u8 dev = multitap == 2 ? (slot + 1) % 4 : slot;
 
-		Device[slot] = dualshock[dev];
+		Device[slot] = isPs2Emulator? new DualShock2(config[dev]) : new DualShock(config[dev]);
 		Device[slot]->SetPort(dev);
 	}
 
@@ -85,17 +82,7 @@ void MultiTap::SaveState(PlayStationDeviceState &state)
 ////////////////////////////////////////////////////////////////////////
 
 MultiTap2::MultiTap2(_Settings *config) : MultiTap(config)
-{
-	for (slot = 0; slot < 4; slot++)
-	{
-		u8 dev = multitap == 2 ? (slot + 1) % 4 : slot;
-
-		Device[slot] = dualshock2[dev];
-		Device[slot]->SetPort(dev);
-	}
-
-	if (multitap == 2) Device[3]->Disable();
-}
+{}
 
 u8 MultiTap2::command(const u32 counter, const u8 data)
 {
