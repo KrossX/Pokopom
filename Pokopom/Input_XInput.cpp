@@ -16,10 +16,37 @@
 //#include "Zilmar_Devices.h"
 
 #include <XInput.h>
-#pragma comment(lib, "Xinput.lib")
+//#pragma comment(lib, "Xinput.lib")
+
+extern bool disableLED;
 
 typedef DWORD (WINAPI* XInputGetStateEx_t)(DWORD dwUserIndex, XINPUT_STATE *pState);
-XInputGetStateEx_t XInputGetStateEx = NULL;
+typedef DWORD(WINAPI* XInputSetStateEx_t)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
+
+DWORD WINAPI XGS_NULL(DWORD dwUserIndex, XINPUT_STATE *pState);
+DWORD WINAPI XSS_NULL(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
+
+XInputGetStateEx_t XInputGetStateEx = XGS_NULL;
+XInputSetStateEx_t XInputSetStateEx = XSS_NULL;
+
+DWORD WINAPI XGS_NULL(DWORD dwUserIndex, XINPUT_STATE *pState)
+{
+	HINSTANCE hXInput = LoadLibraryA("xinput1_3.dll");
+	XInputGetStateEx = (XInputGetStateEx_t)GetProcAddress(hXInput, (LPCSTR)100);
+
+	if (!XInputGetStateEx) // Might help with wrappers compatibility
+		XInputGetStateEx = (XInputGetStateEx_t)GetProcAddress(hXInput, "XInputGetState");
+
+	return XInputGetStateEx(dwUserIndex, pState);
+}
+
+DWORD WINAPI XSS_NULL(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
+{
+	HINSTANCE hXInput = LoadLibraryA("xinput1_3.dll");
+	XInputSetStateEx = (XInputSetStateEx_t)GetProcAddress(hXInput, "XInputSetState");
+
+	return XInputSetStateEx(dwUserIndex, pVibration);
+}
 
 #define XINPUT_GAMEPAD_GUIDE 0x400
 
@@ -34,10 +61,7 @@ namespace Input
 
 bool FASTCALL Recheck(u8 port)
 {
-	if(settings[port].disabled) return false;
-
-	DWORD result = XInputGetState(port, &state[port]);
-	
+	DWORD result = XInputGetStateEx(port, &state[port]);
 	return (result == ERROR_SUCCESS);
 }
 
@@ -60,39 +84,42 @@ void FASTCALL StopRumble(u8 port)
 	vib.wLeftMotorSpeed = 0;
 	vib.wRightMotorSpeed = 0;
 
-	XInputSetState(port, &vib);
+	XInputSetStateEx(port, &vib);
 }
 
 bool FASTCALL CheckAnalogToggle(u8 port)
 {
-	const bool key = (GetAsyncKeyState(0x31 + port) & 0x8000) != 0;
-	const bool pad = (state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) != 0;
+	int key = GetAsyncKeyState(0x31 + port) & 0x8000;
+	int pad = state[port].Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE;
 
-	return pad || key;
+	bool val = (key | pad) != 0;
+
+	DebugPrint("[%02d] %s", port, val ? "TOGGLE" : "");
+
+	return val;
 }
 
 void FASTCALL SetAnalogLed(u8 port, bool digital)
 {
+	if (disableLED) return;
+
 	bool ledScrollLock = GetKeyState(VK_SCROLL)&0x1;
 
 	if((!digital && !ledScrollLock) || (digital && ledScrollLock))
 	{
 		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, 0 );
 		keybd_event( VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
+
+		DebugPrint("     [%02d|%s] %s %s", port, ledScrollLock? "ON " : "OFF", digital? "DIGITAL" : "ANALOG ", "TOGGLE");
+	}
+	else
+	{
+		DebugPrint("     [%02d|%s] %s %s", port, ledScrollLock ? "ON " : "OFF", digital ? "DIGITAL" : "ANALOG ", "");
 	}
 }
 
 bool FASTCALL InputGetState(_Pad& pad, _Settings &set)
 {
-	if(!XInputGetStateEx)
-	{
-		HINSTANCE hXInput = LoadLibraryA("xinput1_3.dll");
-		XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, (LPCSTR) 100);
-
-		if(!XInputGetStateEx) // Might help with wrappers compatibility
-			XInputGetStateEx = (XInputGetStateEx_t) GetProcAddress(hXInput, "XInputGetState");
-	} 
-
 	const int xport = set.xinputPort;
 	DWORD result = XInputGetStateEx(xport, &state[xport]);
 
@@ -213,7 +240,7 @@ void FASTCALL DualshockRumble(u8 smalldata, u8 bigdata, _Settings &set, bool &ga
 	vib.wLeftMotorSpeed = Clamp(vib.wLeftMotorSpeed * settings.rumble);
 	*/
 
-	if( XInputSetState(xport, &vib[xport]) != ERROR_SUCCESS )
+	if( XInputSetStateEx(xport, &vib[xport]) != ERROR_SUCCESS )
 		gamepadPlugged = false;
 }
 
@@ -290,7 +317,7 @@ void FASTCALL DreamcastRumble(s16 intensity, bool freqH, bool freqL, u16 wait,
 	
 	thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)VibrationWatchdog, th, 0, NULL);
 	
-	if(XInputSetState(set.xinputPort, &vib) != ERROR_SUCCESS)
+	if(XInputSetStateEx(set.xinputPort, &vib) != ERROR_SUCCESS)
 		gamepadPlugged = false;
 }
 
@@ -340,7 +367,7 @@ void FASTCALL N64rumble(bool on, _Settings &set, bool &gamepadPlugged)
 		vib.wLeftMotorSpeed = 0;
 	}
 
-	if(XInputSetState(set.xinputPort, &vib) == ERROR_SUCCESS)
+	if(XInputSetStateEx(set.xinputPort, &vib) == ERROR_SUCCESS)
 		gamepadPlugged = false;
 }
 

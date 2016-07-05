@@ -12,6 +12,7 @@
 extern char settingsDirectory[1024];
 extern u8 multitap;
 
+extern bool disableLED;
 extern bool bPriority;
 extern void SetPriority();
 
@@ -50,6 +51,7 @@ namespace FileIO
 		inifile.write("General", "KeepAwake", bKeepAwake ? 1 : 0);
 		inifile.write("General", "SwapPorts", SwapPortsEnabled ? 1 : 0);
 		inifile.write("General", "Multitap", multitap);
+		inifile.write("General", "DisableLED", disableLED ? 1 : 0);
 
 		for(s32 port = 0; port < 4; port++)
 		{
@@ -122,7 +124,8 @@ namespace FileIO
 
 		bPriority = inifile.read("General", "ProcPriority", 0) == 1;
 		SetPriority();
-			
+
+		disableLED       = inifile.read("General", "DisableLED", 0) == 1;
 		SwapPortsEnabled = inifile.read("General", "SwapPorts", 0) == 1;
 		bKeepAwake       = inifile.read("General", "KeepAwake", 0) == 1;
 		multitap         = inifile.read("General", "Multitap", 0) & 0xF;
@@ -144,6 +147,8 @@ namespace FileIO
 			set.pressureRate    = inifile.read(section, "Pressure", set.pressureRate) & 0xFF;
 			set.rumble          = inifile.read(section, "Rumble", set.rumble);
 			set.xinputPort      = inifile.read(section, "XInputPort", set.xinputPort) & 0xF;
+
+			DebugPrint("[%d] -> XInputPort [%d]", port, set.xinputPort);
 
 			set.disabled      = !!inifile.read(section, "Disabled", 0);
 			set.sticksLocked  = !!inifile.read(section, "SticksLocked", 1);

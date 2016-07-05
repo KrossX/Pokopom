@@ -6,6 +6,7 @@
 
 std::list <keyEvent> keyEventList;
 
+bool disableLED = false;
 bool SwapPortsEnabled = false;
 bool bPriority = false;
 bool isPs2Emulator = false;

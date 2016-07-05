@@ -35,6 +35,12 @@ void PlayStationDevice::Recheck()
 	gamepadPlugged = Input::Recheck(settings.xinputPort);
 }
 
+void PlayStationDevice::SetPortX(u8 p)
+{
+	port = p;
+	DebugPrint("[%d] -> XInputPort [%d]", port, settings.xinputPort);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // DualShock
 ////////////////////////////////////////////////////////////////////////
@@ -62,8 +68,8 @@ void DualShock::Reset()
 
 DualShock::DualShock(_Settings &config, u16 bsize): PlayStationDevice(config, bsize)
 {
-	FileIO::INI_LoadSettings();
 	Reset();
+	DebugPrint("XInputPort [%d]", settings.xinputPort);
 }
 
 u8 DualShock::command(const u32 counter, const u8 data)
@@ -154,32 +160,38 @@ bool bPressed[4] = {false};
 
 void DualShock::Cmd0()
 {
-	if(gamepadPlugged && multitap == 0)
-		Input::SetAnalogLed(port, padID == ID_DIGITAL);
-
-	if(!bModeLock && gamepadPlugged)
+	if (!gamepadPlugged)
 	{
-		bool analogPressed = Input::CheckAnalogToggle(settings.xinputPort);
-
-		if(!bPressed[port] && analogPressed)
+		Input::SetAnalogLed(port, true);
+	}
+	else
+	{
+		if (!bModeLock)
 		{
-			if(padID == ID_DIGITAL)
-			{
-				padID = settings.greenAnalog? ID_ANALOG_GREEN : ID_ANALOG_RED;
-				//Debug("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
-			}
-			else
-			{
-				padID = (u8)ID_DIGITAL;
-				//Debug("Pokopom -> [%d] Switched to digital mode (%X).\n", port, padID);
-			}
+			bool analogPressed = Input::CheckAnalogToggle(settings.xinputPort);
 
-			bPressed[port] = true;
+			if (!bPressed[port] && analogPressed)
+			{
+				if (padID == ID_DIGITAL)
+				{
+					padID = settings.greenAnalog ? ID_ANALOG_GREEN : ID_ANALOG_RED;
+					//Debug("Pokopom -> [%d] Switched to analog mode (%X).\n", port, padID);
+				}
+				else
+				{
+					padID = (u8)ID_DIGITAL;
+					//Debug("Pokopom -> [%d] Switched to digital mode (%X).\n", port, padID);
+				}
+
+				bPressed[port] = true;
+			}
+			else if (bPressed[port] && !analogPressed)
+			{
+				bPressed[port] = false;
+			}
 		}
-		else if (bPressed[port] && !analogPressed)
-		{
-			bPressed[port] = false;
-		}
+
+		Input::SetAnalogLed(port, padID == ID_DIGITAL);
 	}
 }
 

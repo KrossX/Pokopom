@@ -74,32 +74,37 @@ DllExport u32 CALLBACK PS2EgetLibVersion2(u32 type)
 
 DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 {
-	FileIO::INI_LoadSettings();
 	DebugPrint("[%X]", flags);
 
 	static bool inited = false;
+	if (inited) return emupro::INIT_ERR_SUCCESS;
 
-	if(!inited)
+	FileIO::INI_LoadSettings();
+	FileIO::INI_SaveSettings();
+
 	for (int pad = 0; pad < 2; pad++)
 	{
 		inited = true;
 
-		if (isPs2Emulator)
+		_Settings &set = settings[pad];
+
+		if (set.disabled)
+			controller[pad] = new PlayStationDevice(set, 1);
+		else if (isPs2Emulator)
 		{
 			switch (multitap)
 			{
 			case 0:
-				if (settings[pad].isGuitar)	controller[pad] = new PS2_Guitar(settings[pad]);
-				else						controller[pad] = new DualShock2(settings[pad]);
+				controller[pad] = set.isGuitar? new PS2_Guitar(set) : new DualShock2(set);
 				break;
 
 			case 1:
 				if (pad == 0) controller[pad] = new MultiTap2(settings);
-				else controller[pad] = new DualShock2(settings[pad]);
+				else controller[pad] = new PlayStationDevice(set, 1);
 				break;
 
 			case 2:
-				if (pad == 0) controller[pad] = new DualShock2(settings[pad]);
+				if (pad == 0) controller[pad] = new DualShock2(set);
 				else controller[pad] = new MultiTap2(settings);
 				break;
 			}
@@ -110,23 +115,23 @@ DllExport s32 CALLBACK PADinit(s32 flags) // PAD INIT
 			switch (multitap)
 			{
 			case 0:
-				controller[pad] = new DualShock(settings[pad]);
+				controller[pad] = new DualShock(set);
 				break;
 
 			case 1:
 				if (pad == 0) controller[pad] = new MultiTap(settings);
-				else controller[pad] = new DualShock(settings[pad]);
+				else controller[pad] = new PlayStationDevice(set, 1);
 				break;
 
 			case 2:
-				if (pad == 0) controller[pad] = new DualShock(settings[pad]);
+				if (pad == 0) controller[pad] = new DualShock(set);
 				else controller[pad] = new MultiTap(settings);
 				break;
 			}
 		}
 
 		if (controller[pad])
-			controller[pad]->SetPort((u8)pad);
+			controller[pad]->SetPortX((u8)pad);
 		else
 			return emupro::ERR_FATAL;
 	}
@@ -269,7 +274,7 @@ DllExport u8 CALLBACK PADstartPoll(s32 port)
 	u8 data = controller[current_port]->command(buffer_count, current_slot & 0xFF);
 
 	//if(current_port == 0)
-	//DebugPrint("[%02d|%02d] [%02X|%02X] ***", buffer_count, current_port, current_slot, data);
+	DebugPrint("[%02d|%02d] [%02X|%02X] ***", buffer_count, current_port, current_slot, data);
 
 	return data;
 }
@@ -281,7 +286,7 @@ DllExport u8 CALLBACK PADpoll(u8 data)
 	u8 doto = controller[current_port]->command(buffer_count, data);
 
 	//if(current_port == 0)
-	//DebugPrint("     [%02d|%02d] [%02X|%02X]", buffer_count, current_port, data, doto);
+	DebugPrint("     [%02d|%02d] [%02X|%02X]", buffer_count, current_port, data, doto);
 
 	return doto;
 }

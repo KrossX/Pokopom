@@ -16,10 +16,10 @@ MultiTap::MultiTap(_Settings *config) : PlayStationDevice(config[0], 1)
 		u8 dev = multitap == 2 ? (slot + 1) % 4 : slot;
 
 		Device[slot] = isPs2Emulator? new DualShock2(config[dev]) : new DualShock(config[dev]);
-		Device[slot]->SetPort(dev);
+		Device[slot]->SetPortX(dev);
 	}
 
-	if(multitap == 2) Device[3]->Disable();
+	if(multitap == 2) Device[3] = new PlayStationDevice(config[0], 1);
 }
 
 MultiTap::~MultiTap()

@@ -38,12 +38,12 @@ protected:
 public:
 	void Enable() { settings.disabled = false; }
 	void Disable() { settings.disabled = true; }
-	void SetPort(u8 p) { port = p; }
+	void SetPortX(u8 p);
 
-	virtual void LoadState(PlayStationDeviceState state) = 0;
-	virtual void SaveState(PlayStationDeviceState &state) = 0;
+	virtual void LoadState(PlayStationDeviceState state) {};
+	virtual void SaveState(PlayStationDeviceState &state) {};
 
-	virtual u8 command(const u32 counter, const u8 data) = 0;
+	virtual u8 command(const u32 counter, const u8 data) { return 0x00; };
 
 	PlayStationDevice(_Settings &config, u16 bufferSize); // 9 PS1, 21 PS2
 	~PlayStationDevice();
