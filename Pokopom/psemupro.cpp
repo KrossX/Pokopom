@@ -146,7 +146,7 @@ DllExport void CALLBACK PADshutdown() // PAD SHUTDOWN
 	//delete controller[0];
 	//delete controller[1];
 
-	controller[0] = controller[1] = nullptr;
+	//controller[0] = controller[1] = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
