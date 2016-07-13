@@ -69,44 +69,6 @@ DllExport const wchar_t* getName()
 int func1() { printfn(__FUNCTION__); return 0xFFFFFFFF; }
 int func2() { printfn(__FUNCTION__); return 0; }
 
-enum DMA_RETURN
-{
-	RET_STATUS = 0x05,
-	RET_STATUS_EX,
-	RET_DEVICE_REPLY = 0x07,
-	RET_DATA_TRANSFER,
-	RET_TRAMSMIT_AGAIN = 0xFC,
-	RET_UNKNOWN_COMMAND,
-	RET_JAMMA_ID = 0x83
-};
-
-enum DMA_COMMAND
-{
-	GET_STATUS = 1,
-	GET_STATUS_EX,
-	GET_CONDITION = 9,
-	GET_MEDIA_INFO,
-	BLOCK_READ,
-	BLOCK_WRITE,
-	SET_CONDITION = 14,
-
-	STATE_NAME = 0x10,
-	STATE_CMD_VER = 0x11,
-	STATE_JAMMA_VER = 0x12,
-	STATE_COM_VER = 0x13,
-	STATE_FEATURES = 0x14,
-
-	JAMMA_EEPROM_READ = 0x03,
-	JAMMA_EEPROM_WRITE = 0x0B,
-	JAMMA_GET_CAPS = 0x15,
-	JAMMA_SUBDEVICE = 0x17,
-	JAMMA_TRANSFER_REPEAT = 0x21,
-	JAMMA_TRANSFER = 0x27,
-	JAMMA_GET_DATA = 0x33,
-	JAMMA_ID = 0x82,
-	JAMMA_CMD = 0x86
-};
-
 RumbleSettings rSettings;
 RumbleConfig rConfig;
 
@@ -136,53 +98,16 @@ void UpdateVibration()
 	}
 }
 
-u32 RUMBLE(u32 command, u32* buffer, u32 buffer_len)
-{
-	switch (command)
-	{
-	case GET_CONDITION:
-		buffer[0] = 0x00010000;
-		buffer[1] = rSettings.RAW;
-		return RET_DATA_TRANSFER;
-
-	case GET_MEDIA_INFO:
-		buffer[0] = 0x00010000;
-		buffer[1] = rSettings.RAW;
-		return RET_DATA_TRANSFER;
-
-	case BLOCK_READ:
-		buffer[0] = 0x00010000;
-		buffer[1] = 0;
-		buffer[2] = (0x0200 << 16) | (AST << 8);
-		return RET_DATA_TRANSFER;
-
-	case BLOCK_WRITE:
-		AST = (buffer[2] >> 16) & 0xFF;
-		AST_ms = AST * 250 + 250;
-		return RET_DEVICE_REPLY;
-
-	case SET_CONDITION:
-		rConfig.RAW = buffer[0];
-
-		if (rConfig.EXH & rConfig.INH)
-			return RET_TRAMSMIT_AGAIN;
-
-		UpdateVibration();
-		return RET_DEVICE_REPLY;
-
-	default:
-		printf("Pokopom Rumble -> Unknown MAPLE command: %X\n", command);
-		return RET_UNKNOWN_COMMAND;
-	}
-}
-
 int __fastcall func3(int a, int b, int c, int d)// ... rumble?
 {
 	u32 *buffer = (u32*)b;
 
-	printfn(__FUNCTION__, a, buffer[0], buffer[1], d);
-	RUMBLE(a, buffer, c);
-	
+	if (a == 0x0E)
+	{
+		rConfig.RAW = buffer[0];
+		UpdateVibration();
+	}
+
 	return 0;
 } 
 
@@ -239,7 +164,8 @@ DllExport char getInterface(u32* demul)
 
 	u32 some_var = demul[4];
 
-	demul_interface *di = (demul_interface*)&demul[138];
+	//+2 (8 bytes) diff 230915 -> 221215
+	demul_interface *di = (demul_interface*)&demul[138 + 2];
 	di->func01 = &func1; // 600
 
 	switch (some_var)
