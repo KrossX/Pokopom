@@ -12,11 +12,13 @@
 
 #include "resource.h"
 
-HWND hChild, hParent = NULL;
+HWND hChild, hParent;
 //extern u8 multitap;
-u8 multitap = NULL;
+u8 multitap;
 extern HINSTANCE h_instance;
 //extern u8 dcPlatform;
+
+wchar_t tab_label[4][16] = { L"Controller 1", L"Controller 2", L"Controller 3", L"Controller 4" };
 
 f64 SliderUpdate(HWND hDialog, s32 sliderID, s32 textID, bool Linearity = false)
 {
@@ -190,16 +192,16 @@ INT_PTR CALLBACK DialogProc2(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_MODE_ANALOG: settings[port].defaultAnalog = true; break;
 
 			case IDC_COMBO_LX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);
+					settings[port].axisRemap[GP_AXIS_LX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_LY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_LY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);
+					settings[port].axisRemap[GP_AXIS_LY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_LY), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RX: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);
+					settings[port].axisRemap[GP_AXIS_RX] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RX), CB_GETCURSEL, 0, 0);
 				break;
 			case IDC_COMBO_RY: if(HIWORD(wParam) == CBN_SELCHANGE)
-				settings[port].axisRemap[GP_AXIS_RY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
+					settings[port].axisRemap[GP_AXIS_RY] = (u8)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_RY), CB_GETCURSEL, 0, 0);
 				break;
 
 			case IDC_INVERT_LX:
@@ -275,19 +277,19 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			tci.mask = TCIF_TEXT | TCIF_IMAGE;
 			tci.iImage = -1;
 
-			tci.pszText = L"Controller 1";
+			tci.pszText = tab_label[0];
 			TabCtrl_InsertItem(hTabControl, 0, &tci);
 
-			tci.pszText = L"Controller 2";
+			tci.pszText = tab_label[1];
 			TabCtrl_InsertItem(hTabControl, 1, &tci);
 
 			//if(dcPlatform != 2 && (!isPSemulator || multitap > 0))
 			if (!isPSemulator || multitap > 0)
 			{
-				tci.pszText = L"Controller 3";
+				tci.pszText = tab_label[2];
 				TabCtrl_InsertItem(hTabControl, 2, &tci);
 
-				tci.pszText = L"Controller 4";
+				tci.pszText = tab_label[3];
 				TabCtrl_InsertItem(hTabControl, 3, &tci);
 			}
 
@@ -339,10 +341,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 							tci.mask = TCIF_TEXT | TCIF_IMAGE;
 							tci.iImage = -1;
 
-							tci.pszText = L"Controller 3";
+							tci.pszText = tab_label[2];
 							TabCtrl_InsertItem(hTabControl, 2, &tci);
 
-							tci.pszText = L"Controller 4";
+							tci.pszText = tab_label[3];
 							TabCtrl_InsertItem(hTabControl, 3, &tci);
 						}
 					}
@@ -397,7 +399,7 @@ void CreateConfigDialog()
 	DialogBoxParam(h_instance, MAKEINTRESOURCE(IDD_CONFIG), hParent, DialogProc, (LPARAM)h_instance);
 	MSG message;
 
-	while(GetMessage(&message, NULL, NULL, NULL))
+	while(GetMessage(&message, NULL, 0, 0))
 	{
 		if(hChild == NULL || !IsDialogMessage(hChild, &message))
 		{

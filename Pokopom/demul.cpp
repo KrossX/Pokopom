@@ -13,27 +13,27 @@
 
 const wchar_t demul_name[] = L"Pokopom Xinput Pad Plugin";
 
-std::ofstream logfile;
+std::ofstream demul_logfile;
 
 void printfn(std::string fname, int a = 0, int b = 0, int c = 0, int d = 0)
 {
-	if (logfile.is_open())
+	if (demul_logfile.is_open())
 	{
 		std::string message = fname;
 		message.append(" (" + std::to_string(a) + ")");
 		message.append(" (" + std::to_string(b) + ")");
 		message.append(" (" + std::to_string(c) + ")");
 		message.append(" (" + std::to_string(d) + ")\n");
-		logfile << message;
+		demul_logfile << message;
 	}
 }
 
 void stoplog()
 {
-	if (logfile.is_open())
+	if (demul_logfile.is_open())
 	{
 		printfn(__FUNCTION__);
-		logfile.close();
+		demul_logfile.close();
 	}
 }
 
@@ -47,7 +47,7 @@ void startlog()
 	{
 		started = true;
 		std::atexit(stoplog);
-		logfile.open("pokpomlog.txt", std::ios::trunc | std::ios::out);
+		demul_logfile.open("pokpomlog.txt", std::ios::trunc | std::ios::out);
 		printfn(__FUNCTION__);
 	}
 }

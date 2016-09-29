@@ -32,7 +32,7 @@ DllExport void CALL GetDllInfo(Zilmar::PLUGIN_INFO *PluginInfo)
 {
 	//Debug("Pokopom -> GetDLLInfo\n");
 
-	strcpy_s(PluginInfo->Name, "Pokopom XInput Plugin v2.1");
+	strcpy(PluginInfo->Name, "Pokopom XInput Plugin v2.1");
 	PluginInfo->Type = Zilmar::PLUGIN_TYPE_CONTROLLER;
 	PluginInfo->Version = Zilmar::INTERFACE_VERSION;
 

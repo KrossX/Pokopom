@@ -36,7 +36,7 @@ typedef struct
 
 } SCP_EXTN;
 
-typedef DWORD (WINAPI *XInputGetExtendedFunction)(__in DWORD dwUserIndex, __out SCP_EXTN* pPressure);
+typedef DWORD (WINAPI *XInputGetExtendedFunction)(DWORD dwUserIndex, SCP_EXTN* pPressure);
 
 extern DWORD WINAPI XInputGetExtended(DWORD dwUserIndex, SCP_EXTN* pPressure);
 

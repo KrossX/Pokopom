@@ -11,17 +11,6 @@
 
 namespace regini
 {
-	template void regini_file::write<int>(string section, string key, int value);
-	template void regini_file::write<long>(string section, string key, long value);
-	template void regini_file::write<long long>(string section, string key, long long value);
-	template void regini_file::write<unsigned>(string section, string key, unsigned value);
-	template void regini_file::write<unsigned long>(string section, string key, unsigned long value);
-	template void regini_file::write<unsigned long long>(string section, string key, unsigned long long value);
-	template void regini_file::write<float>(string section, string key, float value);
-	template void regini_file::write<double>(string section, string key, double value);
-	template void regini_file::write<long double>(string section, string key, long double value);
-	
-
 	const string winreg = "Windows Registry Editor Version 5.00";
 
 	static inline string string_tolower(string in)

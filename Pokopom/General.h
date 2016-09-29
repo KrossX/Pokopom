@@ -10,7 +10,7 @@
 
 	#define EXPORT_CALL __stdcall
 	#define FASTCALL __fastcall
-	#define CALL _cdecl
+	#define CALL __cdecl
 
 	#ifdef __cplusplus
 	#define DllExport extern "C" __declspec(dllexport)

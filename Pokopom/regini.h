@@ -39,94 +39,78 @@ namespace regini
 		void write_string(string section, string key, string value);
 
 	public:
-		template<class T>
-		T read(string section, string key, T default_value)
-		{
-			string value;
-			if (read_string(section, key, value)) default_value = std::stoi(value);
-			return static_cast<T>(default_value);
-		}
+		// template<class T>
+		// T read(string section, string key, T default_value)
+		// {
+			// string value;
+			// if (read_string(section, key, value)) default_value = std::stoi(value);
+			// return static_cast<T>(default_value);
+		// }
 
-		template<>
-		int read(string section, string key, int default_value)
+		int readi(string section, string key, int default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stoi(value);
 			return default_value;
 		}
 
-		template<>
-		long read(string section, string key, long default_value)
+		long readl(string section, string key, long default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stol(value);
 			return default_value;
 		}
 
-		template<>
-		long long read(string section, string key, long long default_value)
+		long long readll(string section, string key, long long default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stoll(value);
 			return default_value;
 		}
 
-		template<>
-		unsigned long read(string section, string key, unsigned long default_value)
+		unsigned long readul(string section, string key, unsigned long default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stoul(value);
 			return default_value;
 		}
 
-		template<>
-		unsigned long long read(string section, string key, unsigned long long default_value)
+		unsigned long long readull(string section, string key, unsigned long long default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stoull(value);
 			return default_value;
 		}
 
-		template<>
-		float read(string section, string key, float default_value)
+		float readf(string section, string key, float default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stof(value);
 			return default_value;
 		}
 
-		template<>
-		double read(string section, string key, double default_value)
+		double readd(string section, string key, double default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stod(value);
 			return default_value;
 		}
 
-		template<>
-		long double read(string section, string key, long double default_value)
+		long double readld(string section, string key, long double default_value)
 		{
 			string value;
 			if (read_string(section, key, value)) default_value = std::stold(value);
 			return default_value;
 		}
 
-		template<class T>
-		void write(string section, string key, T value)
-		{
-			string string_value = std::to_string(value);
-			write_string(section, key, string_value);
-		}
+		// template<class T>
+		// void write(string section, string key, T value)
+		// {
+			// string string_value = std::to_string(value);
+			// write_string(section, key, string_value);
+		// }
 
-		template<>
-		void write<const char*>(string section, string key, const char* value)
-		{
-			string string_value(value);
-			write_string(section, key, string_value);
-		}
-
-		template<>
-		void write<string>(string section, string key, string value)
+		void write(string section, string key, string value)
 		{
 			write_string(section, key, value);
 		}

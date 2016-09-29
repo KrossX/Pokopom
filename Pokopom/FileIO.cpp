@@ -46,62 +46,69 @@ namespace FileIO
 		regini::regini_file inifile;
 		inifile.open(GetFilename());
 
-		inifile.write("General", "INIversion", INIversion);
-		inifile.write("General", "ProcPriority", bPriority ? 1 : 0);
-		inifile.write("General", "KeepAwake", bKeepAwake ? 1 : 0);
-		inifile.write("General", "SwapPorts", SwapPortsEnabled ? 1 : 0);
-		inifile.write("General", "Multitap", multitap);
-		inifile.write("General", "DisableLED", disableLED ? 1 : 0);
+		inifile.write("General", "INIversion", std::to_string(INIversion));
+		inifile.write("General", "ProcPriority", std::to_string(bPriority ? 1 : 0));
+		inifile.write("General", "KeepAwake", std::to_string(bKeepAwake ? 1 : 0));
+		inifile.write("General", "SwapPorts", std::to_string(SwapPortsEnabled ? 1 : 0));
+		inifile.write("General", "Multitap", std::to_string(multitap));
+		inifile.write("General", "DisableLED", std::to_string(disableLED ? 1 : 0));
 
 		for(s32 port = 0; port < 4; port++)
 		{
 			std::string section = "Controller" + std::to_string(port);
 			_Settings &set = settings[port];
 
-			s32 AxisInverted = *(s32*)set.axisInverted;
-			s32 AxisRemap = *(s32*)set.axisRemap;
+			u32 AxisInverted, AxisRemap;
+			
+			{
+				u8 *ai = set.axisInverted;
+				u8 *ar = set.axisRemap;
+				
+				AxisInverted = ai[0] | (ai[1] << 8) | (ai[2] << 16) | (ai[3] << 24);
+				AxisRemap = ar[0] | (ar[1] << 8) | (ar[2] << 16) | (ar[3] << 24);
+			}
+			
+			inifile.write(section, "AxisInverted", std::to_string(AxisInverted));
+			inifile.write(section, "AxisRemap", std::to_string(AxisRemap));
 
-			inifile.write(section, "AxisInverted", AxisInverted);
-			inifile.write(section, "AxisRemap", AxisRemap);
+			inifile.write(section, "TriggerDeadzone", std::to_string(set.triggerDeadzone));
+			inifile.write(section, "Pressure", std::to_string(set.pressureRate));
+			inifile.write(section, "Rumble", std::to_string(set.rumble));
+			inifile.write(section, "SticksLocked", std::to_string(set.sticksLocked ? 1 : 0));
 
-			inifile.write(section, "TriggerDeadzone", set.triggerDeadzone);
-			inifile.write(section, "Pressure", set.pressureRate);
-			inifile.write(section, "Rumble", set.rumble);
-			inifile.write(section, "SticksLocked", set.sticksLocked ? 1 : 0);
+			inifile.write(section, "XInputPort", std::to_string(set.xinputPort));
+			inifile.write(section, "Disabled", std::to_string(set.disabled ? 1 : 0));
+			inifile.write(section, "DefautMode", std::to_string(set.defaultAnalog ? 1 : 0));
+			inifile.write(section, "GreenAnalog", std::to_string(set.greenAnalog ? 1 : 0));
+			inifile.write(section, "GuitarController", std::to_string(set.isGuitar ? 1 : 0));
 
-			inifile.write(section, "XInputPort", set.xinputPort);
-			inifile.write(section, "Disabled", set.disabled ? 1 : 0);
-			inifile.write(section, "DefautMode", set.defaultAnalog ? 1 : 0);
-			inifile.write(section, "GreenAnalog", set.greenAnalog ? 1 : 0);
-			inifile.write(section, "GuitarController", set.isGuitar ? 1 : 0);
-
-			inifile.write(section, "SwapDCBumpers", set.SwapDCBumpers ? 1 : 0);
-			inifile.write(section, "SwapSticks", set.SwapSticksEnabled ? 1 : 0);
-			inifile.write(section, "SwapXO", set.SwapXO ? 1 : 0);
+			inifile.write(section, "SwapDCBumpers", std::to_string(set.SwapDCBumpers ? 1 : 0));
+			inifile.write(section, "SwapSticks", std::to_string(set.SwapSticksEnabled ? 1 : 0));
+			inifile.write(section, "SwapXO", std::to_string(set.SwapXO ? 1 : 0));
 
 			// Left Stick Settings
 
-			inifile.write(section, "LS_4wayDAC", set.stickL.b4wayDAC ? 1 : 0);
-			inifile.write(section, "LS_EnableDAC", set.stickL.DACenabled ? 1 : 0);
-			inifile.write(section, "LS_DACthreshold", set.stickL.DACthreshold);
+			inifile.write(section, "LS_4wayDAC", std::to_string(set.stickL.b4wayDAC ? 1 : 0));
+			inifile.write(section, "LS_EnableDAC", std::to_string(set.stickL.DACenabled ? 1 : 0));
+			inifile.write(section, "LS_DACthreshold", std::to_string(set.stickL.DACthreshold));
 
-			inifile.write(section, "LS_ExtentionThreshold", set.stickL.extThreshold);
+			inifile.write(section, "LS_ExtentionThreshold", std::to_string(set.stickL.extThreshold));
 
-			inifile.write(section, "LS_Linearity", set.stickL.linearity);
-			inifile.write(section, "LS_AntiDeadzone", set.stickL.antiDeadzone);
-			inifile.write(section, "LS_Deadzone", set.stickL.deadzone);
+			inifile.write(section, "LS_Linearity", std::to_string(set.stickL.linearity));
+			inifile.write(section, "LS_AntiDeadzone", std::to_string(set.stickL.antiDeadzone));
+			inifile.write(section, "LS_Deadzone", std::to_string(set.stickL.deadzone));
 
 			// Right Stick Settings
 
-			inifile.write(section, "RS_4wayDAC", set.stickR.b4wayDAC ? 1 : 0);
-			inifile.write(section, "RS_EnableDAC", set.stickR.DACenabled ? 1 : 0);
-			inifile.write(section, "RS_DACthreshold", set.stickR.DACthreshold);
+			inifile.write(section, "RS_4wayDAC", std::to_string(set.stickR.b4wayDAC ? 1 : 0));
+			inifile.write(section, "RS_EnableDAC", std::to_string(set.stickR.DACenabled ? 1 : 0));
+			inifile.write(section, "RS_DACthreshold", std::to_string(set.stickR.DACthreshold));
 
-			inifile.write(section, "RS_ExtentionThreshold", set.stickR.extThreshold);
+			inifile.write(section, "RS_ExtentionThreshold", std::to_string(set.stickR.extThreshold));
 
-			inifile.write(section, "RS_Linearity", set.stickR.linearity);
-			inifile.write(section, "RS_AntiDeadzone", set.stickR.antiDeadzone);
-			inifile.write(section, "RS_Deadzone", set.stickR.deadzone);
+			inifile.write(section, "RS_Linearity", std::to_string(set.stickR.linearity));
+			inifile.write(section, "RS_AntiDeadzone", std::to_string(set.stickR.antiDeadzone));
+			inifile.write(section, "RS_Deadzone", std::to_string(set.stickR.deadzone));
 		}
 
 		inifile.save();
@@ -117,18 +124,18 @@ namespace FileIO
 		regini::regini_file inifile;
 		inifile.open(GetFilename());
 
-		if (inifile.read("General", "INIversion", -1) != INIversion)
+		if (inifile.readi("General", "INIversion", -1) != INIversion)
 		{
 			return;
 		}
 
-		bPriority = inifile.read("General", "ProcPriority", 0) == 1;
+		bPriority = inifile.readi("General", "ProcPriority", 0) == 1;
 		SetPriority();
 
-		disableLED       = inifile.read("General", "DisableLED", 0) == 1;
-		SwapPortsEnabled = inifile.read("General", "SwapPorts", 0) == 1;
-		bKeepAwake       = inifile.read("General", "KeepAwake", 0) == 1;
-		multitap         = inifile.read("General", "Multitap", 0) & 0xF;
+		disableLED       = inifile.readi("General", "DisableLED", 0) == 1;
+		SwapPortsEnabled = inifile.readi("General", "SwapPorts", 0) == 1;
+		bKeepAwake       = inifile.readi("General", "KeepAwake", 0) == 1;
+		multitap         = inifile.readi("General", "Multitap", 0) & 0xF;
 		multitap = multitap > 2 ? 0 : multitap;
 
 		for (s32 port = 0; port < 4; port++)
@@ -136,55 +143,73 @@ namespace FileIO
 			std::string section = "Controller" + std::to_string(port);
 			_Settings &set = settings[port];
 			s32 result;
+			
+			result = inifile.readi(section, "AxisInverted", -1);
+			if (result != -1)
+			{
+				u8 *ai = set.axisInverted;
+				u32 res = result;
+				
+				ai[0] = res & 0xFF;
+				ai[1] = (res >> 8 ) & 0xFF;
+				ai[2] = (res >> 16) & 0xFF;
+				ai[3] = (res >> 24) & 0xFF;
+			}
 
-			result = inifile.read(section, "AxisInverted", -1);
-			if (result != -1)  *(s32*)set.axisInverted = result;
+			result = inifile.readi(section, "AxisRemap", -1);
+			if (result != -1)
+			{
+				u8 *ar = set.axisRemap;
+				u32 res = result;
+				
+				ar[0] = res & 0xFF;
+				ar[1] = (res >> 8 ) & 0xFF;
+				ar[2] = (res >> 16) & 0xFF;
+				ar[3] = (res >> 24) & 0xFF;
+			}
 
-			result = inifile.read(section, "AxisRemap", -1);
-			if (result != -1) *(s32*)set.axisRemap = result;
-
-			set.triggerDeadzone = inifile.read(section, "TriggerDeadzone", set.triggerDeadzone) & 0xFF;
-			set.pressureRate    = inifile.read(section, "Pressure", set.pressureRate) & 0xFF;
-			set.rumble          = inifile.read(section, "Rumble", set.rumble);
-			set.xinputPort      = inifile.read(section, "XInputPort", set.xinputPort) & 0xF;
+			set.triggerDeadzone = inifile.readi(section, "TriggerDeadzone", set.triggerDeadzone) & 0xFF;
+			set.pressureRate    = inifile.readi(section, "Pressure", set.pressureRate) & 0xFF;
+			set.rumble          = inifile.readf(section, "Rumble", set.rumble);
+			set.xinputPort      = inifile.readi(section, "XInputPort", set.xinputPort) & 0xF;
 
 			DebugPrint("[%d] -> XInputPort [%d]", port, set.xinputPort);
 
-			set.disabled      = !!inifile.read(section, "Disabled", 0);
-			set.sticksLocked  = !!inifile.read(section, "SticksLocked", 1);
-			set.defaultAnalog = !!inifile.read(section, "DefautMode", 1);
+			set.disabled      = !!inifile.readi(section, "Disabled", 0);
+			set.sticksLocked  = !!inifile.readi(section, "SticksLocked", 1);
+			set.defaultAnalog = !!inifile.readi(section, "DefautMode", 1);
 
-			set.greenAnalog       = !!inifile.read(section, "GreenAnalog", 0);
-			set.isGuitar          = !!inifile.read(section, "GuitarController", 0);
-			set.SwapDCBumpers     = !!inifile.read(section, "SwapDCBumpers", 0);
-			set.SwapSticksEnabled = !!inifile.read(section, "SwapSticks", 0);
-			set.SwapXO            = !!inifile.read(section, "SwapXO", 0);
+			set.greenAnalog       = !!inifile.readi(section, "GreenAnalog", 0);
+			set.isGuitar          = !!inifile.readi(section, "GuitarController", 0);
+			set.SwapDCBumpers     = !!inifile.readi(section, "SwapDCBumpers", 0);
+			set.SwapSticksEnabled = !!inifile.readi(section, "SwapSticks", 0);
+			set.SwapXO            = !!inifile.readi(section, "SwapXO", 0);
 
 			// Left Stick Settings
 
-			set.stickL.b4wayDAC   = !!inifile.read(section, "LS_4wayDAC", 0);
-			set.stickL.DACenabled = !!inifile.read(section, "LS_EnableDAC", 0);
+			set.stickL.b4wayDAC   = !!inifile.readi(section, "LS_4wayDAC", 0);
+			set.stickL.DACenabled = !!inifile.readi(section, "LS_EnableDAC", 0);
 
-			set.stickL.DACthreshold = inifile.read(section, "LS_DACthreshold", set.stickL.DACthreshold);
-			set.stickL.extThreshold = inifile.read(section, "LS_ExtentionThreshold", set.stickL.extThreshold);
+			set.stickL.DACthreshold = inifile.readd(section, "LS_DACthreshold", set.stickL.DACthreshold);
+			set.stickL.extThreshold = inifile.readd(section, "LS_ExtentionThreshold", set.stickL.extThreshold);
 			set.stickL.extMult = 46339.535798279205464084934426179 / set.stickL.extThreshold;
 
-			set.stickL.linearity    = inifile.read(section, "LS_Linearity", set.stickL.linearity);
-			set.stickL.antiDeadzone = inifile.read(section, "LS_AntiDeadzone", set.stickL.antiDeadzone);
-			set.stickL.deadzone     = inifile.read(section, "LS_Deadzone", set.stickL.deadzone);
+			set.stickL.linearity    = inifile.readd(section, "LS_Linearity", set.stickL.linearity);
+			set.stickL.antiDeadzone = inifile.readf(section, "LS_AntiDeadzone", set.stickL.antiDeadzone);
+			set.stickL.deadzone     = inifile.readf(section, "LS_Deadzone", set.stickL.deadzone);
 
 			// Right Stick Settings
 
-			set.stickR.b4wayDAC   = !!inifile.read(section, "RS_4wayDAC", 0);
-			set.stickR.DACenabled = !!inifile.read(section, "RS_EnableDAC", 0);
+			set.stickR.b4wayDAC   = !!inifile.readi(section, "RS_4wayDAC", 0);
+			set.stickR.DACenabled = !!inifile.readi(section, "RS_EnableDAC", 0);
 
-			set.stickR.DACthreshold = inifile.read(section, "RS_DACthreshold", set.stickR.DACthreshold);
-			set.stickR.extThreshold = inifile.read(section, "RS_ExtentionThreshold", set.stickR.extThreshold);
+			set.stickR.DACthreshold = inifile.readd(section, "RS_DACthreshold", set.stickR.DACthreshold);
+			set.stickR.extThreshold = inifile.readd(section, "RS_ExtentionThreshold", set.stickR.extThreshold);
 			set.stickR.extMult = 46339.535798279205464084934426179 / set.stickR.extThreshold;
 
-			set.stickR.linearity    = inifile.read(section, "RS_Linearity", set.stickR.linearity);
-			set.stickR.antiDeadzone = inifile.read(section, "RS_AntiDeadzone", set.stickR.antiDeadzone);
-			set.stickR.deadzone     = inifile.read(section, "RS_Deadzone", set.stickR.deadzone);
+			set.stickR.linearity    = inifile.readd(section, "RS_Linearity", set.stickR.linearity);
+			set.stickR.antiDeadzone = inifile.readf(section, "RS_AntiDeadzone", set.stickR.antiDeadzone);
+			set.stickR.deadzone     = inifile.readf(section, "RS_Deadzone", set.stickR.deadzone);
 		}
 
 	}
