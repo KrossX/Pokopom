@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.6)
 project(padPokopom)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 ADD_DEFINITIONS(-DUNICODE)
 ADD_DEFINITIONS(-D_UNICODE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -D_UNICODE -DUNICODE")
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_LINK_DEF_FILE_FLAG Pokopom/Exports.def)
 
 set(SOURCE_FILES
         Pokopom/Chankast.cpp
