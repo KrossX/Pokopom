@@ -2,7 +2,7 @@
  * XInput Wrapper for DS3 and Play.com USB Dual DS2 Controller 
  * http://forums.pcsx2.net/Thread-XInput-Wrapper-for-DS3-and-Play-com-USB-Dual-DS2-Controller
  */
-
+#ifdef _WIN32
 #include "SCPExtensions.h"
 
 DWORD WINAPI XInputGetExtended(DWORD dwUserIndex, SCP_EXTN* pPressure)
@@ -33,3 +33,4 @@ static FARPROC l_hXInputFunc[] = { NULL };
 
 	return RetVal;
 }
+#endif

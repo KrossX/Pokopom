@@ -4,7 +4,7 @@
  */
 
 #pragma once
-
+#ifdef _WIN32
 typedef struct
 {
 	float SCP_UP;
@@ -39,4 +39,4 @@ typedef struct
 typedef DWORD (WINAPI *XInputGetExtendedFunction)(DWORD dwUserIndex, SCP_EXTN* pPressure);
 
 extern DWORD WINAPI XInputGetExtended(DWORD dwUserIndex, SCP_EXTN* pPressure);
-
+#endif

@@ -12,15 +12,24 @@ struct demul_interface
 	int(*func12)(); // 556
 	void(*func11)(); // 560
 	int(*func10)(); // 564
-	int(__fastcall *func09)(int); // 568
-	void(__fastcall *func08)(int, int); // 572
 	void(*func07)(); // 576
-	int(__fastcall *func06)(u8); // 580
 	int(*func05)(); // 584
 	void(*func04)(); // 588
-	int(__fastcall *func03)(int, int, int, int); // 592
 	int(*func02)(); // 596 
 	int(*func01)(); // 600
+
+#ifdef __linux__
+	int(__attribute__((fastcall)) *func09)(int); // 568
+	void(__attribute__((fastcall)) *func08)(int, int); // 572
+	int(__attribute__((fastcall)) *func06)(u8); // 580
+	int(__attribute__((fastcall)) *func03)(int, int, int, int); // 592
+#endif
+#ifdef _WIN32
+	int(__fastcall *func09)(int); // 568
+	void(__fastcall *func08)(int, int); // 572
+	int(__fastcall *func06)(u8); // 580
+	int(__fastcall *func03)(int, int, int, int); // 592
+#endif
 };
 
 // old nullDC stuff
