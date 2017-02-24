@@ -139,12 +139,6 @@
     <ClCompile Include="Input_Shared.cpp" />
     <ClCompile Include="Input_XInput.cpp" />
     <ClCompile Include="psemupro.cpp" />
-    <ClCompile Include="nullDC.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="nullDC_Devices.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="regini.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Stuff_Linux.cpp" />

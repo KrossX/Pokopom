@@ -113,12 +113,6 @@
     <ClCompile Include="Chankast.cpp">
       <Filter>Systems\Dreamcast</Filter>
     </ClCompile>
-    <ClCompile Include="nullDC.cpp">
-      <Filter>Systems\Dreamcast</Filter>
-    </ClCompile>
-    <ClCompile Include="nullDC_Devices.cpp">
-      <Filter>Systems\Dreamcast</Filter>
-    </ClCompile>
     <ClCompile Include="Zilmar.cpp">
       <Filter>Systems\Nintendo64</Filter>
     </ClCompile>
