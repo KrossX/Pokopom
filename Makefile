@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O2 -flto -std=c++11 -march=i686 -m32 -mwindows -s 
+CFLAGS = -Wall -O2 -flto -std=c++11 -march=i686 -m32 -s 
 LDLIBS = -lstdc++ -luxtheme
 
 OBJ = ConfigDialog.o             \

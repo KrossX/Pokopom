@@ -3,7 +3,7 @@
 */
 
 #include "demul.h"
-#include "input.h"
+#include "Input.h"
 #include "FileIO.h"
 #include "ConfigDialog.h"
 
@@ -98,7 +98,12 @@ void UpdateVibration()
 	}
 }
 
+#ifdef __linux__
+int __attribute__((fastcall)) func3(int a, int b, int c, int d)// ... rumble?
+#endif
+#ifdef _WIN32
 int __fastcall func3(int a, int b, int c, int d)// ... rumble?
+#endif
 {
 	u32 *buffer = (u32*)b;
 
@@ -116,21 +121,35 @@ int __fastcall func3(int a, int b, int c, int d)// ... rumble?
 void func4() { printfn(__FUNCTION__); }
 
 int func5() { printfn(__FUNCTION__); return 0x7601; } // ????
-
+#ifdef __linux__
+int __attribute__((fastcall)) func6(u8 a) { printfn(__FUNCTION__, a); return 0; }
+#endif
+#ifdef _WIN32
 int __fastcall func6(u8 a) { printfn(__FUNCTION__, a); return 0; }
+#endif
 void func7() { printfn(__FUNCTION__); }
-
+#ifdef __linux__
+void __attribute__((fastcall)) func8(int a, int b)
+#endif
+#ifdef _WIN32
 void __fastcall func8(int a, int b)
+#endif
 {
 	//printfn(__FUNCTION__, a, b);
 	bool plugged = true;
 	Input::DreamcastPoll((u32*)a, settings[0], plugged);
 } // READ JOY
 
+#ifdef __linux__
+void __attribute__((fastcall)) func8b(int a, int b) { printfn(__FUNCTION__, a, b); } // READ JOY
 
+int __attribute__((fastcall)) func9(int a) { printfn(__FUNCTION__, a); return 0xFFFFFFFF; } // JOYCAPS ?
+#endif
+#ifdef _WIN32
 void __fastcall func8b(int a, int b) { printfn(__FUNCTION__, a, b); } // READ JOY
 
 int __fastcall func9(int a) { printfn(__FUNCTION__, a); return 0xFFFFFFFF; } // JOYCAPS ?
+#endif
 
 int func10()
 {

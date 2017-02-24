@@ -3,6 +3,7 @@
  */
 
 #include "General.h"
+#include <cstdarg>
 
 FILE *logfile = NULL;
 

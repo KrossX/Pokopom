@@ -4,8 +4,8 @@
 
 //#include "general.h"
 #include "psemupro.h"
-#include "input.h"
-#include "stuff.h"
+#include "Input.h"
+#include "Stuff.h"
 
 #ifdef _WIN32
 

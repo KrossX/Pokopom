@@ -8,7 +8,8 @@
 #include "Chankast.h"
 #include "Input.h"
 
-#ifdef _WIN32
+#if 0
+//#ifdef _WIN32
 
 ChankastController * chankastPad[2] = {NULL, NULL};
 ChankastPadData chankastData[2];

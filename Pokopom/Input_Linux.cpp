@@ -9,6 +9,7 @@
 #ifdef __linux__
 
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/joystick.h>
 #include <stdio.h>
