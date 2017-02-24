@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef _WIN32
+
 const wchar_t demul_name[] = L"Pokopom Xinput Pad Plugin";
 
 std::ofstream demul_logfile;
@@ -238,3 +240,5 @@ DllExport char getInterface(u32* demul)
 		
 	return 0;
 }
+
+#endif

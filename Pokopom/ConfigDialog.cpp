@@ -6,6 +6,8 @@
 #include "ConfigDialog.h"
 #include "FileIO.h"
 
+u8 multitap;
+
 #ifdef _WIN32
 #include <Uxtheme.h>
 #include <CommCtrl.h>
@@ -14,7 +16,7 @@
 
 HWND hChild, hParent;
 //extern u8 multitap;
-u8 multitap;
+
 extern HINSTANCE h_instance;
 //extern u8 dcPlatform;
 

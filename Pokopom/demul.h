@@ -6,6 +6,8 @@
 
 #include "General.h"
 
+#ifdef _WIN32
+
 struct demul_interface
 {
 	u8(*func13)(); // 552
@@ -18,18 +20,10 @@ struct demul_interface
 	int(*func02)(); // 596 
 	int(*func01)(); // 600
 
-#ifdef __linux__
-	int(__attribute__((fastcall)) *func09)(int); // 568
-	void(__attribute__((fastcall)) *func08)(int, int); // 572
-	int(__attribute__((fastcall)) *func06)(u8); // 580
-	int(__attribute__((fastcall)) *func03)(int, int, int, int); // 592
-#endif
-#ifdef _WIN32
 	int(__fastcall *func09)(int); // 568
 	void(__fastcall *func08)(int, int); // 572
 	int(__fastcall *func06)(u8); // 580
 	int(__fastcall *func03)(int, int, int, int); // 592
-#endif
 };
 
 // old nullDC stuff
@@ -84,3 +78,5 @@ union RumbleConfig
 		unsigned INH : 1; // Convergency
 	};
 };
+
+#endif
