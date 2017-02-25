@@ -51,9 +51,7 @@ set(SOURCE_FILES
         Pokopom/Zilmar.cpp
         Pokopom/Zilmar_Controller_Interface.h
         Pokopom/Zilmar_Devices.cpp
-        Pokopom/Zilmar_Devices.h
-        SCP/SCPExtensions.cpp
-        SCP/SCPExtensions.h)
+        Pokopom/Zilmar_Devices.h)
 
 add_library(padPokopom SHARED ${SOURCE_FILES})
 set(CMAKE_EXE_LINKER_FLAGS " -static")
