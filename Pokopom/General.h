@@ -30,7 +30,7 @@
 	#include <X11/Xlib.h>
 
 	#ifdef __cplusplus
-	#define DllExport extern "C" __attribute__((stdcall))
+	#define DllExport extern "C" __attribute__((stdcall)) __attribute__((visibility ("default")))
 	#else
 	#define DllExport __attribute__((stdcall))
 	#endif

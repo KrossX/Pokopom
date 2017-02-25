@@ -6,6 +6,9 @@ set(CMAKE_BUILD_TYPE Release)
 ADD_DEFINITIONS(-DUNICODE)
 ADD_DEFINITIONS(-D_UNICODE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -D_UNICODE -DUNICODE")
+if (UNIX)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+endif(UNIX)
 set(CMAKE_LINK_DEF_FILE_FLAG Pokopom/Exports.def)
 
 set(SOURCE_FILES
@@ -48,10 +51,12 @@ set(SOURCE_FILES
         Pokopom/Zilmar.cpp
         Pokopom/Zilmar_Controller_Interface.h
         Pokopom/Zilmar_Devices.cpp
-        Pokopom/Zilmar_Devices.h)
+        Pokopom/Zilmar_Devices.h
+        SCP/SCPExtensions.cpp
+        SCP/SCPExtensions.h)
 
 add_library(padPokopom SHARED ${SOURCE_FILES})
 set(CMAKE_EXE_LINKER_FLAGS " -static")
 if(WIN32)
-target_link_libraries(padPokopom UxTheme.lib)
+    target_link_libraries(padPokopom UxTheme.lib)
 endif(WIN32)
