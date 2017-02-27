@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.6)
-project(padPokopom)
+cmake_minimum_required(VERSION 3.5)
+project(Pokopom)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
@@ -9,7 +9,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -D_UNICODE -DUNICODE")
 if (UNIX)
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 endif(UNIX)
-set(CMAKE_LINK_DEF_FILE_FLAG Pokopom/Exports.def)
 
 set(SOURCE_FILES
         Pokopom/Chankast.cpp
@@ -20,6 +19,7 @@ set(SOURCE_FILES
         Pokopom/DebugStuff.h
         Pokopom/demul.cpp
         Pokopom/demul.h
+		Pokopom/Exports.def
         Pokopom/FileIO.cpp
         Pokopom/FileIO.h
         Pokopom/General.h
@@ -53,8 +53,8 @@ set(SOURCE_FILES
         Pokopom/Zilmar_Devices.cpp
         Pokopom/Zilmar_Devices.h)
 
-add_library(padPokopom SHARED ${SOURCE_FILES})
+add_library(Pokopom SHARED ${SOURCE_FILES})
 set(CMAKE_EXE_LINKER_FLAGS " -static")
 if(WIN32)
-    target_link_libraries(padPokopom UxTheme.lib)
+    target_link_libraries(Pokopom UxTheme.lib)
 endif(WIN32)
