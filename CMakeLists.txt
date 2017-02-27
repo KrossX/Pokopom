@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(Pokopom)
+project(padPokopom)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
@@ -53,8 +53,8 @@ set(SOURCE_FILES
         Pokopom/Zilmar_Devices.cpp
         Pokopom/Zilmar_Devices.h)
 
-add_library(Pokopom SHARED ${SOURCE_FILES})
+add_library(padPokopom SHARED ${SOURCE_FILES})
 set(CMAKE_EXE_LINKER_FLAGS " -static")
 if(WIN32)
-    target_link_libraries(Pokopom UxTheme.lib)
+    target_link_libraries(padPokopom UxTheme.lib)
 endif(WIN32)
